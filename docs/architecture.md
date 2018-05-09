@@ -41,7 +41,6 @@ Represents the task submission.  It is essentially an Ona submission with extra 
 * **task_id** (int) *required*
 * **user_id** (int) *required*
 * **location_id** (id) *required*
-* **data_collection_time** (datetime) *required*
 * **submission_time** (datetime) *required*
 * **valid** (bool) *required* - based on initial automated checks
 * **approved** (bool) *required* - based on a manual user review
@@ -97,6 +96,7 @@ This model extends the `Task` model from the tasking application and adds the fo
 This model extends the `TaskSubmission` model from the tasking application and adds the following fields:
 
 * **submission_id** (int) *required*
+* **data_collection_time** (datetime) *required*
 * **data** (json) *required* - the JSON data of the linked Onadata Submission
 * **bounty_id** (int) *required*
 * **rating** (int) *required* - the rating of the user for this submission
