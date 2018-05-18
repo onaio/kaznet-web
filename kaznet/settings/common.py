@@ -75,10 +75,10 @@ WSGI_APPLICATION = 'kaznet.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'kaznet',
+        'NAME': ':memory:',
+        'TEST_NAME': ':memory:',
         'USER': 'postgres',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1'
+        'HOST': os.environ.get('POSTGRES_HOST', '127.0.0.1')
     }
 }
 

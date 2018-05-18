@@ -1,0 +1,15 @@
+pipeline:
+  build:
+    image: onaio/python:${PYTHON_VERSION}
+    commands:
+        - pip install tox
+        - psql -h postgres -U postgres -c "SELECT 1 AS COL;"
+        - tox
+    environment:
+      - POSTGRES_HOST=postgres
+services:
+  postgres:
+    image: onaio/postgis:9.5
+matrix:
+  PYTHON_VERSION:
+    - 3.6
