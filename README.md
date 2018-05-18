@@ -1,5 +1,7 @@
 # Kaznet Web
 
+[![Build Status](http://cicd.onalabs.org/api/badges/onaio/kaznet-web/status.svg)](http://cicd.onalabs.org/onaio/kaznet-web)
+
 This repository will hold code for the Kaznet web application.
 
 ## Important Documents ##
