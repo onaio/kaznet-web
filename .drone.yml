@@ -1,0 +1,26 @@
+pipeline:
+  build:
+    image: onaio/python:${PYTHON_VERSION}
+    commands:
+        - pip install --upgrade pip
+        - pip install tox
+        - sleep 10 && psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
+        - tox
+    environment:
+      - KAZNET_POSTGRES_HOST=postgres
+      - PGPASSWORD=kaznet
+  notify:
+    image: plugins/slack
+    secrets: [ slack_webhook ]
+    when:
+        status: [success, failure]
+        event: [push, tag]
+services:
+  postgres:
+    image: onaio/postgis:9.5
+    environment:
+        - POSTGRES_USER=kaznet
+        - POSTGRES_PASSWORD=kaznet
+matrix:
+  PYTHON_VERSION:
+    - 3.6
