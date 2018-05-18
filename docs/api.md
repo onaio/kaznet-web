@@ -1,6 +1,6 @@
 # Kaznet API #
 
-This documenti describes the Kaznet API.
+This document describes the Kaznet API.
 
 The Kaznet API is implemented using the [JSON API](http://jsonapi.org/) specification.
 

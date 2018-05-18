@@ -2,16 +2,25 @@
 
 [![Build Status](http://cicd.onalabs.org/api/badges/onaio/kaznet-web/status.svg)](http://cicd.onalabs.org/onaio/kaznet-web)
 
-This repository will hold code for the Kaznet web application.
+Kaznet web is a Django project that provides the core functionality and APIs for the ILRI Kaznet project.
 
-## Important Documents ##
+Kaznet is primarily a tasking application built on top of [Ona](http://ona.io).
 
-* [Kaznet Inception Report](https://docs.google.com/presentation/d/1RY6VlmZPX1SSzTPcVzQ33j14GC_vpdXlhJ_3ee69q0k/edit)
-* [Kickoff Agenda](https://docs.google.com/document/d/1ySa70jBKCIL_HVupJrCIgjyOaeswAJMEf7KtxXLl2SE/edit#heading=h.g99rpzyt8zxp)
-* [Kaznet web app components](https://docs.google.com/document/d/1vWTj6CusdpgwJ7qWOT5a72yj6iGW8dRM7P5KyNZJsFM/edit#heading=h.gygvf8p4j7p)
-* [Task definition](https://docs.google.com/document/d/1rWBMlXkCTreDGMdFZhdS3m87rLG51G_jDHosjRlrH_c/edit#)
-* [Second kick-off meeting notes](https://docs.google.com/document/d/15JaEyDMLrC-jndh6tYmYBQjDVJ0Pi_ky8wz8Ai1mWeQ/edit)
+**Table of Contents**
 
-## Components ##
+* [Design guidelines](https://github.com/onaio/kaznet-web/blob/master/docs/design.md)
+* [Installation](https://github.com/onaio/kaznet-web/blob/master/docs/installation.md)
+* [Architecture](https://github.com/onaio/kaznet-web/blob/master/docs/architecture.md)
+* [Ona Tasking Application](https://github.com/onaio/tasking)
+* [ILRI Kaznet Project](https://github.com/onaio/kaznet-web/blob/master/docs/project.md)
+* [Testing](https://github.com/onaio/kaznet-web#testing)
 
-![kaznet technical components](https://user-images.githubusercontent.com/372073/39125751-c153f3cc-4708-11e8-8242-4595745adc3c.png)
+## Testing
+
+```sh
+
+pip install -U tox
+
+tox
+
+```
