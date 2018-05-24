@@ -4,6 +4,8 @@
 
 Kaznet web is a Django project that provides the core functionality and APIs for the ILRI Kaznet project.
 
+Kaznet web supports only **Python versions >=3.6** and **Django versions >= 2.0**
+
 Kaznet is primarily a tasking application built on top of [Ona](http://ona.io).
 
 **Table of Contents**
