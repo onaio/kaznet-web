@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from tasking.models.base import TimeStampedModel
 
 from kaznet.apps.ona.constants import MAX_ID_LENGTH, XFORM_TITLE_LENGTH
+from kaznet.apps.ona.managers import GenericSoftDeleteManager
 
 
 class XForm(TimeStampedModel, models.Model):
@@ -29,6 +30,8 @@ class XForm(TimeStampedModel, models.Model):
         max_length=MAX_ID_LENGTH)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
+
+    objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
@@ -53,6 +56,8 @@ class OnaInstance(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
 
+    objects = GenericSoftDeleteManager()
+
     # pylint: disable=too-few-public-methods
     class Meta(object):
         """
@@ -72,6 +77,8 @@ class OnaProject(TimeStampedModel, models.Model):
     name = models.CharField(max_length=255)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
+
+    objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
