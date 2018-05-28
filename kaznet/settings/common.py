@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_countries',  # Required for CountryField in Location Model
     'mptt',
     'tasking.apps.TaskingConfig',
+    'kaznet.apps.ona'
 ]
 
 MIDDLEWARE = [
