@@ -14,5 +14,5 @@ class XFormViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = XFormSerializer
-    permission_classes = IsAuthenticated
+    permission_classes = [IsAuthenticated]
     queryset = XForm.objects.all()
