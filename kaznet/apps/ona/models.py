@@ -8,12 +8,12 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from tasking.models.base import TimeStampedModel
+
 from kaznet.apps.ona.constants import MAX_ID_LENGTH, XFORM_TITLE_LENGTH
 
-# from tasking.models.base import TimeStampedModel
 
-
-class XForm(models.Model):
+class XForm(TimeStampedModel, models.Model):
     """
     XForm model from onadata
     """
@@ -40,7 +40,7 @@ class XForm(models.Model):
         return self.id_string
 
 
-class OnaInstance(models.Model):
+class OnaInstance(TimeStampedModel, models.Model):
     """
     Instance model from onadata
     """
@@ -59,7 +59,7 @@ class OnaInstance(models.Model):
         ordering = ['ona_pk', 'deleted_at']
 
 
-class OnaProject(models.Model):
+class OnaProject(TimeStampedModel, models.Model):
     """
     Project model from onadata
     """
