@@ -51,6 +51,7 @@ class TestXFormSerializer(TestCase):
         """
         mocked_idstring = slugify('Solar Flare')
         mocked_data = {
+            'id': 45,
             'ona_pk': 596,
             'ona_project_id': 54,
             'title': 'Solar Flare',
@@ -59,6 +60,7 @@ class TestXFormSerializer(TestCase):
 
         serializer_data = XFormSerializer(mocked_data).data
         expected_fields = {
+            'id',
             'ona_pk',
             'ona_project_id',
             'title',
@@ -86,6 +88,7 @@ class TestOnaInstanceSerializer(TestCase):
         """
         mocked_xform = mommy.make('ona.XForm')
         mocked_data = {
+            'id': 34,
             'ona_pk': 596,
             'xform': mocked_xform,
             'json': dict
@@ -94,6 +97,7 @@ class TestOnaInstanceSerializer(TestCase):
         serializer_data = OnaInstanceSerializer(mocked_data).data
 
         expected_fields = {
+            'id',
             'ona_pk',
             'xform',
             'json',
@@ -118,6 +122,7 @@ class TestOnaProjectSerializer(TestCase):
         Test that we get the fields we are expecting
         """
         mocked_data = {
+            'id': 1,
             'ona_pk': 59,
             'ona_organization': 12,
             'name': 'Project Zero'
@@ -126,6 +131,7 @@ class TestOnaProjectSerializer(TestCase):
         serializer_data = OnaProjectSerializer(mocked_data).data
 
         expected_fields = {
+            'id',
             'ona_pk',
             'ona_organization',
             'name',
@@ -151,7 +157,7 @@ class TestXFormViewSet(TestCase):
     
     def test_list_xfrom(self):
         """
-        Test that we can get the list of XForm
+        Test that GET /xforms returns a list of all xforms
         """
         user = mommy.make('auth.User')
         mommy.make('ona.XForm', _quantity=4)
@@ -162,4 +168,22 @@ class TestXFormViewSet(TestCase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
-        import ipdb; ipdb.set_trace()
+        self.assertEqual(4, len(response.data))
+    
+    def test_retrieve_xfrom(self):
+        """
+        Test that GET /xforms/[id] returns a specific item
+        matching pk
+        """
+        user = mommy.make('auth.User')
+        form = mommy.make('ona.XForm', title="Form A")
+        mommy.make('ona.XForm', _quantity=4)
+        view = XFormViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get('/xforms/{id}'.format(id=form.id))
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=form.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(form.id, response.data['id'])
+        self.assertEqual(form.title, response.data['title'])

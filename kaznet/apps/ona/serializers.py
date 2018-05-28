@@ -17,6 +17,7 @@ class XFormSerializer(serializers.ModelSerializer):
         """
         model = XForm
         fields = [
+            'id',
             'ona_pk',
             'ona_project_id',
             'title',
@@ -36,6 +37,7 @@ class OnaInstanceSerializer(serializers.ModelSerializer):
         """
         model = OnaInstance
         fields = [
+            'id',
             'ona_pk',
             'xform',
             'json',
@@ -54,6 +56,7 @@ class OnaProjectSerializer(serializers.ModelSerializer):
         """
         model = OnaProject
         fields = [
+            'id',
             'ona_pk',
             'ona_organization',
             'name',
