@@ -1,0 +1,3 @@
+"""
+Serializers for users app
+"""
