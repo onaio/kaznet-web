@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django_countries',  # Required for CountryField in Location Model
     'mptt',
     # custom apps
-    'kaznet.apps.ona'
+    'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
     'kaznet.apps.users.apps.UsersConfig',
 ]
