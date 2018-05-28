@@ -22,6 +22,8 @@ class XFormSerializer(serializers.ModelSerializer):
             'ona_project_id',
             'title',
             'id_string',
+            'created',
+            'modified',
             'deleted_at'
         ]
 
@@ -40,6 +42,8 @@ class OnaInstanceSerializer(serializers.ModelSerializer):
             'id',
             'ona_pk',
             'xform',
+            'created',
+            'modified',
             'json',
             'deleted_at'
         ]
@@ -59,6 +63,8 @@ class OnaProjectSerializer(serializers.ModelSerializer):
             'id',
             'ona_pk',
             'ona_organization',
+            'created',
+            'modified',
             'name',
             'deleted_at'
         ]
