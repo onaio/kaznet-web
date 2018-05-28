@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9739adabea36485558a160338a4626eeb04b782817667901b2371cd3b9382714"
+            "sha256": "2758ee3017309030a9d1079130b3c1e53f8e9cd8643962abec40de941fe95dd3"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,12 +16,54 @@
         ]
     },
     "default": {
+        "backports.tempfile": {
+            "hashes": [
+                "sha256:05aa50940946f05759696156a8c39be118169a0e0f94a49d0bb106503891ff54",
+                "sha256:1c648c452e8770d759bdc5a5e2431209be70d25484e1be24876cf2168722c762"
+            ],
+            "version": "==1.0"
+        },
+        "backports.weakref": {
+            "hashes": [
+                "sha256:81bc9b51c0abc58edc76aefbbc68c62a787918ffe943a37947e162c3f8e19e82",
+                "sha256:bc4170a29915f8b22c9e7c4939701859650f2eb84184aee80da329ac0b9825c2"
+            ],
+            "version": "==1.0.post1"
+        },
         "django": {
             "hashes": [
                 "sha256:26b34f4417aa38d895b6b5307177b51bc3f4d53179d8696a5c19dcb50582523c",
                 "sha256:71d1a584bb4ad2b4f933d07d02c716755c1394feaac1ce61ce37843ac5401092"
             ],
             "version": "==2.0.5"
+        },
+        "django-countries": {
+            "hashes": [
+                "sha256:4b296e18010e2d97d69f98247511ab5490e8a5c4823da29f06a09de0011dbd17",
+                "sha256:4d22fca8536e7c6c1f134fbaf861a953a94fde0572486bdc199b9f1844acdb49"
+            ],
+            "version": "==5.3"
+        },
+        "django-filter": {
+            "hashes": [
+                "sha256:ea204242ea83790e1512c9d0d8255002a652a6f4986e93cee664f28955ba0c22",
+                "sha256:ec0ef1ba23ef95b1620f5d481334413700fb33f45cd76d56a63f4b0b1d76976a"
+            ],
+            "version": "==1.1.0"
+        },
+        "django-js-asset": {
+            "hashes": [
+                "sha256:30149158206f693a5d027fe590096fc84495486bd11cd77d395b4f2ec27fc1d0",
+                "sha256:a395d8d19eb201ea8d2bd4f145b38f1717cd74c0f609f040141d8724c5a27f36"
+            ],
+            "version": "==1.1.0"
+        },
+        "django-mptt": {
+            "hashes": [
+                "sha256:6aaa0268c0d994d77dda501b64257b5d6f1e170fcdfe2f0674f80861dc30c0f4",
+                "sha256:feef466f9ba6849d2f1581c94d8550d5554945a8d05a2660da19193140cd8a35"
+            ],
+            "version": "==0.9.0"
         },
         "djangorestframework": {
             "hashes": [
@@ -30,9 +72,28 @@
             ],
             "version": "==3.8.2"
         },
+        "djangorestframework-gis": {
+            "hashes": [
+                "sha256:018200f8ac8e4babd04001e86ce8df5ad86057d1e7438558b7c9ce24b532ea20",
+                "sha256:94901389f32f0b8cdd1133e581f81c745c903449a08c2ddff0fcb2645cca846c"
+            ],
+            "version": "==0.13"
+        },
         "e1839a8": {
             "editable": true,
             "path": "."
+        },
+        "markdown": {
+            "hashes": [
+                "sha256:9ba587db9daee7ec761cfc656272be6aabe2ed300fece21208e4aab2e457bc8f",
+                "sha256:a856869c7ff079ad84a3e19cd87a64998350c2b94e9e08e44270faef33400f81"
+            ],
+            "version": "==2.6.11"
+        },
+        "ona-tasking": {
+            "editable": true,
+            "git": "https://github.com/onaio/tasking.git",
+            "ref": "v0.0.1"
         },
         "psycopg2-binary": {
             "hashes": [
@@ -66,12 +127,26 @@
             ],
             "version": "==2.7.4"
         },
+        "python-dateutil": {
+            "hashes": [
+                "sha256:1adb80e7a782c12e52ef9a8182bebeb73f1d7e24e374397af06fb4956c8dc5c0",
+                "sha256:e27001de32f627c22380a688bcc43ce83504a7bc5da472209b4c70f02829f0b8"
+            ],
+            "version": "==2.7.3"
+        },
         "pytz": {
             "hashes": [
                 "sha256:65ae0c8101309c45772196b21b74c46b2e5d11b6275c45d251b150d5da334555",
                 "sha256:c06425302f2cf668f1bba7a0a03f3c1d34d4ebeef2c72003da308b3947c7f749"
             ],
             "version": "==2018.4"
+        },
+        "six": {
+            "hashes": [
+                "sha256:70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9",
+                "sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb"
+            ],
+            "version": "==1.11.0"
         }
     },
     "develop": {
@@ -248,10 +323,10 @@
         },
         "parso": {
             "hashes": [
-                "sha256:62bd6bf7f04ab5c817704ff513ef175328676471bdef3629d4bdd46626f75551",
-                "sha256:a75a304d7090d2c67bd298091c14ef9d3d560e3c53de1c239617889f61d1d307"
+                "sha256:cdef26e8adc10d589f3ec4eb444bd0a29f3f1eb6d72a4292ab8afcb9d68976a6",
+                "sha256:f0604a40b96e062b0fd99cf134cc2d5cdf66939d0902f8267d938b0d5b26707f"
             ],
-            "version": "==0.2.0"
+            "version": "==0.2.1"
         },
         "pep8": {
             "hashes": [
