@@ -16,6 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from rest_framework import routers
+from kaznet.apps.ona.viewsets import XFormViewSet
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'xfroms', XFormViewSet)
+
 # pylint: disable=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
