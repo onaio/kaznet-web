@@ -11,6 +11,7 @@ class XFormSerializer(serializers.ModelSerializer):
     Serializer for XForm Model
     """
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for XForm Serializer
@@ -33,6 +34,7 @@ class OnaInstanceSerializer(serializers.ModelSerializer):
     Serializer for OnaInstance Model
     """
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for OnaInstance Serializer
@@ -54,6 +56,7 @@ class OnaProjectSerializer(serializers.ModelSerializer):
     Serializer for OnaProject Model
     """
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for OnaProject Serializer

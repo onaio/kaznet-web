@@ -30,6 +30,7 @@ class XForm(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for XForm
@@ -52,6 +53,7 @@ class OnaInstance(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for OnaInstance
@@ -71,6 +73,7 @@ class OnaProject(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
 
+    # pylint: disable=too-few-public-methods
     class Meta(object):
         """
         Meta Options for OnaProject

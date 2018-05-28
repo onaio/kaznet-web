@@ -8,6 +8,7 @@ from kaznet.apps.ona.serializers import XFormSerializer
 from kaznet.apps.ona.models import XForm
 
 
+# pylint: disable=too-many-ancestors
 class XFormViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Read Only Viewset for XFormViewSet
@@ -15,4 +16,4 @@ class XFormViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = XFormSerializer
     permission_classes = [IsAuthenticated]
-    queryset = XForm.objects.all()
+    queryset = XForm.objects.all()  # pylint: disable=no-member

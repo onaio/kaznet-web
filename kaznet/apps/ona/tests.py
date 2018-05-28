@@ -63,9 +63,9 @@ class TestXFormSerializer(TestCase):
             'id',
             'ona_pk',
             'ona_project_id',
-            'title',
             'id_string',
-            'deleted_at'
+            'deleted_at',
+            'title',
         }
 
         self.assertEqual(set(expected_fields),
@@ -154,7 +154,7 @@ class TestXFormViewSet(TestCase):
     def setUp(self):
         super(TestXFormViewSet, self).setUp()
         self.factory = APIRequestFactory()
-    
+
     def test_list_xfrom(self):
         """
         Test that GET /xforms returns a list of all xforms
@@ -169,7 +169,7 @@ class TestXFormViewSet(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(4, len(response.data))
-    
+
     def test_retrieve_xfrom(self):
         """
         Test that GET /xforms/[id] returns a specific item
