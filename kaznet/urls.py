@@ -21,7 +21,7 @@ from kaznet.apps.ona.viewsets import XFormViewSet
 
 # pylint: disable=invalid-name
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'xfroms', XFormViewSet)
+router.register(r'xforms', XFormViewSet)
 
 # pylint: disable=invalid-name
 urlpatterns = [
