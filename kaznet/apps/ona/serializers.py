@@ -1,0 +1,61 @@
+"""
+Model Serializers for Ona app
+"""
+
+from rest_framework import serializers
+from kaznet.apps.ona.models import XForm, OnaInstance, OnaProject
+
+
+class XFormSerializer(serializers.ModelSerializer):
+    """
+    Serializer for XForm Model
+    """
+
+    class Meta(object):
+        """
+        Meta Options for XForm Serializer
+        """
+        model = XForm
+        fields = [
+            'ona_pk',
+            'ona_project_id',
+            'title',
+            'id_string',
+            'deleted_at'
+        ]
+
+
+class OnaInstanceSerializer(serializers.ModelSerializer):
+    """
+    Serializer for OnaInstance Model
+    """
+
+    class Meta(object):
+        """
+        Meta Options for OnaInstance Serializer
+        """
+        model = OnaInstance
+        fields = [
+            'ona_pk',
+            'xform',
+            'json',
+            'deleted_at'
+        ]
+
+
+class OnaProjectSerializer(serializers.ModelSerializer):
+    """
+    Serializer for OnaProject Model
+    """
+
+    class Meta(object):
+        """
+        Meta Options for OnaProject Serializer
+        """
+        model = OnaProject
+        fields = [
+            'ona_pk',
+            'ona_organization',
+            'name',
+            'deleted_at'
+        ]
