@@ -5,6 +5,7 @@ verify_ssl = true
 
 [packages]
 "e1839a8" = {editable = true, path = "."}
+ona-tasking = {git = "https://github.com/onaio/tasking.git", editable = true, ref = "v0.0.1"}
 
 [dev-packages]
 "flake8" = "*"
