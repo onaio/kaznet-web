@@ -19,5 +19,4 @@ from django.urls import path, include
 # pylint: disable=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('ona/', include('kaznet.apps.ona.urls'))
 ]
