@@ -17,6 +17,7 @@ setup(
         'djangorestframework',
         'psycopg2-binary',
         'django-prices'
+        'django-phonenumber-field',
     ],
     classifiers=[
         'Programming Language :: Python',

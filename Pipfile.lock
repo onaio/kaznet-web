@@ -84,6 +84,11 @@
                 "sha256:5e4ffffaec5d149bd629b53060b442f9e860eb074d13a7ea5a29043bd4a5797a"
             ],
             "version": "==1.0.1"
+        "django-phonenumber-field": {
+            "hashes": [
+                "sha256:d96c274a6aa9afd4eb4fe922e475a45706d997b2bea22b87f3afc9fb0012db84"
+            ],
+            "version": "==2.0.0"
         },
         "djangorestframework": {
             "hashes": [
