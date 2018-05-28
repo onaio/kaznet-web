@@ -14,16 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
-from rest_framework import routers
-from kaznet.apps.ona.viewsets import XFormViewSet
-
-# pylint: disable=invalid-name
-router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'xforms', XFormViewSet)
-
-# pylint: disable=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('ona/', include('kaznet.apps.ona.urls'))
 ]
