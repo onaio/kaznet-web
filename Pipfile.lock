@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "babel": {
+            "hashes": [
+                "sha256:6778d85147d5d85345c14a26aada5e478ab04e39b078b0745ee6870c2b5cf669",
+                "sha256:8cba50f48c529ca3fa18cf81fa9403be176d374ac4d60738b839122dfaaa3d23"
+            ],
+            "version": "==2.6.0"
+        },
         "backports.tempfile": {
             "hashes": [
                 "sha256:05aa50940946f05759696156a8c39be118169a0e0f94a49d0bb106503891ff54",
@@ -36,6 +43,13 @@
                 "sha256:71d1a584bb4ad2b4f933d07d02c716755c1394feaac1ce61ce37843ac5401092"
             ],
             "version": "==2.0.5"
+        },
+        "django-babel": {
+            "hashes": [
+                "sha256:1e621b198e1f98ae4f93e43463cf78cbedbace475eb6e0853ba1e2567f3b8119",
+                "sha256:b62084a6f0cbf2e7af719bd129abfe54608a52645c0677aff5a728f586873af7"
+            ],
+            "version": "==0.6.2"
         },
         "django-countries": {
             "hashes": [
@@ -64,6 +78,12 @@
                 "sha256:feef466f9ba6849d2f1581c94d8550d5554945a8d05a2660da19193140cd8a35"
             ],
             "version": "==0.9.0"
+        },
+        "django-prices": {
+            "hashes": [
+                "sha256:5e4ffffaec5d149bd629b53060b442f9e860eb074d13a7ea5a29043bd4a5797a"
+            ],
+            "version": "==1.0.1"
         },
         "djangorestframework": {
             "hashes": [
@@ -94,6 +114,12 @@
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
             "ref": "v0.0.3"
+        },
+        "prices": {
+            "hashes": [
+                "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"
+            ],
+            "version": "==1.0.0"
         },
         "psycopg2-binary": {
             "hashes": [
@@ -147,6 +173,14 @@
                 "sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb"
             ],
             "version": "==1.11.0"
+        },
+        "typing": {
+            "hashes": [
+                "sha256:3a887b021a77b292e151afb75323dea88a7bc1b3dfa92176cff8e44c8b68bddf",
+                "sha256:b2c689d54e1144bbcfd191b0832980a21c2dbcf7b5ff7a66248a60c90e951eb8",
+                "sha256:d400a9344254803a2368533e4533a4200d21eb7b6b729c173bc38201a74db3f2"
+            ],
+            "version": "==3.6.4"
         }
     },
     "develop": {
@@ -338,11 +372,11 @@
         },
         "pexpect": {
             "hashes": [
-                "sha256:9783f4644a3ef8528a6f20374eeb434431a650c797ca6d8df0d81e30fffdfa24",
-                "sha256:9f8eb3277716a01faafaba553d629d3d60a1a624c7cf45daa600d2148c30020c"
+                "sha256:2a8e88259839571d1251d278476f3eec5db26deb73a70be5ed5dc5435e418aba",
+                "sha256:3fbd41d4caf27fa4a377bfd16fef87271099463e6fa73e92a52f92dfee5d425b"
             ],
             "markers": "sys_platform != 'win32'",
-            "version": "==4.5.0"
+            "version": "==4.6.0"
         },
         "pickleshare": {
             "hashes": [

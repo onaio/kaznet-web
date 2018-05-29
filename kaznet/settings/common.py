@@ -26,7 +26,7 @@ SECRET_KEY = '3j6wf!-l4bs2bn!sz*1#)rdoz5np^0lbgfp0s8)8j5h)y#k@3s'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+KAZNET_DEFAULT_CURRENCY = 'KES'
 
 # Application definition
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     # third party
     'rest_framework',
+    'django_prices',
     'django_filters',
     'rest_framework_gis',  # Required for CountryField in Location Model
     'django_countries',  # Required for CountryField in Location Model

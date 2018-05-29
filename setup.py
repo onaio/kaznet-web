@@ -16,6 +16,7 @@ setup(
         'Django >= 2',
         'djangorestframework',
         'psycopg2-binary',
+        'django-prices'
     ],
     classifiers=[
         'Programming Language :: Python',
