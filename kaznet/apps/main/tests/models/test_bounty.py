@@ -4,6 +4,7 @@ Test for Bounty model
 from django.test import TestCase
 from model_mommy import mommy
 
+
 class TestBounty(TestCase):
     """
     Test class for Bounty mdoels
@@ -11,7 +12,7 @@ class TestBounty(TestCase):
 
     def test_bounty_str(self):
 
-        amount=5000
+        amount = 5000
         kitten_prices = mommy.make('main.Task', name="kitten prices")
         bounty = mommy.make('main.Bounty', task=kitten_prices, amount=amount)
 
