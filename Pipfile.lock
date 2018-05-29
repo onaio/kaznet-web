@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2758ee3017309030a9d1079130b3c1e53f8e9cd8643962abec40de941fe95dd3"
+            "sha256": "ec12c9bb48d4f3b5177d14d0340f0de4513ba2f241e223cfba4f78b41ad9eadb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -93,7 +93,7 @@
         "ona-tasking": {
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
-            "ref": "v0.0.1"
+            "ref": "v0.0.3"
         },
         "psycopg2-binary": {
             "hashes": [
