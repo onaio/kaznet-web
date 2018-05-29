@@ -1,3 +1,3 @@
 """
-Vuewsets for users app
+Viewsets for users app
 """
