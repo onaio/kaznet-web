@@ -162,6 +162,13 @@
             "git": "https://github.com/onaio/tasking.git",
             "ref": "v0.0.5"
         },
+        "phonenumbers": {
+            "hashes": [
+                "sha256:536a0616b3cf2e84dbaa1a7b837704a91a585dd78d1c4ebdb7698e8715a1a31a",
+                "sha256:cd03748c15619ada0d03ac4a9e30b1b58f14b81ac641ea1c023636c25bd4cb3b"
+            ],
+            "version": "==8.9.7"
+        },
         "prices": {
             "hashes": [
                 "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"
