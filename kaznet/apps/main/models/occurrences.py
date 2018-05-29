@@ -2,7 +2,12 @@
 
 """
 
-from tasking.models import BaseOccurence
+from django.db import models
+from django.utils.dateformat import DateFormat
+from django.utils.translation import ugettext as _
+
+from tasking.models import BaseOccurrence
+
 
 class TaskOccurrence(BaseOccurrence):
     """

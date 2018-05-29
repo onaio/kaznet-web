@@ -2,7 +2,11 @@
 
 """
 
+from django.db import models
+from django.utils.translation import ugettext as _
+
 from tasking.models import BaseProject
+
 
 class Project(BaseProject):
     """

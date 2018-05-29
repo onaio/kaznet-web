@@ -1,6 +1,8 @@
 """
 """
+
 from tasking.models.base import BaseLocation
+
 
 class Location(BaseLocation):
     """
