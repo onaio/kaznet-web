@@ -43,7 +43,7 @@ class Task(BaseTask):
 
         e.g. Cow prices - 1
         """
-        return "{name} - {pk}".format(pk=self.pk, name=self.name)
+        return _(f"{self.name} - {self.pk}")
 
     # pylint: disable=no-member
     def get_submissions(self):

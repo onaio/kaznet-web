@@ -30,7 +30,7 @@ class TaskOccurrence(BaseOccurrence):
         """
         Returns string representation of the object
         """
-        return '{} - {}'.format(self.task, self.get_timestring())
+        return _(f'{self.task} - {self.get_timestring()}')
 
     def get_timestring(self):
         """
@@ -39,12 +39,9 @@ class TaskOccurrence(BaseOccurrence):
 
         e.g. 24th May 2018, 7 a.m. to 2:30 p.m.
         """
-        date_format_obj = DateFormat(self.date)
-        start_format_obj = DateFormat(self.start_time)
-        end_format_obj = DateFormat(self.end_time)
 
-        return '{date}, {start} to {end}'.format(
-            date=date_format_obj.format('jS F Y'),
-            start=start_format_obj.format('P'),
-            end=end_format_obj.format('P')
-        )
+        date = DateFormat(self.date).format('jS F Y')
+        start = DateFormat(self.start_time).format('P')
+        end = DateFormat(self.end_time).format('P')
+
+        return _(f'{date}, {start} to {end}')

@@ -1,6 +1,8 @@
 """
 Module for the Location model(s)
 """
+from django.utils.translation import ugettext as _
+
 from tasking.models import BaseLocation
 
 
@@ -25,9 +27,6 @@ class Location(BaseLocation):
         e.g. Kenya - Nairobi
         """
         if self.country.name != '':
-            return "{country} - {name}".format(
-                country=self.country.name,
-                name=self.name)
+            return _(f"{self.country.name} - {self.name}")
         else:
-            return "{name}".format(
-                name=self.name)
+            return _(f"{self.name}")

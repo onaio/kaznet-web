@@ -42,8 +42,7 @@ class Submission(BaseSubmission):
 
         e.g. Cattle Price - 1 submission 1
         """
-        return "{task} submission {submission_id}".format(
-            submission_id=self.pk, task=self.task)
+        return _(f"{self.task} submission {self.pk}")
 
     def get_approved(self, status):
         """
