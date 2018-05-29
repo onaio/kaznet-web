@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from kaznet.apps.users.adapter import AccountAdapter
 from kaznet.apps.users.models import UserProfile
 
 
@@ -70,6 +69,37 @@ class UserProfileSerializer(serializers.ModelSerializer):
         userprofile.gender = validated_data.get('gender')
         userprofile.national_id = validated_data.get('national_id')
         userprofile.expertise = validated_data.get('expertise')
+        userprofile.save()
 
         return userprofile
 
+    def update(self, instance, validated_data):
+        """
+        Custom update method for UserProfiles
+        """
+        # deal with the user object
+
+        user = instance.user
+        user_data = validated_data.pop('user')
+        # you can't change username
+        try:
+            del user_data['username']
+        except KeyError:
+            pass
+
+        UserSerializer().update(instance=user, validated_data=user_data)
+
+        # deal with the userprofile object
+        instance.mpesa_number = validated_data.get('mpesa_number',
+                                                   instance.mpesa_number)
+        instance.phone_number = validated_data.get('phone_number',
+                                                   instance.phone_number)
+        instance.role = validated_data.get('role', instance.role)
+        instance.gender = validated_data.get('gender', instance.gender)
+        instance.national_id = validated_data.get('national_id',
+                                                  instance.national_id)
+        instance.expertise = validated_data.get('expertise',
+                                                instance.expertise)
+        instance.save()
+
+        return instance
