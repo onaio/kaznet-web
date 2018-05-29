@@ -13,13 +13,13 @@ class Task(BaseTask):
     Task model class
     """
     segment_rules = models.ManyToManyField(
-        'tasking.SegmentRule',
+        'main.SegmentRule',
         verbose_name=_('Segment Rules'),
         blank=True,
         default=None
     )
     locations = models.ManyToManyField(
-        'tasking.Location',
+        'main.Location',
         verbose_name=_('Location'),
         blank=True,
         default=None,

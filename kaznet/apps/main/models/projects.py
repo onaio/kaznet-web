@@ -12,7 +12,7 @@ class Project(BaseProject):
     Project model class
     """
     tasks = models.ManyToManyField(
-        'tasking.Task',
+        'main.Task',
         verbose_name=_('Tasks'),
         blank=True,
         default=None,

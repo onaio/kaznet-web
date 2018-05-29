@@ -13,7 +13,7 @@ class TaskOccurrence(BaseOccurrence):
     TaskOccurrence model class
     """
     task = models.ForeignKey(
-        'tasking.Task',
+        'main.Task',
         verbose_name=_('Task Occurrence'),
         on_delete=models.CASCADE
     )

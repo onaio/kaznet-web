@@ -12,13 +12,13 @@ class Submission(BaseSubmission):
     Submission model class
     """
     task = models.ForeignKey(
-        'tasking.Task',
+        'main.Task',
         verbose_name=_('Task'),
         on_delete=models.PROTECT,
         help_text=_('This represents the Task.')
     )
     location = models.ForeignKey(
-        'tasking.Location',
+        'main.Location',
         verbose_name=_('Location'),
         blank=True,
         null=True,
