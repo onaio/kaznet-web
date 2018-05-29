@@ -1,6 +1,6 @@
 """
+Module for the Task Submission model(s)
 """
-
 from django.db import models
 from django.utils.translation import ugettext as _
 

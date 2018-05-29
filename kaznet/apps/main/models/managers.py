@@ -1,5 +1,5 @@
 """
-
+Manager module for Kaznet
 """
 from __future__ import unicode_literals
 

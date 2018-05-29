@@ -1,6 +1,6 @@
 """
+Module for SegmentRule model(s)
 """
-
 from tasking.models import BaseSegmentRule
 
 

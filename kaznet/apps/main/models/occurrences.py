@@ -1,7 +1,6 @@
 """
-
+Occurrence models module
 """
-
 from django.db import models
 from django.utils.dateformat import DateFormat
 from django.utils.translation import ugettext as _

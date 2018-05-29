@@ -9,19 +9,33 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='OnaInstance',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', models.DateTimeField(auto_now_add=True, verbose_name='Created')),
-                ('modified', models.DateTimeField(auto_now=True, verbose_name='Modified')),
-                ('ona_pk', models.PositiveIntegerField(db_index=True, unique=True, verbose_name='Onadata Primary Key')),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
-                ('deleted_at', models.DateTimeField(default=None, null=True, verbose_name='Deleted at')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
+                ('created',
+                 models.DateTimeField(
+                     auto_now_add=True, verbose_name='Created')),
+                ('modified',
+                 models.DateTimeField(auto_now=True, verbose_name='Modified')),
+                ('ona_pk',
+                 models.PositiveIntegerField(
+                     db_index=True,
+                     unique=True,
+                     verbose_name='Onadata Primary Key')),
+                ('json',
+                 django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
+                ('deleted_at',
+                 models.DateTimeField(
+                     default=None, null=True, verbose_name='Deleted at')),
             ],
             options={
                 'ordering': ['ona_pk', 'deleted_at'],
@@ -30,13 +44,29 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OnaProject',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', models.DateTimeField(auto_now_add=True, verbose_name='Created')),
-                ('modified', models.DateTimeField(auto_now=True, verbose_name='Modified')),
-                ('ona_pk', models.PositiveIntegerField(db_index=True, unique=True, verbose_name='Onadata Primary Key')),
-                ('ona_organization', models.PositiveIntegerField(db_index=True, verbose_name='Onadata Organization ID')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
+                ('created',
+                 models.DateTimeField(
+                     auto_now_add=True, verbose_name='Created')),
+                ('modified',
+                 models.DateTimeField(auto_now=True, verbose_name='Modified')),
+                ('ona_pk',
+                 models.PositiveIntegerField(
+                     db_index=True,
+                     unique=True,
+                     verbose_name='Onadata Primary Key')),
+                ('ona_organization',
+                 models.PositiveIntegerField(
+                     db_index=True, verbose_name='Onadata Organization ID')),
                 ('name', models.CharField(max_length=255)),
-                ('deleted_at', models.DateTimeField(default=None, null=True, verbose_name='Deleted at')),
+                ('deleted_at',
+                 models.DateTimeField(
+                     default=None, null=True, verbose_name='Deleted at')),
             ],
             options={
                 'ordering': ['name', 'ona_pk'],
@@ -45,14 +75,35 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='XForm',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', models.DateTimeField(auto_now_add=True, verbose_name='Created')),
-                ('modified', models.DateTimeField(auto_now=True, verbose_name='Modified')),
-                ('ona_pk', models.PositiveIntegerField(db_index=True, unique=True, verbose_name='Onadata Primary Key')),
-                ('ona_project_id', models.PositiveIntegerField(db_index=True, verbose_name='Onadata project ID')),
-                ('title', models.CharField(editable=False, max_length=255, verbose_name='Title')),
-                ('id_string', models.SlugField(editable=False, max_length=100, verbose_name='ID String')),
-                ('deleted_at', models.DateTimeField(default=None, null=True, verbose_name='Deleted at')),
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
+                ('created',
+                 models.DateTimeField(
+                     auto_now_add=True, verbose_name='Created')),
+                ('modified',
+                 models.DateTimeField(auto_now=True, verbose_name='Modified')),
+                ('ona_pk',
+                 models.PositiveIntegerField(
+                     db_index=True,
+                     unique=True,
+                     verbose_name='Onadata Primary Key')),
+                ('ona_project_id',
+                 models.PositiveIntegerField(
+                     db_index=True, verbose_name='Onadata project ID')),
+                ('title',
+                 models.CharField(
+                     editable=False, max_length=255, verbose_name='Title')),
+                ('id_string',
+                 models.SlugField(
+                     editable=False, max_length=100,
+                     verbose_name='ID String')),
+                ('deleted_at',
+                 models.DateTimeField(
+                     default=None, null=True, verbose_name='Deleted at')),
             ],
             options={
                 'ordering': ['title', 'id_string'],
@@ -61,6 +112,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='onainstance',
             name='xform',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='ona.XForm'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to='ona.XForm'),
         ),
     ]

@@ -1,11 +1,10 @@
 """
-
+Module for the Task model(s)
 """
-
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from tasking.models.base import BaseTask
+from tasking.models import BaseTask
 from tasking.models.managers import TaskManager
 
 

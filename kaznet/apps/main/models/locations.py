@@ -1,7 +1,7 @@
 """
+Module for the Location model(s)
 """
-
-from tasking.models.base import BaseLocation
+from tasking.models import BaseLocation
 
 
 class Location(BaseLocation):
