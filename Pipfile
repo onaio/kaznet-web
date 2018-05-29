@@ -4,7 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-"e1839a8" = {editable = true, path = "."}
+"e1839a8" = {path = ".", editable = true}
 ona-tasking = {git = "https://github.com/onaio/tasking.git", ref = "v0.0.3", editable = true}
 
 [dev-packages]
