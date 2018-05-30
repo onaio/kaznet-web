@@ -22,9 +22,8 @@ class TestXFormModel(TestCase):
         """
         Test string representation for XForm Model
         """
-        test_string = slugify('Test XForm')
-        xform = mommy.make('ona.XForm', id_string=test_string)
-        self.assertEqual(str(xform), test_string)
+        xform = mommy.make('ona.XForm', title='Test')
+        self.assertEqual(str(xform), 'Test')
 
 
 class TestOnaProjectModel(TestCase):
