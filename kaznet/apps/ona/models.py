@@ -30,7 +30,11 @@ class XForm(TimeStampedModel, models.Model):
         max_length=MAX_ID_LENGTH)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
-
+    ona_last_updated = models.DateTimeField(
+        _('Last Updated on Ona'),
+        null=True,
+        blank=True,
+        default=None)
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
