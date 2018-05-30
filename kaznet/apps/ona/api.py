@@ -5,6 +5,7 @@ with the Onadata API
 import dateutil.parser
 import requests
 from requests.adapters import HTTPAdapter
+# pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import OnaInstance, OnaProject, XForm
