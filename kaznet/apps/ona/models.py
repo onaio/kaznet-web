@@ -39,6 +39,7 @@ class XForm(TimeStampedModel, models.Model):
         Meta Options for XForm
         """
         ordering = ['title', 'id_string']
+        unique_together = ('ona_project_id', 'id_string')
 
     def __str__(self):
         return self.id_string
@@ -73,7 +74,12 @@ class OnaProject(TimeStampedModel, models.Model):
     ona_pk = models.PositiveIntegerField(
         _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
     ona_organization = models.PositiveIntegerField(
-        _("Onadata Organization ID"), db_index=True, unique=False, blank=False)
+        _("Onadata Organization ID"),
+        db_index=True,
+        unique=False,
+        blank=True,
+        default=None
+        )
     name = models.CharField(max_length=255)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
