@@ -20,6 +20,7 @@ ipdb = "*"
 model-mommy = "*"
 "autopep8" = "*"
 tblib = "*"
+requests-mock = "*"
 
 [requires]
 python_version = "3.6"
