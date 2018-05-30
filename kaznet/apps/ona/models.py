@@ -42,7 +42,7 @@ class XForm(TimeStampedModel, models.Model):
         unique_together = ('ona_project_id', 'id_string')
 
     def __str__(self):
-        return self.id_string
+        return self.title
 
 
 class OnaInstance(TimeStampedModel, models.Model):
@@ -56,7 +56,16 @@ class OnaInstance(TimeStampedModel, models.Model):
     json = JSONField(default=dict, null=False)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
-
+    ona_last_updated = models.DateTimeField(
+        _('Last Updated on Ona'),
+        null=True,
+        blank=True,
+        default=None)
+    edited = models.BooleanField(
+        _('Edited'),
+        default=False,
+        help_text=_('This represents whether the submission has been edited')
+    )
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
@@ -75,14 +84,16 @@ class OnaProject(TimeStampedModel, models.Model):
         _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
     ona_organization = models.PositiveIntegerField(
         _("Onadata Organization ID"),
-        db_index=True,
-        unique=False,
         blank=True,
+        null=True,
         default=None
         )
     name = models.CharField(max_length=255)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
+
+    ona_last_updated = models.DateTimeField(
+        _('Last Updated on Ona'))
 
     objects = GenericSoftDeleteManager()
 
