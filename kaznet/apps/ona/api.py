@@ -4,6 +4,7 @@ with the Onadata API
 """
 import dateutil.parser
 import requests
+
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
@@ -21,7 +22,7 @@ def get_projects(username: str = ONA_USERNAME):
     """
 
     url = f"{ONA_BASE_URL}/projects?owner={username}"
-    projects_data = requests_session(url)
+    projects_data = requests_session(url).json()
 
     for project_data in projects_data:
         process_project(project_data)
@@ -59,7 +60,7 @@ def process_project(project_data: dict):
 
     for xform_data in project_data['forms']:
         # Creates form
-        process_xform(xform_data, obj)
+        process_xform(xform_data, obj.ona_pk)
 
 
 def get_xform(form_id: int, project_obj: object):
@@ -69,7 +70,7 @@ def get_xform(form_id: int, project_obj: object):
     Object, Then it passes the created/updated obj to get_instances().
     """
     url = f"{ONA_BASE_URL}/forms/{form_id}"
-    xform_data = requests_session(url)
+    xform_data = requests_session(url).json()
 
     obj, created = XForm.objects.get_or_create(
         ona_pk=xform_data['formid'],
@@ -95,7 +96,7 @@ def get_xform(form_id: int, project_obj: object):
     get_instances(obj)
 
 
-def process_xform(xform_data: dict, project_obj: object):
+def process_xform(xform_data: dict, project_obj_pk: int):
     """
     Custom Method thats takes in a Dictionary containing XForm Data
     and a OnaProject Object. Requests data for the specific formid
@@ -107,7 +108,7 @@ def process_xform(xform_data: dict, project_obj: object):
         defaults={
             'title': xform_data['name'],
             'id_string': xform_data['id_string'],
-            'ona_project_id': project_obj.ona_pk
+            'ona_project_id': project_obj_pk
             }
         )
 
@@ -138,7 +139,7 @@ def get_instances(xform: object):
 
     while end_page is None:
         url = f"{ONA_BASE_URL}/data/{xformid}?start={start}&limit=100"
-        instances_data = requests_session(url)
+        instances_data = requests_session(url).json()
 
         if instances_data == []:
             end_page = True
@@ -189,8 +190,7 @@ def requests_session(
     Custom Method that takes in a URL and optionally retries,
     backoff_factor and status_forcelist. It creates a Request
     Session and Retry Object and mounts a HTTP Adapter to the
-    Session and Sends a request to the url. It then returns the Response
-    in Json Format.
+    Session and Sends a request to the url. It then returns the Response.
     """
 
     session = requests.Session()
@@ -207,4 +207,4 @@ def requests_session(
     session.mount('https', adapter)
     response = session.get(url, auth=(ONA_USERNAME, ONA_PASSWORD))
 
-    return response.json()
+    return response
