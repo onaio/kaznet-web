@@ -338,7 +338,7 @@ class ApiModule(TestCase):
         """
         Test to see that process_xform will create an XForm and
         call get_instances with correct data after getting
-        its input.
+        its inputs.
         """
         current = len(XForm.objects.all()) + 1
         mocked_xform_data = {
