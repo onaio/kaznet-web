@@ -13,8 +13,10 @@ from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
 
 def get_projects(username: str = ONA_USERNAME):
     """
-    Makes a request to onadata api and returns the response
-    data in json format
+    Custom Method that takes in an Ona Users username and
+    Makes a request to onadata api. Takes the response gotten
+    and Loops through it while passing Project data contained in response
+    to the process_project() method.
     """
 
     url = f"{ONA_BASE_URL}/projects?owner={username}"
@@ -24,18 +26,19 @@ def get_projects(username: str = ONA_USERNAME):
         process_project(project_data)
 
 
-def process_project(projects_data: dict):
+def process_project(project_data: dict):
     """
-    Takes a dict containing project data from Ona and creates
-    or updates a project
+    Custom Method that takes a Dictionary containing Project Data and Creates
+    or Updates an OnaProject Object Then It Retrieves the Forms in Project Data
+    and Loops through each item while passing it to the process_xform() method.
     """
 
     obj, created = OnaProject.objects.get_or_create(
-        ona_pk=projects_data['projectid'],
+        ona_pk=project_data['projectid'],
         defaults={
-            'name': projects_data['name'],
-            'deleted_at': projects_data['deleted_at'],
-            'ona_last_updated': projects_data['date_modified']
+            'name': project_data['name'],
+            'deleted_at': project_data['deleted_at'],
+            'ona_last_updated': project_data['date_modified']
             }
         )
 
@@ -43,32 +46,67 @@ def process_project(projects_data: dict):
         # If object was not created this means it exists so we check
         # if it needs updating or not.
 
-        # Turns the projects_data['date_modified'] into a datetime object
+        # Turns the project_data['date_modified'] into a datetime object
         # for easier comparison
-        mocked_date = dateutil.parser.parse(projects_data['date_modified'])
+        mocked_date = dateutil.parser.parse(project_data['date_modified'])
 
         if obj.ona_last_updated != mocked_date:
-            obj.name = projects_data['name']
-            obj.ona_last_updated = projects_data['date_modified']
-            obj.deleted_at = projects_data['deleted_at']
+            obj.name = project_data['name']
+            obj.ona_last_updated = project_data['date_modified']
+            obj.deleted_at = project_data['deleted_at']
             obj.save()
 
-    for xform_data in projects_data['forms']:
+    for xform_data in project_data['forms']:
         # Creates form
         process_xform(xform_data, obj)
 
 
-def process_xform(xform_data: dict, obj: object):
+def get_xform(form_id: int, project_obj: object):
     """
-    Takes form data and an object and uses it to create
-    a Form Instance in the db
+    Custom Method that takes in a form id from ona and a OnaProject Object.
+    Requests data for the specific formid and creates or updates an XForm
+    Object, Then it passes the created/updated obj to get_instances().
+    """
+    url = f"{ONA_BASE_URL}/forms/{form_id}"
+    xform_data = requests_session(url)
+
+    obj, created = XForm.objects.get_or_create(
+        ona_pk=xform_data['formid'],
+        defaults={
+            'title': xform_data['title'],
+            'id_string': xform_data['id_string'],
+            'ona_last_updated': xform_data['last_updated_at'],
+            'ona_project_id': project_obj.ona_pk,
+            }
+        )
+
+    if created is False:
+        # If object was not created this means it exists so we check
+        # if it needs updating or not.
+
+        mocked_date = dateutil.parser.parse(xform_data['last_updated_at'])
+        if obj.ona_last_updated != mocked_date:
+            obj.title = xform_data['title']
+            obj.id_string = xform_data['id_string']
+            obj.ona_last_updated = xform_data['last_updated_at']
+            obj.save()
+
+    get_instances(obj)
+
+
+def process_xform(xform_data: dict, project_obj: object):
+    """
+    Custom Method thats takes in a Dictionary containing XForm Data
+    and a OnaProject Object. Requests data for the specific formid
+    and creates or updates an XForm Object, Then it passes the XForm
+    object to get_instances().
     """
     obj, created = XForm.objects.get_or_create(
         ona_pk=xform_data['formid'],
         defaults={
             'title': xform_data['name'],
             'id_string': xform_data['id_string'],
-            'ona_project_id': obj.ona_pk
+            'ona_project_id': project_obj.ona_pk
             }
         )
 
@@ -88,8 +126,10 @@ def process_xform(xform_data: dict, obj: object):
 
 def get_instances(xform: object):
     """
-    Takes a forms ona id and looks it up on the onadata api
-    and creates or updates instances of that form
+    Custom Method that takes in an XForm Object and Retrieves
+    Its Instances/Data from the OnaData Api. Then, it loops
+    through the received Instances/Data and passes each individual
+    Instance/Data to process_instance()
     """
     xformid = xform.ona_pk
     end_page = None
@@ -111,8 +151,9 @@ def get_instances(xform: object):
 
 def process_instance(instance_data: dict, xform: object):
     """
-    Takes a dict containing the information of an instance
-    and creates the instance
+    Custome Method that takes in a Dictionary containing Instances
+    Data and an XForm Object. It Creates or Updates an OnaInstance
+    Object using the inputs.
     """
     obj, created = OnaInstance.objects.get_or_create(
         ona_pk=instance_data['_id'],
@@ -144,8 +185,11 @@ def requests_session(
         status_forcelist=(500, 502, 504),
 ):
     """
-    Takes a url and requests data from ona data
-    and returns the response in json format
+    Custom Method that takes in a URL and optionally retries,
+    backoff_factor and status_forcelist. It creates a Request
+    Session and Retry Object and mounts a HTTP Adapter to the
+    Session and Sends a request to the url. It then returns the Response
+    in Json Format.
     """
 
     session = requests.Session()
