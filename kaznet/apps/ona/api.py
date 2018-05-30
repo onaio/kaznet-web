@@ -4,6 +4,8 @@ with the Onadata API
 """
 import dateutil.parser
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import OnaInstance, OnaProject, XForm
 from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
@@ -16,8 +18,7 @@ def get_projects(username: str = ONA_USERNAME):
     """
 
     url = f"{ONA_BASE_URL}/projects?owner={username}"
-    response = requests.get(url, auth=(ONA_USERNAME, ONA_PASSWORD))
-    projects_data = response.json()
+    projects_data = requests_session(url)
 
     for project_data in projects_data:
         process_project(project_data)
@@ -33,8 +34,6 @@ def process_project(projects_data: dict):
         ona_pk=projects_data['projectid'],
         defaults={
             'name': projects_data['name'],
-            'created': projects_data['date_created'],
-            'modified': projects_data['date_modified'],
             'deleted_at': projects_data['deleted_at'],
             'ona_last_updated': projects_data['date_modified']
             }
@@ -50,8 +49,8 @@ def process_project(projects_data: dict):
 
         if obj.ona_last_updated != mocked_date:
             obj.name = projects_data['name']
-            obj.deleted_at = projects_data['deleted_at']
             obj.ona_last_updated = projects_data['date_modified']
+            obj.deleted_at = projects_data['deleted_at']
             obj.save()
 
     for xform_data in projects_data['forms']:
@@ -98,9 +97,7 @@ def get_instances(xform: object):
 
     while end_page is None:
         url = f"{ONA_BASE_URL}/data/{xformid}?start={start}&limit=100"
-        response = requests.get(url, auth=(ONA_USERNAME, ONA_PASSWORD))
-
-        instances_data = response.json()
+        instances_data = requests_session(url)
 
         if instances_data == []:
             end_page = True
@@ -138,3 +135,31 @@ def process_instance(instance_data: dict, xform: object):
                 obj.json = instance_data
                 obj.ona_last_updated = instance_data['_last_edited']
                 obj.save()
+
+
+def requests_session(
+        url: str,
+        retries=3,
+        backoff_factor=1,
+        status_forcelist=(500, 502, 504),
+):
+    """
+    Takes a url and requests data from ona data
+    and returns the response in json format
+    """
+
+    session = requests.Session()
+
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist
+    )
+
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https', adapter)
+    response = session.get(url, auth=(ONA_USERNAME, ONA_PASSWORD))
+
+    return response.json()
