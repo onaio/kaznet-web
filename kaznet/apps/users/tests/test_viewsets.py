@@ -47,7 +47,7 @@ class TestUserProfileViewSet(TestCase):
         response = view(request=request)
 
         # assert that we get the right status_code and data back
-        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.status_code, 201)
         self.assertDictContainsSubset(data, response.data)
 
         return response.data
@@ -57,6 +57,25 @@ class TestUserProfileViewSet(TestCase):
         Test that you can create userprofiles
         """
         self._create()
+
+    def test_retrieve(self):
+        """
+        Test that you can retrieve a userprofile object
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('bob', response.data['first_name'])
+        self.assertEqual(bob_userprofile.id, response.data['id'])
 
     def test_update(self):
         """
