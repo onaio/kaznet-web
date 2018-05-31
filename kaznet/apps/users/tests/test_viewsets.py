@@ -77,6 +77,23 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual('bob', response.data['first_name'])
         self.assertEqual(bob_userprofile.id, response.data['id'])
 
+    def test_list(self):
+        """
+        test that you can get a list of userprofiles
+        """
+        user = create_admin_user()
+        mommy.make('auth.User', _quantity=6)
+
+        view = UserProfileViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get('/userprofiles')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(7, len(response.data))
+
     def test_update(self):
         """
         Test that you can update userprofiles
@@ -99,3 +116,22 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual('Peter', response.data['first_name'])
         self.assertEqual('+254722111111', response.data['phone_number'])
         self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
+
+    def test_delete(self):
+        """
+        test that you can delete userprofiles
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        view = UserProfileViewSet.as_view({'delete': 'destroy'})
+
+        request = self.factory.delete(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(
+            UserProfile.objects.filter(id=bob_userprofile.id).exists())
