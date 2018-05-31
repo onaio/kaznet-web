@@ -36,6 +36,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id',
+            'created',
+            'modified',
             'first_name',
             'last_name',
             'email',
@@ -48,7 +50,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'gender',
             'national_id'
         ]
-        # read_only_fields = ('ona_pk', 'id', 'ona_username')
 
     def create(self, validated_data):
         """
@@ -81,6 +82,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         user = instance.user
         user_data = validated_data.pop('user')
+
         # you can't change username
         try:
             del user_data['username']

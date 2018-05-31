@@ -45,7 +45,26 @@ class TestUserProfileSerializer(TestCase):
         """
         Test that you can create a user with the serializer
         """
-        self._create_user()
+        serializer_instance = self._create_user()
+
+        fields = [
+            'id',
+            'created',
+            'modified',
+            'first_name',
+            'last_name',
+            'email',
+            'ona_pk',
+            'ona_username',
+            'mpesa_number',
+            'phone_number',
+            'role',
+            'expertise',
+            'gender',
+            'national_id'
+        ]
+
+        self.assertEqual(set(fields), set(serializer_instance.keys()))
 
     def test_update(self):
         """
