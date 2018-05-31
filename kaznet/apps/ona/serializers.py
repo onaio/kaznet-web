@@ -3,7 +3,7 @@ Model Serializers for Ona app
 """
 
 from rest_framework import serializers
-from kaznet.apps.ona.models import XForm, OnaInstance, OnaProject
+from kaznet.apps.ona.models import XForm, Instance, Project
 
 
 class XFormSerializer(serializers.ModelSerializer):
@@ -20,7 +20,8 @@ class XFormSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'ona_pk',
-            'ona_project_id',
+            'project_id',
+            'last_updated',
             'title',
             'id_string',
             'created',
@@ -29,7 +30,7 @@ class XFormSerializer(serializers.ModelSerializer):
         ]
 
 
-class OnaInstanceSerializer(serializers.ModelSerializer):
+class InstanceSerializer(serializers.ModelSerializer):
     """
     Serializer for OnaInstance Model
     """
@@ -37,21 +38,22 @@ class OnaInstanceSerializer(serializers.ModelSerializer):
     # pylint: disable=too-few-public-methods
     class Meta(object):
         """
-        Meta Options for OnaInstance Serializer
+        Meta Options for Instance Serializer
         """
-        model = OnaInstance
+        model = Instance
         fields = [
             'id',
             'ona_pk',
             'xform',
             'created',
             'modified',
+            'last_updated',
             'json',
             'deleted_at'
         ]
 
 
-class OnaProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     """
     Serializer for OnaProject Model
     """
@@ -59,13 +61,14 @@ class OnaProjectSerializer(serializers.ModelSerializer):
     # pylint: disable=too-few-public-methods
     class Meta(object):
         """
-        Meta Options for OnaProject Serializer
+        Meta Options for Project Serializer
         """
-        model = OnaProject
+        model = Project
         fields = [
             'id',
             'ona_pk',
-            'ona_organization',
+            'organization',
+            'last_updated',
             'created',
             'modified',
             'name',

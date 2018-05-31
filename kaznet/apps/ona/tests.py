@@ -10,12 +10,9 @@ import requests_mock
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from kaznet.apps.ona.api import (get_instances, get_projects, get_xform,
-                                 process_instance, process_project,
-                                 process_xform, requests_session)
-from kaznet.apps.ona.models import OnaInstance, OnaProject, XForm
-from kaznet.apps.ona.serializers import (OnaInstanceSerializer,
-                                         OnaProjectSerializer, XFormSerializer)
+from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.ona.serializers import (InstanceSerializer,
+                                         ProjectSerializer, XFormSerializer)
 from kaznet.apps.ona.viewsets import XFormViewSet
 from kaznet.settings.common import ONA_BASE_URL
 
@@ -33,16 +30,16 @@ class TestXFormModel(TestCase):
         self.assertEqual(str(xform), 'Test')
 
 
-class TestOnaProjectModel(TestCase):
+class TestProjectModel(TestCase):
     """
-    Tests for OnaProjectModel
+    Tests for ProjectModel
     """
 
-    def test_onaproject_str(self):
+    def test_project_str(self):
         """
-        Test string representation for OnaProject Model
+        Test string representation for Project Model
         """
-        project = mommy.make('ona.OnaProject', name='Project Zero')
+        project = mommy.make('ona.Project', name='Project Zero')
         self.assertEqual(str(project), 'Project Zero')
 
 
@@ -59,7 +56,7 @@ class TestXFormSerializer(TestCase):
         mocked_data = {
             'id': 45,
             'ona_pk': 596,
-            'ona_project_id': 54,
+            'project_id': 54,
             'title': 'Solar Flare',
             'id_string': mocked_idstring
         }
@@ -68,7 +65,8 @@ class TestXFormSerializer(TestCase):
         expected_fields = {
             'id',
             'ona_pk',
-            'ona_project_id',
+            'project_id',
+            'last_updated',
             'id_string',
             'deleted_at',
             'title',
@@ -78,14 +76,14 @@ class TestXFormSerializer(TestCase):
                          set(list(serializer_data.keys())))
 
         self.assertEqual(596, serializer_data['ona_pk'])
-        self.assertEqual(54, serializer_data['ona_project_id'])
+        self.assertEqual(54, serializer_data['project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
 
 
-class TestOnaInstanceSerializer(TestCase):
+class TestInstanceSerializer(TestCase):
     """
-    Tests for OnaInstanceSerializer
+    Tests for InstanceSerializer
     """
 
     def test_serializer_output(self):
@@ -100,12 +98,13 @@ class TestOnaInstanceSerializer(TestCase):
             'json': dict
         }
 
-        serializer_data = OnaInstanceSerializer(mocked_data).data
+        serializer_data = InstanceSerializer(mocked_data).data
 
         expected_fields = {
             'id',
             'ona_pk',
             'xform',
+            'last_updated',
             'json',
             'deleted_at'
         }
@@ -117,7 +116,7 @@ class TestOnaInstanceSerializer(TestCase):
         self.assertEqual(dict, serializer_data['json'])
 
 
-class TestOnaProjectSerializer(TestCase):
+class TestProjectSerializer(TestCase):
     """
     Tests for OnaProjectSerializer
     """
@@ -129,16 +128,17 @@ class TestOnaProjectSerializer(TestCase):
         mocked_data = {
             'id': 1,
             'ona_pk': 59,
-            'ona_organization': 12,
+            'organization': 12,
             'name': 'Project Zero'
         }
 
-        serializer_data = OnaProjectSerializer(mocked_data).data
+        serializer_data = ProjectSerializer(mocked_data).data
 
         expected_fields = {
             'id',
             'ona_pk',
-            'ona_organization',
+            'organization',
+            'last_updated',
             'name',
             'deleted_at'
         }
@@ -147,7 +147,7 @@ class TestOnaProjectSerializer(TestCase):
                          set(list(serializer_data.keys())))
 
         self.assertEqual(59, serializer_data['ona_pk'])
-        self.assertEqual(12, serializer_data['ona_organization'])
+        self.assertEqual(12, serializer_data['organization'])
         self.assertEqual('Project Zero', serializer_data['name'])
 
 
@@ -194,166 +194,166 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(form.title, response.data['title'])
 
 
-class ApiModule(TestCase):
-    """
-    Tests for the Api module in Ona App
-    """
+# class ApiModule(TestCase):
+#     """
+#     Tests for the Api module in Ona App
+#     """
 
-    def test_requests_session(self):
-        """
-        Tests that a valid url can be accessed normally
-        """
-        response = requests_session('https://example.com', 'GET')
-        self.assertTrue(response.status_code, 200)
+#     def test_requests_session(self):
+#         """
+#         Tests that a valid url can be accessed normally
+#         """
+#         response = requests_session('https://example.com', 'GET')
+#         self.assertTrue(response.status_code, 200)
 
-    # pylint: disable=no-self-use
-    @patch('kaznet.apps.ona.api.process_project')
-    @requests_mock.Mocker()
-    def test_get_projects(self, mockclass, mocked):
-        """
-        Test to see that get projects
-        """
-        mocked_projects_data = [
-            {
-                "projectid": 18,
-                "forms": [
-                    {
-                        "name": "Changed",
-                        "formid": 53,
-                        "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                        "is_merged_dataset": False}
-                    ],
-                "name": "Changed2",
-                "date_modified": "2018-05-30T07:51:59.267839Z",
-                "deleted_at": None
-            }
-        ]
+#     # pylint: disable=no-self-use
+#     @patch('kaznet.apps.ona.api.process_project')
+#     @requests_mock.Mocker()
+#     def test_get_projects(self, mockclass, mocked):
+#         """
+#         Test to see that get projects
+#         """
+#         mocked_projects_data = [
+#             {
+#                 "projectid": 18,
+#                 "forms": [
+#                     {
+#                         "name": "Changed",
+#                         "formid": 53,
+#                         "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#                         "is_merged_dataset": False}
+#                     ],
+#                 "name": "Changed2",
+#                 "date_modified": "2018-05-30T07:51:59.267839Z",
+#                 "deleted_at": None
+#             }
+#         ]
 
-        mocked.get(
-            f'{ONA_BASE_URL}/api/v1/projects?owner=kaznettest',
-            json=mocked_projects_data
-            )
+#         mocked.get(
+#             f'{ONA_BASE_URL}/api/v1/projects?owner=kaznettest',
+#             json=mocked_projects_data
+#             )
 
-        get_projects('kaznettest')
-        mockclass.assert_called_with(mocked_projects_data[0])
+#         get_projects('kaznettest')
+#         mockclass.assert_called_with(mocked_projects_data[0])
 
-    @patch('kaznet.apps.ona.api.process_xform')
-    def test_process_project(self, mockclass):
-        """
-        Test to see that process_project will create an OnaProject
-        object and call process_xform with correct data after getting
-        its input.
-        """
-        current = len(OnaProject.objects.all()) + 1
-        mocked_project_data = {
-            "projectid": 18,
-            "forms": [
-                {
-                    "name": "Changed",
-                    "formid": 53,
-                    "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                    "is_merged_dataset": False
-                    }
-                ],
-            "name": "Changed2",
-            "date_modified": "2018-05-30T07:51:59.267839Z",
-            "deleted_at": None
-            }
+#     @patch('kaznet.apps.ona.api.process_xform')
+#     def test_process_project(self, mockclass):
+#         """
+#         Test to see that process_project will create an OnaProject
+#         object and call process_xform with correct data after getting
+#         its input.
+#         """
+#         current = len(OnaProject.objects.all()) + 1
+#         mocked_project_data = {
+#             "projectid": 18,
+#             "forms": [
+#                 {
+#                     "name": "Changed",
+#                     "formid": 53,
+#                     "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#                     "is_merged_dataset": False
+#                     }
+#                 ],
+#             "name": "Changed2",
+#             "date_modified": "2018-05-30T07:51:59.267839Z",
+#             "deleted_at": None
+#             }
 
-        process_project(mocked_project_data)
-        mockclass.assert_called_with(mocked_project_data['forms'][0], 18)
-        self.assertEqual(len(OnaProject.objects.all()), current)
+#         process_project(mocked_project_data)
+#         mockclass.assert_called_with(mocked_project_data['forms'][0], 18)
+#         self.assertEqual(len(OnaProject.objects.all()), current)
 
-    @patch('kaznet.apps.ona.api.get_instances')
-    def test_process_xform(self, mockclass):
-        """
-        Test to see that process_xform will create an XForm and
-        call get_instances with correct data after getting
-        its input.
-        """
-        current = len(XForm.objects.all()) + 1
-        mocked_xform_data = {
-            "name": "Changed",
-            "formid": 53,
-            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "is_merged_dataset": False
-        }
+#     @patch('kaznet.apps.ona.api.get_instances')
+#     def test_process_xform(self, mockclass):
+#         """
+#         Test to see that process_xform will create an XForm and
+#         call get_instances with correct data after getting
+#         its input.
+#         """
+#         current = len(XForm.objects.all()) + 1
+#         mocked_xform_data = {
+#             "name": "Changed",
+#             "formid": 53,
+#             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#             "is_merged_dataset": False
+#         }
 
-        process_xform(mocked_xform_data, 18)
-        obj = XForm.objects.get(ona_pk=53)
-        mockclass.assert_called_with(obj)
+#         process_xform(mocked_xform_data, 18)
+#         obj = XForm.objects.get(ona_pk=53)
+#         mockclass.assert_called_with(obj)
 
-        self.assertEqual(len(XForm.objects.all()), current)
+#         self.assertEqual(len(XForm.objects.all()), current)
 
-    @patch('kaznet.apps.ona.api.process_instance')
-    @requests_mock.Mocker()
-    def test_get_instances(self, mockclass, mocked):
-        """
-        Test to see that get_instances will call
-        process_instance with correct data after getting
-        its input.
-        """
-        mocked_instances = [
-            {
-                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "_edited": True,
-                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
-                "_xform_id": 53,
-                "_id": 1755
-            }
-        ]
-        form = mommy.make('ona.XForm', ona_pk=1755)
-        mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/1755?start=0&limit=100',
-            json=mocked_instances
-            )
-        mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/1755?start=100&limit=100',
-            json=[]
-        )
-        get_instances(form)
-        mockclass.assert_called_with(mocked_instances[0], form)
+#     @patch('kaznet.apps.ona.api.process_instance')
+#     @requests_mock.Mocker()
+#     def test_get_instances(self, mockclass, mocked):
+#         """
+#         Test to see that get_instances will call
+#         process_instance with correct data after getting
+#         its input.
+#         """
+#         mocked_instances = [
+#             {
+#                 "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#                 "_edited": True,
+#                 "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+#                 "_xform_id": 53,
+#                 "_id": 1755
+#             }
+#         ]
+#         form = mommy.make('ona.XForm', ona_pk=1755)
+#         mocked.get(
+#             f'{ONA_BASE_URL}/api/v1/data/1755?start=0&limit=100',
+#             json=mocked_instances
+#             )
+#         mocked.get(
+#             f'{ONA_BASE_URL}/api/v1/data/1755?start=100&limit=100',
+#             json=[]
+#         )
+#         get_instances(form)
+#         mockclass.assert_called_with(mocked_instances[0], form)
 
-    def test_process_instance(self):
-        """
-        Test to see that get_instances will save the instance
-        after getting its input.
-        """
-        current = len(OnaInstance.objects.all()) + 1
-        obj = mommy.make('ona.XForm', ona_pk=53)
-        instance_data = {
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
-            "_xform_id": 53,
-            "_id": 1755
-        }
-        process_instance(instance_data, obj)
+#     def test_process_instance(self):
+#         """
+#         Test to see that get_instances will save the instance
+#         after getting its input.
+#         """
+#         current = len(OnaInstance.objects.all()) + 1
+#         obj = mommy.make('ona.XForm', ona_pk=53)
+#         instance_data = {
+#             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#             "_edited": True,
+#             "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+#             "_xform_id": 53,
+#             "_id": 1755
+#         }
+#         process_instance(instance_data, obj)
 
-        self.assertEqual(len(OnaInstance.objects.all()), current)
+#         self.assertEqual(len(OnaInstance.objects.all()), current)
 
-    @patch('kaznet.apps.ona.api.get_instances')
-    @requests_mock.Mocker()
-    def test_get_xform(self, mockclass, mocked):
-        """
-        Test to see that process_xform will create an XForm and
-        call get_instances with correct data after getting
-        its inputs.
-        """
-        current = len(XForm.objects.all()) + 1
-        mocked_xform_data = {
-            "title": "Changed",
-            "formid": 53,
-            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "last_updated_at": "2018-05-30T06:47:23.196149Z",
-        }
-        mocked.get(
-            f'{ONA_BASE_URL}/api/v1/forms/53', json=mocked_xform_data
-            )
+#     @patch('kaznet.apps.ona.api.get_instances')
+#     @requests_mock.Mocker()
+#     def test_get_xform(self, mockclass, mocked):
+#         """
+#         Test to see that process_xform will create an XForm and
+#         call get_instances with correct data after getting
+#         its inputs.
+#         """
+#         current = len(XForm.objects.all()) + 1
+#         mocked_xform_data = {
+#             "title": "Changed",
+#             "formid": 53,
+#             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+#             "last_updated_at": "2018-05-30T06:47:23.196149Z",
+#         }
+#         mocked.get(
+#             f'{ONA_BASE_URL}/api/v1/forms/53', json=mocked_xform_data
+#             )
 
-        obj = mommy.make('ona.OnaProject')
-        get_xform(53, obj)
-        mocked_form = XForm.objects.get(ona_pk=53)
+#         obj = mommy.make('ona.OnaProject')
+#         get_xform(53, obj)
+#         mocked_form = XForm.objects.get(ona_pk=53)
 
-        mockclass.assert_called_with(mocked_form)
-        self.assertEqual(len(XForm.objects.all()), current)
+#         mockclass.assert_called_with(mocked_form)
+#         self.assertEqual(len(XForm.objects.all()), current)
