@@ -101,6 +101,9 @@ class TestUserProfileSerializer(TestCase):
         expected_data['national_id'] = '1337'
         expected_data['mpesa_number'] = '+254722111111'
 
+        # remove the modified field because it cannot be the same
+        del expected_data['modified']
+
         self.assertDictContainsSubset(expected_data, serializer_instance.data)
 
         userprofile.refresh_from_db()
@@ -112,3 +115,60 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
         self.assertEqual('1337', userprofile.national_id)
         self.assertEqual('+254722111111', userprofile.mpesa_number.as_e164)
+
+    def test_bad_data(self):
+        """
+        Test that the serializer will not accept bad data
+        """
+
+        # ensure that only valid phone numbers are accepted
+
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Doe',
+            'email': 'bobbie@example.com',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'mpesa_number': '12345678',  # obviously bad
+            'phone_number': '+254822222222',  # not valid for Kenya
+            'ona_pk': 1337,
+            'ona_username': 'bobbie'
+        }
+        serializer_instance = UserProfileSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            str(serializer_instance.errors['phone_number'][0]),
+            'The phone number entered is not valid.')
+        self.assertEqual(
+            str(serializer_instance.errors['mpesa_number'][0]),
+            'The phone number entered is not valid.')
+
+        # test that national_id, ona_pk, and ona_username are unique
+        self._create_user()
+
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Doe',
+            'email': 'bobbie@example.com',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'mpesa_number': '+254722222222',
+            'phone_number': '+254722222222',
+            'ona_pk': 1337,
+            'ona_username': 'bobbie'
+        }
+        serializer_instance = UserProfileSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            str(serializer_instance.errors['national_id'][0]),
+            'user profile with this National ID Number already exists.')
+        self.assertEqual(
+            str(serializer_instance.errors['ona_pk'][0]),
+            'user profile with this Ona Primary key already exists.')
+        self.assertEqual(
+            str(serializer_instance.errors['ona_username'][0]),
+            'user profile with this Ona Username already exists.')
