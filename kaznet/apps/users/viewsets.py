@@ -23,8 +23,9 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         filters.OrderingFilter,
         filters.SearchFilter]
     search_fields = [
-        'first_name', 'last_name', 'ona_username', 'email', 'national_id']
+        'user__first_name', 'user__last_name', 'ona_username',
+        'user__email', 'national_id']
     ordering_fields = [
-        'first_name', 'last_name', 'submission_count', 'created',
+        'user__first_name', 'user__last_name', 'submission_count', 'created',
         'national_id']
     queryset = UserProfile.objects.first()  # pylint: disable=no-member
