@@ -203,7 +203,7 @@ class ApiModule(TestCase):
         """
         Tests that a valid url can be accessed normally
         """
-        response = requests_session('https://example.com')
+        response = requests_session('https://example.com', 'GET')
         self.assertTrue(response.status_code, 200)
 
     # pylint: disable=no-self-use
@@ -230,7 +230,7 @@ class ApiModule(TestCase):
         ]
 
         mocked.get(
-            f'{ONA_BASE_URL}/projects?owner=',
+            f'{ONA_BASE_URL}/api/v1/projects?owner=kaznettest',
             json=mocked_projects_data
             )
 
@@ -304,11 +304,11 @@ class ApiModule(TestCase):
         ]
         form = mommy.make('ona.XForm', ona_pk=1755)
         mocked.get(
-            f'{ONA_BASE_URL}/data/1755?start=0&limit=100',
+            f'{ONA_BASE_URL}/api/v1/data/1755?start=0&limit=100',
             json=mocked_instances
             )
         mocked.get(
-            f'{ONA_BASE_URL}/data/1755?start=100&limit=100',
+            f'{ONA_BASE_URL}/api/v1/data/1755?start=100&limit=100',
             json=[]
         )
         get_instances(form)
@@ -348,7 +348,7 @@ class ApiModule(TestCase):
             "last_updated_at": "2018-05-30T06:47:23.196149Z",
         }
         mocked.get(
-            f'{ONA_BASE_URL}/forms/53', json=mocked_xform_data
+            f'{ONA_BASE_URL}/api/v1/forms/53', json=mocked_xform_data
             )
 
         obj = mommy.make('ona.OnaProject')
