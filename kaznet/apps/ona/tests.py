@@ -492,3 +492,35 @@ class TestApiMethods(TestCase):
         """
         response = request_session('https://example.com', 'GET')
         self.assertTrue(response.status_code, 200)
+
+    def test_requests_session_bad_url(self):
+        """
+        Test that an invalid url will fail
+        eventually
+        """
+        response = request_session(
+            url='http://httpbin.org/status/500',
+            method='GET',
+            retries=0,
+            backoff_factor=0
+            )
+
+        self.assertEqual(response.status_code, 500)
+
+        response = request_session(
+            url='http://httpbin.org/status/502',
+            method='GET',
+            retries=0,
+            backoff_factor=0
+            )
+
+        self.assertEqual(response.status_code, 502)
+
+        response = request_session(
+            url='http://httpbin.org/status/504',
+            method='GET',
+            retries=0,
+            backoff_factor=0
+            )
+
+        self.assertEqual(response.status_code, 504)
