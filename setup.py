@@ -16,7 +16,9 @@ setup(
         'Django >= 2',
         'djangorestframework',
         'psycopg2-binary',
-        'django-prices'
+        'django-prices',
+        'django-phonenumber-field',
+        'django-allauth',
     ],
     classifiers=[
         'Programming Language :: Python',

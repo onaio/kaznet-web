@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'django.contrib.gis',
     # third party
     'rest_framework',
@@ -46,8 +47,13 @@ INSTALLED_APPS = [
     'rest_framework_gis',  # Required for CountryField in Location Model
     'django_countries',  # Required for CountryField in Location Model
     'mptt',
+    'phonenumber_field',
+    'allauth',
+    'allauth.account',
+    # custom apps
+    'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
-    'kaznet.apps.ona'
+    'kaznet.apps.users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -78,8 +84,15 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'kaznet.wsgi.application'
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
+WSGI_APPLICATION = 'kaznet.wsgi.application'
+SITE_ID = 1
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
@@ -134,6 +147,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Allauth
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_ADAPTER = "kaznet.apps.users.adapter.AccountAdapter"
+ACCOUNT_PRESERVE_USERNAME_CASING = False
+ACCOUNT_UNIQUE_EMAIL = True
 
 # try and load local_settings if present
 try:
