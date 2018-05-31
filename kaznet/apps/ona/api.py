@@ -2,15 +2,17 @@
 Module containing methods that communicates
 with the Onadata API
 """
+from urllib.parse import urljoin
+
 import dateutil.parser
 import requests
-
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import OnaInstance, OnaProject, XForm
 from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
+from kaznet.apps.ona.exceptions import ImproperMethod, InvalidResponse
 
 
 def get_projects(username: str = ONA_USERNAME):
@@ -20,12 +22,13 @@ def get_projects(username: str = ONA_USERNAME):
     and Loops through it while passing Project data contained in response
     to the process_project() method.
     """
+    args = {'owner': f'{username}'}
+    url = urljoin(ONA_BASE_URL, 'api/v1/projects')
+    projects_data = request(url, args)
 
-    url = f"{ONA_BASE_URL}/projects?owner={username}"
-    projects_data = requests_session(url).json()
-
-    for project_data in projects_data:
-        process_project(project_data)
+    if projects_data != InvalidResponse:
+        for project_data in projects_data:
+            process_project(project_data)
 
 
 def process_project(project_data: dict):
@@ -69,31 +72,32 @@ def get_xform(form_id: int, project_obj: object):
     Requests data for the specific formid and creates or updates an XForm
     Object, Then it passes the created/updated obj to get_instances().
     """
-    url = f"{ONA_BASE_URL}/forms/{form_id}"
-    xform_data = requests_session(url).json()
+    url = urljoin(ONA_BASE_URL, f'api/v1/forms/{form_id}')
+    xform_data = request(url)
 
-    obj, created = XForm.objects.get_or_create(
-        ona_pk=xform_data['formid'],
-        defaults={
-            'title': xform_data['title'],
-            'id_string': xform_data['id_string'],
-            'ona_last_updated': xform_data['last_updated_at'],
-            'ona_project_id': project_obj.ona_pk,
-            }
-        )
+    if xform_data != InvalidResponse:
+        obj, created = XForm.objects.get_or_create(
+            ona_pk=xform_data['formid'],
+            defaults={
+                'title': xform_data['title'],
+                'id_string': xform_data['id_string'],
+                'ona_last_updated': xform_data['last_updated_at'],
+                'ona_project_id': project_obj.ona_pk,
+                }
+            )
 
-    if created is False:
-        # If object was not created this means it exists so we check
-        # if it needs updating or not.
+        if created is False:
+            # If object was not created this means it exists so we check
+            # if it needs updating or not.
 
-        mocked_date = dateutil.parser.parse(xform_data['last_updated_at'])
-        if obj.ona_last_updated != mocked_date:
-            obj.title = xform_data['title']
-            obj.id_string = xform_data['id_string']
-            obj.ona_last_updated = xform_data['last_updated_at']
-            obj.save()
+            mocked_date = dateutil.parser.parse(xform_data['last_updated_at'])
+            if obj.ona_last_updated != mocked_date:
+                obj.title = xform_data['title']
+                obj.id_string = xform_data['id_string']
+                obj.ona_last_updated = xform_data['last_updated_at']
+                obj.save()
 
-    get_instances(obj)
+        get_instances(obj)
 
 
 def process_xform(xform_data: dict, project_obj_pk: int):
@@ -138,17 +142,19 @@ def get_instances(xform: object):
     start = 0
 
     while end_page is None:
-        url = f"{ONA_BASE_URL}/data/{xformid}?start={start}&limit=100"
-        instances_data = requests_session(url).json()
+        url = urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}')
+        args = {'start': start, 'limit': '100'}
+        instances_data = request(url, args)
 
-        if instances_data == []:
-            end_page = True
-            break
+        if instances_data != InvalidResponse:
+            if instances_data == []:
+                end_page = True
+                break
 
-        for instance_data in instances_data:
-            process_instance(instance_data, xform)
+            for instance_data in instances_data:
+                process_instance(instance_data, xform)
 
-        start = start + 100
+            start = start + 100
 
 
 def process_instance(instance_data: dict, xform: object):
@@ -182,6 +188,8 @@ def process_instance(instance_data: dict, xform: object):
 
 def requests_session(
         url: str,
+        method: str,
+        payload: dict = None,
         retries=3,
         backoff_factor=1,
         status_forcelist=(500, 502, 504),
@@ -192,9 +200,7 @@ def requests_session(
     Session and Retry Object and mounts a HTTP Adapter to the
     Session and Sends a request to the url. It then returns the Response.
     """
-
     session = requests.Session()
-
     retry = Retry(
         total=retries,
         read=retries,
@@ -202,9 +208,36 @@ def requests_session(
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist
     )
-
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('https', adapter)
-    response = session.get(url, auth=(ONA_USERNAME, ONA_PASSWORD))
+
+    if method == 'GET':
+        response = session.get(
+            url, auth=(ONA_USERNAME, ONA_PASSWORD), params=payload
+            )
+    elif method == 'POST':
+        response = session.post(
+            url, auth=(ONA_USERNAME, ONA_PASSWORD), data=payload
+            )
+    else:
+        raise ImproperMethod
 
     return response
+
+
+def request(
+        url: str,
+        args: dict = None,
+        request: str = 'GET'
+):
+    """
+    Custom Method that requests data from requests_session
+    and confirms it has a valid JSON return
+    """
+    response = requests_session(url, request, args)
+
+    try:
+        response.json()
+        return response.json()
+    except ValueError:
+        return InvalidResponse
