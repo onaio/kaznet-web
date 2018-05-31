@@ -7,6 +7,7 @@ from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.users.models import UserProfile
+from kaznet.apps.users.tests.base import create_admin_user
 from kaznet.apps.users.viewsets import UserProfileViewSet
 
 
@@ -23,7 +24,8 @@ class TestUserProfileViewSet(TestCase):
         """
         Helper to create userprofiles with viewset
         """
-        user = mommy.make('auth.User')
+        user = create_admin_user()
+
         data = {
             'first_name': 'Bob',
             'last_name': 'Doe',
@@ -55,3 +57,26 @@ class TestUserProfileViewSet(TestCase):
         Test that you can create userprofiles
         """
         self._create()
+
+    def test_update(self):
+        """
+        Test that you can update userprofiles
+        """
+        user_data = self._create()
+        user = create_admin_user()
+
+        data = {
+            'first_name': 'Peter',
+            'phone_number': '+254722111111',
+            'role': UserProfile.CONTRIBUTOR
+        }
+
+        view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+        request = self.factory.patch(f'/userprofiles/{user_data["id"]}',
+                                     data=data)
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=user_data['id'])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('Peter', response.data['first_name'])
+        self.assertEqual('+254722111111', response.data['phone_number'])
+        self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
