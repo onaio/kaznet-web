@@ -156,16 +156,17 @@ def process_xform(xform_data: dict, project_id: int):
                 'project_id': project_id
             }
             )
-    if created is False:
-        # If object was not created this means it exists so we check
-        # if it needs updating or not.
 
-        # We check using title of form since that is the only changeable
-        # field returned in response
-        if obj.title != xform_data.get('name'):
-            obj.title = xform_data.get('name')
-            obj.id_string = xform_data.get('id_string')
-            obj.save()
+        if created is False:
+            # If object was not created this means it exists so we check
+            # if it needs updating or not.
+
+            # We check using title of form since that is the only changeable
+            # field returned in response
+            if obj.title != xform_data.get('name'):
+                obj.title = xform_data.get('name')
+                obj.id_string = xform_data.get('id_string')
+                obj.save()
 
 
 def get_instances(xform: object):
@@ -197,9 +198,10 @@ def process_instances(instances_data: dict, xform: object):
     Takes a Dictionary Containing Data on Instances
     and Process them
     """
-    if instances_data != []:
-        for instance_data in instances_data:
-            process_instance(instance_data, xform)
+    if instances_data is not None:
+        if instances_data != []:
+            for instance_data in instances_data:
+                process_instance(instance_data, xform)
 
 
 def process_instance(instance_data: dict, xform: object):
@@ -209,29 +211,30 @@ def process_instance(instance_data: dict, xform: object):
     """
     instanceid = instance_data.get('_id')
 
-    obj, created = Instance.objects.get_or_create(
-        ona_pk=instanceid,
-        defaults={
-            'xform': xform,
-            'json': instance_data
-        }
-    )
+    if instanceid is not None:
+        obj, created = Instance.objects.get_or_create(
+            ona_pk=instanceid,
+            defaults={
+                'xform': xform,
+                'json': instance_data
+            }
+        )
 
-    if created is False:
-        # If object was not created this means it exists so we check
-        data = obj.json
-        edited = data.get('_edited')
-        data_edited = instance_data.get('_edited')
-        last_updated = instance_data.get('_last_edited')
+        if created is False:
+            # If object was not created this means it exists so we check
+            data = obj.json
+            edited = data.get('_edited')
+            data_edited = instance_data.get('_edited')
+            last_updated = instance_data.get('_last_edited')
 
-        if edited is not True and data_edited is True:
-            obj.last_updated = instance_data.get('_last_edited')
-            obj.json = instance_data
-            obj.save()
+            if edited is not True and data_edited is True:
+                obj.last_updated = instance_data.get('_last_edited')
+                obj.json = instance_data
+                obj.save()
 
-        mocked_date = dateutil.parser.parse(last_updated)
+            mocked_date = dateutil.parser.parse(last_updated)
 
-        if obj.last_updated != mocked_date:
-            obj.json = instance_data
-            obj.last_updated = instance_data.get('_last_edited')
-            obj.save()
+            if obj.last_updated != mocked_date:
+                obj.json = instance_data
+                obj.last_updated = instance_data.get('_last_edited')
+                obj.save()
