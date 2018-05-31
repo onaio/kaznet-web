@@ -8,7 +8,7 @@ import dateutil.parser
 import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
-from requests.packages.urllib3.util import retry
+from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
@@ -28,9 +28,8 @@ def request_session(  # pylint: disable=too-many-arguments
     Session and Retry Object and mounts a HTTP Adapter to the
     Session and Sends a request to the url. It then returns the Response.
     """
-    rets = retry.Retry
     session = requests.Session()
-    retries = rets(
+    retries = Retry(
         total=retries,
         read=retries,
         connect=retries,
