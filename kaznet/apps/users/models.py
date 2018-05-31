@@ -59,7 +59,9 @@ class UserProfile(TimeStampedModel, models.Model):
     national_id = models.CharField(
         _('National ID Number'), db_index=True, unique=True, null=True,
         default=None, blank=True, max_length=255)
-    mpesa_number = PhoneNumberField(_('MPESA number'), blank=True, default='')
+    payment_number = PhoneNumberField(
+        _('Payment phone number'), blank=True, default='',
+        help_text=_('Mobile money payment phone nerumber'))
     phone_number = PhoneNumberField(_('Phone number'), blank=True, default='')
     role = models.CharField(_('Role'), choices=ROLE_CHOICES,
                             default=CONTRIBUTOR, max_length=1, blank=True)

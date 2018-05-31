@@ -43,7 +43,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'email',
             'ona_pk',
             'ona_username',
-            'mpesa_number',
+            'payment_number',
             'phone_number',
             'role',
             'expertise',
@@ -64,7 +64,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         userprofile = user.userprofile
         userprofile.ona_pk = validated_data.get('ona_pk')
         userprofile.ona_username = user.username
-        userprofile.mpesa_number = validated_data.get('mpesa_number')
+        userprofile.payment_number = validated_data.get('payment_number')
         userprofile.phone_number = validated_data.get('phone_number')
         userprofile.role = validated_data.get('role')
         userprofile.gender = validated_data.get('gender')
@@ -92,8 +92,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         UserSerializer().update(instance=user, validated_data=user_data)
 
         # deal with the userprofile object
-        instance.mpesa_number = validated_data.get('mpesa_number',
-                                                   instance.mpesa_number)
+        instance.payment_number = validated_data.get(
+            'payment_number', instance.payment_number)
         instance.phone_number = validated_data.get('phone_number',
                                                    instance.phone_number)
         instance.role = validated_data.get('role', instance.role)

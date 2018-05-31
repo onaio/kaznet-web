@@ -24,7 +24,7 @@ class TestUserProfileSerializer(TestCase):
             'role': UserProfile.ADMIN,
             'expertise': UserProfile.EXPERT,
             'national_id': '123456789',
-            'mpesa_number': '+254722222222',
+            'payment_number': '+254722222222',
             'phone_number': '+254722222222',
             'ona_pk': 1337,
             'ona_username': 'bobbie'
@@ -56,7 +56,7 @@ class TestUserProfileSerializer(TestCase):
             'email',
             'ona_pk',
             'ona_username',
-            'mpesa_number',
+            'payment_number',
             'phone_number',
             'role',
             'expertise',
@@ -79,7 +79,7 @@ class TestUserProfileSerializer(TestCase):
             'role': UserProfile.CONTRIBUTOR,
             'expertise': UserProfile.INTERMEDIATE,
             'national_id': '1337',
-            'mpesa_number': '+254722111111',
+            'payment_number': '+254722111111',
             'ona_pk': 9999,
             'ona_username': 'mosh'
         }
@@ -99,7 +99,7 @@ class TestUserProfileSerializer(TestCase):
         expected_data['role'] = UserProfile.CONTRIBUTOR
         expected_data['expertise'] = UserProfile.INTERMEDIATE
         expected_data['national_id'] = '1337'
-        expected_data['mpesa_number'] = '+254722111111'
+        expected_data['payment_number'] = '+254722111111'
 
         # remove the modified field because it cannot be the same
         del expected_data['modified']
@@ -114,7 +114,7 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
         self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
         self.assertEqual('1337', userprofile.national_id)
-        self.assertEqual('+254722111111', userprofile.mpesa_number.as_e164)
+        self.assertEqual('+254722111111', userprofile.payment_number.as_e164)
 
     def test_bad_data(self):
         """
@@ -131,7 +131,7 @@ class TestUserProfileSerializer(TestCase):
             'role': UserProfile.ADMIN,
             'expertise': UserProfile.EXPERT,
             'national_id': '123456789',
-            'mpesa_number': '12345678',  # obviously bad
+            'payment_number': '12345678',  # obviously bad
             'phone_number': '+254822222222',  # not valid for Kenya
             'ona_pk': 1337,
             'ona_username': 'bobbie'
@@ -142,7 +142,7 @@ class TestUserProfileSerializer(TestCase):
             str(serializer_instance.errors['phone_number'][0]),
             'The phone number entered is not valid.')
         self.assertEqual(
-            str(serializer_instance.errors['mpesa_number'][0]),
+            str(serializer_instance.errors['payment_number'][0]),
             'The phone number entered is not valid.')
 
         # test that national_id, ona_pk, and ona_username are unique
@@ -156,7 +156,7 @@ class TestUserProfileSerializer(TestCase):
             'role': UserProfile.ADMIN,
             'expertise': UserProfile.EXPERT,
             'national_id': '123456789',
-            'mpesa_number': '+254722222222',
+            'payment_number': '+254722222222',
             'phone_number': '+254722222222',
             'ona_pk': 1337,
             'ona_username': 'bobbie'
