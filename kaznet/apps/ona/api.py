@@ -10,11 +10,11 @@ from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util import retry
 
-from kaznet.apps.ona.models import Project, XForm, Instance
+from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
 
 
-def request_session(
+def request_session(  # pylint: disable=too-many-arguments
         url: str,
         method: str,
         payload: dict = None,
@@ -52,7 +52,8 @@ def request_session(
         return response
     else:
         response = None
-        return response
+
+    return response
 
 
 def request(
@@ -129,17 +130,6 @@ def process_project(project_data: dict):
                     obj.save()
 
 
-def process_forms_data(projects_data: dict):
-    """
-    Takes a Dictionary containing Data about Projects
-    and Processes the forms passed in that Dictionary
-    """
-    if projects_data is not None:
-        for project_data in projects_data:
-            forms_data = project_data.get('forms')
-            return forms_data
-
-
 def process_xforms(forms_data: dict, project_id: int):
     """
     Takes a Dictionary containing Data about Forms
@@ -193,7 +183,6 @@ def get_instances(xform: object):
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
-        import ipdb; ipdb.set_trace()
         if data == []:
             end_page = True
             break
@@ -210,7 +199,6 @@ def process_instances(instances_data: dict, xform: object):
     """
     if instances_data != []:
         for instance_data in instances_data:
-            import ipdb; ipdb.set_trace()
             process_instance(instance_data, xform)
 
 
