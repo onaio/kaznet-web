@@ -154,7 +154,7 @@ ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_ADAPTER = "kaznet.apps.users.adapter.AccountAdapter"
 ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_UNIQUE_EMAIL = True
-ONA_BASE_URL = 'https://stage-api.ona.io/api/v1'
+ONA_BASE_URL = 'https://stage-api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
 
