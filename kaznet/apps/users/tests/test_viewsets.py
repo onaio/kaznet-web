@@ -90,7 +90,6 @@ class TestUserProfileViewSet(TestCase):
         force_authenticate(request=request, user=user)
 
         response = view(request=request)
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(7, len(response.data))
 
@@ -133,5 +132,6 @@ class TestUserProfileViewSet(TestCase):
         response = view(request=request, pk=bob_userprofile.id)
 
         self.assertEqual(response.status_code, 204)
+        # pylint: disable=no-member
         self.assertFalse(
             UserProfile.objects.filter(id=bob_userprofile.id).exists())

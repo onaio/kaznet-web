@@ -9,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from tasking.models.base import TimeStampedModel
 
+from kaznet.apps.users.managers import UserProfileManager
+
 USER = settings.AUTH_USER_MODEL
 
 
@@ -70,6 +72,9 @@ class UserProfile(TimeStampedModel, models.Model):
     gender = models.CharField(
         _('Gender'), max_length=1, choices=GENDER_CHOICES, default=OTHER,
         blank=True)
+
+    # custom manager
+    objects = UserProfileManager()
 
     def __str__(self):
         return _(f"{self.user}'s profile")
