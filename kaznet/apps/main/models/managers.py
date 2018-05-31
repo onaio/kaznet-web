@@ -1,5 +1,5 @@
 """
-Manager module for Kaznet
+Manager module for Kaznet main app
 """
 from django.db import models
 
@@ -7,14 +7,15 @@ from django.db import models
 # pylint: disable=too-few-public-methods
 class TaskManager(models.Manager):
     """
-    Custom manager for Task
+    Custom manager for main.Task
     """
 
     def get_queryset(self):
         """
-        Custom get_queryset for Task Model
+        Custom get_queryset method
         """
-        queryset = super(TaskManager, self).get_queryset()
+        queryset = super().get_queryset()
+        # add submission count to queryset as annotation
         queryset = queryset.annotate(
             submission_count=models.Count('submission__id'))
         return queryset

@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from tasking.models import BaseTask
-from tasking.models.managers import TaskManager
+from kaznet.apps.main.models.managers import TaskManager
 
 
 class Task(BaseTask):
