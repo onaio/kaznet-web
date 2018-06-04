@@ -10,6 +10,8 @@ from django.utils.text import slugify
 import requests_mock
 from model_mommy import mommy
 from requests.exceptions import RetryError
+# pylint: disable=import-error
+from requests.packages.urllib3.util.retry import Retry
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
@@ -494,7 +496,7 @@ class TestApiMethods(TestCase):
         response = request_session('https://example.com', 'GET')
         self.assertTrue(response.status_code, 200)
 
-    def test_requests_session_bad_url(self):
+    def test_request_session_bad_url(self):
         """
         Test that an invalid url will fail
         eventually
@@ -522,3 +524,24 @@ class TestApiMethods(TestCase):
                 retries=3,
                 backoff_factor=0
                 )
+
+    @patch('kaznet.apps.ona.api.Retry._sleep_backoff')
+    def test_request_session_retry(self, mocked):
+        """
+        Test that request_session actually Retries
+        """
+        # Mocking Retry._sleep_backoff due to the fact
+        # That it is one of the methods called per Retry
+        mocked.side_effect = Retry._sleep_backoff()
+
+        with self.assertRaises(RetryError):
+            request_session(
+                url='http://httpbin.org/status/504',
+                method='GET',
+                retries=2,
+                backoff_factor=0
+                )
+
+        # We assert it's 3 since _sleep_backoff is called
+        # first on Initialization Then repeated each Retry
+        self.assertEqual(mocked.call_count, 3)
