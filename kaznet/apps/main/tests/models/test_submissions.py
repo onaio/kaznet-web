@@ -48,3 +48,18 @@ class TestSubmission(TestCase):
 
         self.assertEqual(submission.target_object_id, instance.id)
         self.assertEqual(submission.target_content_type, self.instance_type)
+
+    def test_submissions_have_bounties(self):
+        cattle = mommy.make(
+            'main.Task',
+            name='Cattle Price')
+        bounty_instance = mommy.make(
+            'main.Bounty',
+            task=cattle)
+        submission = mommy.make(
+            'main.Submission',
+            task=cattle,
+            bounty=bounty_instance,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        self.assertEqual(submission.bounty.id , bounty_instance.id)
