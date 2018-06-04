@@ -19,17 +19,27 @@ class XForm(TimeStampedModel, models.Model):
     XForm model from onadata
     """
     ona_pk = models.PositiveIntegerField(
-        _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
+        _("Onadata Primary Key"),
+        db_index=True,
+        unique=True,
+        blank=False)
     project_id = models.PositiveIntegerField(
-        _("Project ID"), db_index=True, unique=False, blank=False)
+        _("Project ID"),
+        db_index=True,
+        unique=False,
+        blank=False)
     title = models.CharField(
-        _('Title'), editable=False, max_length=XFORM_TITLE_LENGTH)
+        _('Title'),
+        editable=False,
+        max_length=XFORM_TITLE_LENGTH)
     id_string = models.SlugField(
         _('ID String'),
         editable=False,
         max_length=MAX_ID_LENGTH)
     deleted_at = models.DateTimeField(
-        _('Deleted at'), null=True, default=None)
+        _('Deleted at'),
+        null=True,
+        default=None)
     last_updated = models.DateTimeField(
         _('Last Updated'),
         null=True,
@@ -54,12 +64,21 @@ class Instance(TimeStampedModel, models.Model):
     Instance model from onadata
     """
     ona_pk = models.PositiveIntegerField(
-        _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
+        _("Onadata Primary Key"),
+        db_index=True,
+        unique=True,
+        blank=False)
     xform = models.ForeignKey(
-        'ona.XForm', null=False, on_delete=models.PROTECT)
-    json = JSONField(default=dict, null=False)
+        'ona.XForm',
+        null=False,
+        on_delete=models.PROTECT)
+    json = JSONField(
+        default=dict,
+        null=False)
     deleted_at = models.DateTimeField(
-        _('Deleted at'), null=True, default=None)
+        _('Deleted at'),
+        null=True,
+        default=None)
     last_updated = models.DateTimeField(
         _('Last Updated'),
         null=True,
@@ -80,7 +99,10 @@ class Project(TimeStampedModel, models.Model):
     Project model from onadata
     """
     ona_pk = models.PositiveIntegerField(
-        _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
+        _("Onadata Primary Key"),
+        db_index=True,
+        unique=True,
+        blank=False)
     organization = models.PositiveIntegerField(
         _("Organization ID"),
         blank=True,
@@ -89,7 +111,9 @@ class Project(TimeStampedModel, models.Model):
         )
     name = models.CharField(max_length=255)
     deleted_at = models.DateTimeField(
-        _('Deleted at'), null=True, default=None)
+        _('Deleted at'),
+        null=True,
+        default=None)
     last_updated = models.DateTimeField(
         _('Last Updated'),
         null=True,
