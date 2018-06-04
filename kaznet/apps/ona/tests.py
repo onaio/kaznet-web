@@ -532,6 +532,7 @@ class TestApiMethods(TestCase):
         """
         # Mocking Retry._sleep_backoff due to the fact
         # That it is one of the methods called per Retry
+        # pylint: disable=protected-access
         mocked.side_effect = Retry._sleep_backoff()
 
         with self.assertRaises(RetryError):
