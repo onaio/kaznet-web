@@ -37,7 +37,8 @@ def request_session(  # pylint: disable=too-many-arguments
         status_forcelist=status_forcelist
     )
     adapter = HTTPAdapter(max_retries=retries)
-    session.mount('https', adapter)
+    session.mount('https://', adapter)
+    session.mount('http://', adapter)
 
     if method == 'GET':
         response = session.get(
