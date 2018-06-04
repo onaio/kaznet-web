@@ -14,7 +14,8 @@ from requests.exceptions import RetryError
 from requests.packages.urllib3.util.retry import Retry
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
+from kaznet.apps.ona.api import (get_instance, get_instances, get_project,
+                                 get_projects, get_xform, process_instance,
                                  process_instances, process_project,
                                  process_projects, process_xform,
                                  process_xforms, request, request_session)
@@ -251,7 +252,6 @@ class TestApiMethods(TestCase):
                 "_id": 1755
             }
         ]
-        form = mommy.make('ona.XForm', ona_pk=1755)
         mocked.get(
             urljoin(ONA_BASE_URL, '/api/v1/data/1755?start=0&limit=100'),
             json=mocked_instances
@@ -261,9 +261,76 @@ class TestApiMethods(TestCase):
             json=[]
         )
 
-        response = get_instances(form)
+        response = get_instances(1755)
 
         self.assertEqual(response, mocked_instances)
+
+    @requests_mock.Mocker()
+    def test_get_project(self, mocked):
+        """
+        Test to see that get_project returns the correct
+        data
+        """
+        mocked_project_data = {
+            "projectid": 18,
+            "name": "Changed2",
+            "date_modified": "2018-05-30T07:51:59.267839Z",
+            "deleted_at": None
+        }
+
+        url = urljoin(ONA_BASE_URL, 'api/v1/projects/18')
+        mocked.get(
+            url,
+            json=mocked_project_data
+            )
+        response = get_project(url)
+
+        self.assertTrue(response, mocked_project_data)
+
+    @requests_mock.Mocker()
+    def test_get_xform(self, mocked):
+        """
+        Test to see that get_xform returns the correct
+        data
+        """
+        mocked_xform_data = {
+            "name": "Changed",
+            "formid": 53,
+            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "is_merged_dataset": False
+        }
+
+        url = urljoin(ONA_BASE_URL, 'api/v1/forms/53')
+        mocked.get(
+            url,
+            json=mocked_xform_data
+            )
+        response = get_xform(53)
+
+        self.assertTrue(response, mocked_xform_data)
+
+    @requests_mock.Mocker()
+    def test_get_instance(self, mocked):
+        """
+        Test to see that get_instance returns the correct
+        data
+        """
+        mocked_instance_data = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-05-30T07:51:59.187363Z",
+            "_xform_id": 53,
+            "_id": 1755
+        }
+
+        url = urljoin(ONA_BASE_URL, 'api/v1/data/53/142')
+        mocked.get(
+            url,
+            json=mocked_instance_data
+            )
+        response = get_instance(53, 142)
+
+        self.assertTrue(response, mocked_instance_data)
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
@@ -347,12 +414,12 @@ class TestApiMethods(TestCase):
 
         # Test that when valid forms data is passed it calls process_xform
         process_xforms(mocked_forms_data, 18)
-        mockclass.assert_called_with(mocked_forms_data[0], 18)
+        mockclass.assert_called_with(mocked_forms_data[0], project_id=18)
 
         # Test that when invalid projects data is passed it does nothing
         mocked_forms_data = None
 
-        process_xforms(mocked_forms_data, 18)
+        process_xforms(mocked_forms_data, project_id=18)
         mockclass.assert_called_once()
 
     def test_processxform_good_data(self):
