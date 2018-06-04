@@ -23,8 +23,8 @@ def request_session(
         status_forcelist=(500, 502, 504),
 ):  # pylint: disable=too-many-arguments
     """
-    Custom Method that takes in a URL and optionally retries,
-    backoff_factor and status_forcelist. It creates a Request
+    Custom Method that takes in a URL, Method(GET / POST) and optionally
+    retries, backoff_factor and status_forcelist. It creates a Request
     Session and Retry Object and mounts a HTTP Adapter to the
     Session and Sends a request to the url. It then returns the Response.
     """
@@ -89,8 +89,9 @@ def get_projects(username: str = ONA_USERNAME):
 
 def process_projects(projects_data: dict):
     """
-    Takes a Dictionary containing Data about Projects
-    and Processes each one
+    Custom Method that takes a Dictionary containing
+    Data about Projects and Processes each one using
+    the process_project method
     """
     if projects_data is not None:
         for project_data in projects_data:
@@ -99,8 +100,8 @@ def process_projects(projects_data: dict):
 
 def process_project(project_data: dict):
     """
-    Custom method that takes a projects data and creates
-    an Instance of that Project
+    Custom method that takes a projects data and creates or
+    Update an Object of a Project
     """
     projectid = project_data.get('projectid')
 
@@ -132,8 +133,9 @@ def process_project(project_data: dict):
 
 def process_xforms(forms_data: dict, project_id: int):
     """
-    Takes a Dictionary containing Data about Forms
-    and process each one
+    Custom Method that takes in a Dictionary containing Data
+    of Forms from OnaData API and a Project ID then processes
+    each Form by using the process_xform method
     """
     if forms_data is not None:
         for xform_data in forms_data:
@@ -142,8 +144,9 @@ def process_xforms(forms_data: dict, project_id: int):
 
 def process_xform(xform_data: dict, project_id: int):
     """
-    Takes a Dictionary containing Data about an XForm
-    and Creates or Updates that XForm Instance
+    Custom Method that takes in a Dictionary containing Data
+    about an XForm and a Project ID then creates or updates
+    an XForm Object
     """
     xformid = xform_data.get('formid')
 
@@ -171,8 +174,8 @@ def process_xform(xform_data: dict, project_id: int):
 
 def get_instances(xform: object):
     """
-    Takes an XForm Object and Retrieves its Instances from
-    OnaData
+    Custom Method that Takes in an XForm Object and Retrieves
+    and returns Data on its Instances from OnaData
     """
     xformid = xform.ona_pk
     end_page = None
@@ -195,8 +198,9 @@ def get_instances(xform: object):
 
 def process_instances(instances_data: dict, xform: object):
     """
-    Takes a Dictionary Containing Data on Instances
-    and Process them
+    Custom Method that takes in a Dictionary containing Data
+    of Instances and an XForm object then processes the Instances
+    by sending each one to process_instance
     """
     if instances_data is not None:
         if instances_data != []:
@@ -206,8 +210,8 @@ def process_instances(instances_data: dict, xform: object):
 
 def process_instance(instance_data: dict, xform: object):
     """
-    Takes a Dictionary Containong Data on an Instance
-    and Creates or Updates that Instance
+    Custom Method that takes in a Dictionary containing Data on
+    an Instance and Creates or Updates an Instance Object
     """
     instanceid = instance_data.get('_id')
 

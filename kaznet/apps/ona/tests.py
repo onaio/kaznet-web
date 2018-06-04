@@ -528,7 +528,7 @@ class TestApiMethods(TestCase):
     @patch('kaznet.apps.ona.api.Retry._sleep_backoff')
     def test_request_session_retry(self, mocked):
         """
-        Test that request_session actually Retries
+        Test that retry is attempted the given number of times
         """
         # Mocking Retry._sleep_backoff due to the fact
         # That it is one of the methods called per Retry
