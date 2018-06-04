@@ -89,13 +89,12 @@ def get_projects(username: str = ONA_USERNAME):
     return projects_data
 
 
-def get_project(url: str, username: str = ONA_USERNAME):
+def get_project(url: str):
     """
     Custom Method that returns a specific project
     from the OnaData API
     """
-    args = {'owner': username}
-    project_data = request(url, args)
+    project_data = request(url)
 
     return project_data
 
