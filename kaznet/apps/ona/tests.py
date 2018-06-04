@@ -228,9 +228,8 @@ class TestApiMethods(TestCase):
                 "deleted_at": None
             }
         ]
-
         mocked.get(
-            f'{ONA_BASE_URL}/api/v1/projects?owner=kaznettest',
+            urljoin(ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
             json=mocked_projects_data
             )
         response = get_projects()
@@ -254,11 +253,11 @@ class TestApiMethods(TestCase):
         ]
         form = mommy.make('ona.XForm', ona_pk=1755)
         mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/1755?start=0&limit=100',
+            urljoin(ONA_BASE_URL, '/api/v1/data/1755?start=0&limit=100'),
             json=mocked_instances
         )
         mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/1755?start=100&limit=100',
+            urljoin(ONA_BASE_URL, '/api/v1/data/1755?start=100&limit=100'),
             json=[]
         )
 
@@ -311,9 +310,9 @@ class TestApiMethods(TestCase):
             "deleted_at": None
         }
 
-        self.assertEqual(len(Project.objects.all()), 0)
+        self.assertEqual(Project.objects.all().count(), 0)
         process_project(project_data)
-        self.assertEqual(len(Project.objects.all()), 1)
+        self.assertEqual(Project.objects.all().count(), 1)
 
     def test_processproject_bad_data(self):
         """
@@ -327,10 +326,9 @@ class TestApiMethods(TestCase):
             "is_merged_dataset": False
         }
 
-        current = len(Project.objects.all())
         process_project(project_data)
 
-        self.assertEqual(len(Project.objects.all()), current)
+        self.assertEqual(Project.objects.all().count(), 0)
 
     @patch('kaznet.apps.ona.api.process_xform')
     def test_processxforms(self, mockclass):
@@ -369,10 +367,10 @@ class TestApiMethods(TestCase):
             "is_merged_dataset": False
         }
 
-        self.assertEqual(len(XForm.objects.all()), 0)
+        self.assertEqual(XForm.objects.all().count(), 0)
         process_xform(mocked_form_data, 18)
 
-        self.assertEqual(len(XForm.objects.all()), 1)
+        self.assertEqual(XForm.objects.all().count(), 1)
 
     def test_processxform_bad_data(self):
         """
@@ -386,10 +384,9 @@ class TestApiMethods(TestCase):
             "_xform_id": 53,
             "_id": 1755
         }
-        current = len(XForm.objects.all())
         process_xform(mocked_form_data, 18)
 
-        self.assertEqual(len(XForm.objects.all()), current)
+        self.assertEqual(XForm.objects.all().count(), 0)
 
     @patch('kaznet.apps.ona.api.process_instance')
     def test_processinstances(self, mockclass):
@@ -427,10 +424,10 @@ class TestApiMethods(TestCase):
 
         mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
 
-        self.assertEqual(len(Instance.objects.all()), 0)
+        self.assertEqual(Instance.objects.all().count(), 0)
         process_instance(mocked_instance_data, mocked_xform)
 
-        self.assertEqual(len(Instance.objects.all()), 1)
+        self.assertEqual(Instance.objects.all().count(), 1)
 
     def test_processinstance_bad_data(self):
         """
@@ -446,10 +443,9 @@ class TestApiMethods(TestCase):
 
         mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
 
-        self.assertEqual(len(Instance.objects.all()), 0)
         process_instance(mocked_instance_data, mocked_xform)
 
-        self.assertEqual(len(Instance.objects.all()), 0)
+        self.assertEqual(Instance.objects.all().count(), 0)
 
     @requests_mock.Mocker()
     def test_request(self, mocked):
@@ -466,11 +462,11 @@ class TestApiMethods(TestCase):
                 "_id": 1755
             }
         ]
+        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
         mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/53',
+            url,
             json=mocked_response
             )
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
         response = request(url)
 
         self.assertEqual(mocked_response, response)
@@ -480,11 +476,11 @@ class TestApiMethods(TestCase):
         """
         Test that request returns None for Incorrect Data
         """
+        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
         mocked.get(
-            f'{ONA_BASE_URL}/api/v1/data/53',
+            url,
             text='Oh! Hello There!'
             )
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
         response = request(url)
 
         self.assertEqual(response, None)
