@@ -424,8 +424,9 @@ class TestApiMethods(TestCase):
 
     def test_processxform_good_data(self):
         """
-        Test that when process_xform is called with valid dat
-        it creates an XForm Object
+        Test that when process_xform is called with valid data
+        it creates an XForm Object and a Project Object
+        If its not present
         """
         mocked_form_data = {
             "name": "Changed",
@@ -435,13 +436,15 @@ class TestApiMethods(TestCase):
         }
 
         self.assertEqual(XForm.objects.all().count(), 0)
+        self.assertEqual(Project.objects.all().count(), 0)
         process_xform(mocked_form_data, 18)
 
         self.assertEqual(XForm.objects.all().count(), 1)
+        self.assertEqual(Project.objects.all().count(), 1)
 
     def test_processxform_bad_data(self):
         """
-        Test that when process_xform is called with valid dat
+        Test that when process_xform is called with valid data
         it creates an XForm Object
         """
         mocked_form_data = {
@@ -453,6 +456,7 @@ class TestApiMethods(TestCase):
         }
         process_xform(mocked_form_data, 18)
 
+        self.assertEqual(Project.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
 
     @patch('kaznet.apps.ona.api.process_instance')
@@ -478,8 +482,9 @@ class TestApiMethods(TestCase):
 
     def test_processinstance_good_data(self):
         """
-        Test that when process_instance is called with valid dat
-        it creates an Instance Object
+        Test that when process_instance is called with valid data
+        it creates an Instance Object and an XForm Object if its not already
+        present
         """
         mocked_instance_data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
@@ -489,12 +494,13 @@ class TestApiMethods(TestCase):
             "_id": 1755
         }
 
-        mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
-
         self.assertEqual(Instance.objects.all().count(), 0)
-        process_instance(mocked_instance_data, mocked_xform)
+        self.assertEqual(XForm.objects.all().count(), 0)
+
+        process_instance(mocked_instance_data)
 
         self.assertEqual(Instance.objects.all().count(), 1)
+        self.assertEqual(XForm.objects.all().count(), 1)
 
     def test_processinstance_bad_data(self):
         """
