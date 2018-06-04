@@ -164,6 +164,7 @@ def process_xforms(forms_data: dict, project_id: int):
             process_xform(xform_data, project_id=project_id)
 
 
+# pylint: disable=too-many-branches
 def process_xform(xform_data: dict, project_id: int = None):
     """
     Custom Method that takes in a Dictionary containing Data
@@ -299,17 +300,19 @@ def process_instance(instance_data: dict, xform: object = None):
     """
     instanceid = instance_data.get('_id')
 
-    if xform is None:
-        xform_id = instance_data.get('_xform_id')
-
-        try:
-            xform = XForm.objects.get(ona_pk=xform_id)
-        except ObjectDoesNotExist:
-            response = get_xform(xform_id)
-            process_xform(response)
-            xform = XForm.objects.get(ona_pk=xform_id)
-
     if instanceid is not None:
+        # Check whether XForm has been Passed
+        # If it hasnt try to get an XForm Object or Create it
+        if xform is None:
+            xform_id = instance_data.get('_xform_id')
+
+            try:
+                xform = XForm.objects.get(ona_pk=xform_id)
+            except ObjectDoesNotExist:
+                response = get_xform(xform_id)
+                process_xform(response)
+                xform = XForm.objects.get(ona_pk=xform_id)
+
         obj, created = Instance.objects.get_or_create(
             ona_pk=instanceid,
             defaults={
