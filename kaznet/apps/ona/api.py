@@ -172,30 +172,52 @@ def process_xform(xform_data: dict, project_id: int = None):
     """
     xformid = xform_data.get('formid')
 
-    # Checks to see if project_id has been Passed, If it hasn't
-    # We try to see if projectid has been Passed from project_data
-    # And either retrieve the Project Object or Create it if it's non_existant
-    if project_id is None:
-        project_url = xform_data.get('project')
-        project_data = get_project(project_url)
-        ona_pk = project_data.get('projectid')
-
-        try:
-            project = Project.objects.get(ona_pk=ona_pk)
-        except ObjectDoesNotExist:
-            process_project(project_data)
-        else:
-            project_id = project.id
-
-    # Check if name is present in Data passed in
-    # If it is not use title if Present
-    if xform_data.get('name') is None:
-        title = xform_data.get('title')
-    else:
-        title = xform_data.get('name')
-
     # Confirm that the XForm_data contains the XFormID
     if xformid is not None:
+
+        # Checks to see if project_id has been Passed, If it hasn't
+        # We try to see if projectid has been Passed from project_data
+        # And either retrieve the Project Object or Create it if it's
+        # non_existant
+        if project_id is None:
+            project_url = xform_data.get('project')
+            project_data = get_project(project_url)
+            ona_pk = project_data.get('projectid')
+
+            try:
+                project = Project.objects.get(ona_pk=ona_pk)
+            except ObjectDoesNotExist:
+                process_project(project_data)
+                project = Project.objects.get(ona_pk=ona_pk)
+                project_id = project.id
+            else:
+                project_id = project.id
+
+        # If project_id has been passed we check if we have a Project Object
+        # With the ona_pk set as project_id and either create or retrieve
+        # the objects
+
+        else:
+
+            try:
+                project = Project.objects.get(ona_pk=project_id)
+            except ObjectDoesNotExist:
+                url = urljoin(ONA_BASE_URL, f'api/v1/projects/{project_id}')
+                project_data = get_project(url)
+                process_project(project_data)
+                project = Project.objects.get(ona_pk=project_id)
+                project_id = project.id
+            else:
+                project_id = project.id
+
+        # Check if name is present in Data passed in
+        # If it is not use title if Present
+
+        if xform_data.get('name') is None:
+            title = xform_data.get('title')
+        else:
+            title = xform_data.get('name')
+
         obj, created = XForm.objects.get_or_create(
             ona_pk=xformid,
             defaults={
