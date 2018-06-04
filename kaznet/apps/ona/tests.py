@@ -8,7 +8,6 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 import requests_mock
-from requests.packages.urllib3.util.retry import Retry
 from model_mommy import mommy
 from requests.exceptions import RetryError
 from rest_framework.test import APIRequestFactory, force_authenticate
