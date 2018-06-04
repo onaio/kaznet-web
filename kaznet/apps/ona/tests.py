@@ -8,7 +8,9 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 import requests_mock
+from requests.packages.urllib3.util.retry import Retry
 from model_mommy import mommy
+from requests.exceptions import RetryError
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
@@ -498,29 +500,26 @@ class TestApiMethods(TestCase):
         Test that an invalid url will fail
         eventually
         """
-        response = request_session(
-            url='http://httpbin.org/status/500',
-            method='GET',
-            retries=0,
-            backoff_factor=0
-            )
+        with self.assertRaises(RetryError):
+            request_session(
+                url='http://httpbin.org/status/500',
+                method='GET',
+                retries=3,
+                backoff_factor=0
+                )
 
-        self.assertEqual(response.status_code, 500)
+        with self.assertRaises(RetryError):
+            request_session(
+                url='http://httpbin.org/status/502',
+                method='GET',
+                retries=3,
+                backoff_factor=0
+                )
 
-        response = request_session(
-            url='http://httpbin.org/status/502',
-            method='GET',
-            retries=0,
-            backoff_factor=0
-            )
-
-        self.assertEqual(response.status_code, 502)
-
-        response = request_session(
-            url='http://httpbin.org/status/504',
-            method='GET',
-            retries=0,
-            backoff_factor=0
-            )
-
-        self.assertEqual(response.status_code, 504)
+        with self.assertRaises(RetryError):
+            request_session(
+                url='http://httpbin.org/status/504',
+                method='GET',
+                retries=3,
+                backoff_factor=0
+                )
