@@ -121,10 +121,10 @@ def process_project(project_data: dict):
 
             # Turns the project_data['date_modified'] into a datetime object
             # for easier comparison
-            mocked_date = dateutil.parser.parse(project_data.get(
+            last_updated_ona = dateutil.parser.parse(project_data.get(
                 'date_modified'))
-            if mocked_date is not None:
-                if obj.last_updated != mocked_date:
+            if last_updated_ona is not None:
+                if obj.last_updated != last_updated_ona:
                     obj.name = project_data.get('name')
                     obj.last_updated = project_data.get('date_modified')
                     obj.deleted_at = project_data.get('deleted_at')
@@ -236,9 +236,9 @@ def process_instance(instance_data: dict, xform: object):
                 obj.json = instance_data
                 obj.save()
 
-            mocked_date = dateutil.parser.parse(last_updated)
+            last_updated_ona = dateutil.parser.parse(last_updated)
 
-            if obj.last_updated != mocked_date:
+            if obj.last_updated != last_updated_ona:
                 obj.json = instance_data
                 obj.last_updated = instance_data.get('_last_edited')
                 obj.save()
