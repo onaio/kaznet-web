@@ -158,6 +158,12 @@ ONA_BASE_URL = 'https://stage-api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
 
+
+TASKING_ALLOWED_CONTENTTYPES = [
+    {'app_label': 'ona', 'model': 'xform'},
+    {'app_label': 'ona', 'model': 'onainstance'}
+]
+
 # try and load local_settings if present
 try:
     # pylint: disable=wildcard-import
