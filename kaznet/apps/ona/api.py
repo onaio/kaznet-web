@@ -14,14 +14,14 @@ from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
 
 
-def request_session(  # pylint: disable=too-many-arguments
+def request_session(
         url: str,
         method: str,
         payload: dict = None,
         retries=3,
         backoff_factor=1,
         status_forcelist=(500, 502, 504),
-):
+):  # pylint: disable=too-many-arguments
     """
     Custom Method that takes in a URL and optionally retries,
     backoff_factor and status_forcelist. It creates a Request
