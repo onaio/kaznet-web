@@ -24,6 +24,16 @@ class Task(BaseTask):
         blank=True,
         default=None,
         help_text=_('This represents the location.'))
+    estimated_time = models.CharField(
+        _('Estimated Time'),
+        blank=True,
+        null=True,
+        default=None,
+        max_length=255,
+        help_text=_(
+            'This represents the Estimated Time it takes to complete a Task.'
+            )
+    )
 
     # Custom Manager that has submission_count field
     with_submission_count = TaskManager()
