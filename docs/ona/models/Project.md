@@ -1,6 +1,6 @@
-# Ona Projects
+# Projects
 
-Model for OnaData Projects. Inherits:
+Model for Projects. Inherits:
 
 ```
 TimeStampedModel
@@ -13,4 +13,5 @@ TimeStampedModel
 - `name`: *String*, is the name for the Project.
 - `deleted_at`: *Date & Time*.
 - `created`: *Date & Time*, inherited from TimeStampedModel.
+- `last_updated`: *Date & Time*.
 - `modified`: *Date & Time*, inherited from TimeStampedModel.
