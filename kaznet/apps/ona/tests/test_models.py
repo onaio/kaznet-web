@@ -1,6 +1,6 @@
 """
 Module Containing all Tests for
-kaznet.apps.ona.models
+Ona Apps models.py
 """
 
 from django.test import TestCase

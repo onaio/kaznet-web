@@ -1,6 +1,6 @@
 """
-Module containing Tests for
-all Serializers of Ona App
+Module containing Tests for Ona Apps
+serializers.py
 """
 
 from django.test import TestCase

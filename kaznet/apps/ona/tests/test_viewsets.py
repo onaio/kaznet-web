@@ -1,6 +1,6 @@
 """
-Module containing all tests for Viewsets in
-Ona App
+Module containing all tests for Ona Apps
+viewsets.py
 """
 from django.test import TestCase
 
