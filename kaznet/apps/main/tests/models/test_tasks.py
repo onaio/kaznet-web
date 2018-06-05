@@ -30,13 +30,14 @@ class TestTasks(TestCase):
 
     def test_create_task_from_xform(self):
         """
-        For every ona xform a signal is triggered to create a corresponding kaznet task
+        For every ona xform a signal is triggered to create
+        a corresponding kaznet task
         """
         xform = mommy.make('ona.XForm')
         cattle_task = mommy.make(
             'main.Task',
             name='Cattle Price',
-            target_content_object = xform
+            target_content_object=xform
         )
 
         self.assertEqual(cattle_task.target_object_id, xform.id)

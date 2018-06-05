@@ -109,7 +109,6 @@ class Instance(TimeStampedModel, models.Model):
         return xform.tasks.first()
 
 
-
 class Project(TimeStampedModel, models.Model):
     """
     Project model from onadata

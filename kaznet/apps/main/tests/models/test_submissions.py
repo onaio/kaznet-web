@@ -62,4 +62,4 @@ class TestSubmission(TestCase):
             bounty=bounty_instance,
             _fill_optional=['user', 'comment', 'submission_time'])
 
-        self.assertEqual(submission.bounty.id , bounty_instance.id)
+        self.assertEqual(submission.bounty.id, bounty_instance.id)

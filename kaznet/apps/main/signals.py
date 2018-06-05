@@ -8,6 +8,7 @@ from tasking.utils import generate_task_occurrences
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.models import Submission
 
+
 # pylint: disable=unused-argument
 def create_occurrences(sender, instance, created, **kwargs):
     """
@@ -20,6 +21,7 @@ def create_occurrences(sender, instance, created, **kwargs):
         generate_task_occurrences(
             instance, OccurrenceModelClass=TaskOccurrence)
 
+
 def create_submission(sender, instance, created, **kwargs):
     """
     Create a kaznet.apps.main submission after a
@@ -31,7 +33,7 @@ def create_submission(sender, instance, created, **kwargs):
         submission = Submission(
             task=task,
             bounty=bounty,
-            location=None, # TODO: in different PR
+            location=None,  # TODO: in different PR
             # TODO: what if dict lacks some keys
             submission_time=instance.json["submission_time"],
             user_id=instance.json["user_id"]
