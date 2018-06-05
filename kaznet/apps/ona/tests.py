@@ -335,7 +335,7 @@ class TestApiMethods(TestCase):
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
-    def test_processprojects(self, mockclass):
+    def test_process_projects(self, mockclass):
         """
         Test that process_projects works the way it
         should when given proper and improper data
@@ -366,7 +366,7 @@ class TestApiMethods(TestCase):
 
         mockclass.assert_called_once()
 
-    def test_processproject_good_data(self):
+    def test_process_project_good_data(self):
         """
         Test that when process_project is given proper data it creates
         an object
@@ -382,9 +382,9 @@ class TestApiMethods(TestCase):
         process_project(project_data)
         self.assertEqual(Project.objects.all().count(), 1)
 
-    def test_processproject_bad_data(self):
+    def test_process_project_bad_data(self):
         """
-        Test that when process_project is given proper data it
+        Test that when process_project is given improper data it
         does not create an object
         """
         project_data = {
@@ -399,7 +399,7 @@ class TestApiMethods(TestCase):
         self.assertEqual(Project.objects.all().count(), 0)
 
     @patch('kaznet.apps.ona.api.process_xform')
-    def test_processxforms(self, mockclass):
+    def test_process_xforms(self, mockclass):
         """
         Test that process_xforms works the way it
         should when given proper and improper data
@@ -424,7 +424,7 @@ class TestApiMethods(TestCase):
         mockclass.assert_called_once()
 
     @requests_mock.Mocker()
-    def test_processxform_good_data(self, mocked):
+    def test_process_xform_good_data(self, mocked):
         """
         Test that when process_xform is called with valid data
         it creates an XForm Object and a Project Object
@@ -456,7 +456,7 @@ class TestApiMethods(TestCase):
         self.assertEqual(XForm.objects.all().count(), 1)
         self.assertEqual(Project.objects.all().count(), 1)
 
-    def test_processxform_bad_data(self):
+    def test_process_xform_bad_data(self):
         """
         Test that when process_xform is called with valid data
         it creates an XForm Object
@@ -474,7 +474,7 @@ class TestApiMethods(TestCase):
         self.assertEqual(XForm.objects.all().count(), 0)
 
     @patch('kaznet.apps.ona.api.process_instance')
-    def test_processinstances(self, mockclass):
+    def test_process_instances(self, mockclass):
         """
         Test that process_instances calls process_instance
         """
@@ -495,11 +495,11 @@ class TestApiMethods(TestCase):
         mockclass.assert_called_with(mocked_instances[0], mocked_xform)
 
     @requests_mock.Mocker()
-    def test_processinstance_good_data(self, mocked):
+    def test_process_instance_good_data(self, mocked):
         """
         Test that when process_instance is called with valid data
-        it creates an Instance Object and an XForm Object if its not already
-        present
+        it creates an Instance Object as well as an XForm object and a Project
+        Object if not present.
         """
         mocked_instance_data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
@@ -535,16 +535,18 @@ class TestApiMethods(TestCase):
         )
         self.assertEqual(Instance.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
+        self.assertEqual(Project.objects.all().count(), 0)
 
         process_instance(mocked_instance_data)
 
         self.assertEqual(Instance.objects.all().count(), 1)
         self.assertEqual(XForm.objects.all().count(), 1)
+        self.assertEqual(Project.objects.all().count(), 1)
 
-    def test_processinstance_bad_data(self):
+    def test_process_instance_bad_data(self):
         """
         Test that when process_instance is called with invalid data
-        it doesn't create an Instance Object
+        it doesn't create an Instance Object or an XForm Object
         """
         mocked_instance_data = {
             "name": "Changed",
@@ -552,12 +554,10 @@ class TestApiMethods(TestCase):
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "is_merged_dataset": False
         }
-
-        mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
-
-        process_instance(mocked_instance_data, mocked_xform)
+        process_instance(mocked_instance_data)
 
         self.assertEqual(Instance.objects.all().count(), 0)
+        self.assertEqual(XForm.objects.all().count(), 0)
 
     @requests_mock.Mocker()
     def test_request(self, mocked):
@@ -597,7 +597,7 @@ class TestApiMethods(TestCase):
 
         self.assertEqual(response, None)
 
-    def test_requests_session(self):
+    def test_request_session(self):
         """
         Tests that a valid url can be accessed normally
         """
