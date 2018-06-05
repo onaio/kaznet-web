@@ -29,7 +29,7 @@ def create_submission(sender, instance, created, **kwargs):
     """
     task = instance.get_task()
     submission_time = instance.json.get("submission_time")
-    user_id=instance.json.get("user_id")
+    user_id = instance.json.get("user_id")
 
     if task and submission_time and user_id:
         bounty = task.bounty_set.all().order_by('-created').first()
