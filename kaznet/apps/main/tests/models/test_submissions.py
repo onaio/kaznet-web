@@ -18,7 +18,7 @@ class TestSubmission(TestCase):
 
     def setUp(self):
         self.instance_type = get_allowed_contenttypes().filter(
-            model='onainstance').first()
+            model='instance').first()
 
     def test_submission_model_str(self):
         """
@@ -36,7 +36,7 @@ class TestSubmission(TestCase):
         self.assertEqual(expected, six.text_type(submission))
 
     def test_relationship_with_ona_instance(self):
-        instance = mommy.make('ona.OnaInstance')
+        instance = mommy.make('ona.Instance')
         cattle = mommy.make(
             'main.Task',
             name='Cattle Price')

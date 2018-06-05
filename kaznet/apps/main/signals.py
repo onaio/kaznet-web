@@ -47,5 +47,5 @@ post_save.connect(
 
 post_save.connect(
     create_submission,
-    sender='ona.OnaInstance',
+    sender='ona.Instance',
     dispatch_uid='create_kaznet_main_submission')

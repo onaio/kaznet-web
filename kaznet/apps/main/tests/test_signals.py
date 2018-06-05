@@ -40,7 +40,7 @@ class TestSignals(TestCase):
             target_content_object=ona_form
         )
         mommy.make(
-            'ona.OnaInstance',
+            'ona.Instance',
             xform=ona_form,
             json=dict(
                 submission_time=timezone.now().isoformat(),
