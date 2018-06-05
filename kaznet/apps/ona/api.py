@@ -111,11 +111,11 @@ def process_project(project_data: dict):
     Custom method that takes a projects data and creates or
     Update an Object of a Project
     """
-    projectid = project_data.get('projectid')
+    project_id = project_data.get('projectid')
 
-    if projectid is not None:
+    if project_id is not None:
         obj, created = Project.objects.get_or_create(
-            ona_pk=projectid,
+            ona_pk=project_id,
             defaults={
                 'name': project_data.get('name'),
                 'deleted_at': project_data.get('deleted_at'),
@@ -163,10 +163,10 @@ def process_xform(xform_data: dict, project_id: int = None):
     about an XForm and a Project ID then creates or updates
     an XForm Object
     """
-    xformid = xform_data.get('formid')
+    xform_id = xform_data.get('formid')
 
     # Confirm that the XForm_data contains the XFormID
-    if xformid is not None:
+    if xform_id is not None:
         if project_id is None:
             url = xform_data.get('project')
             project = get_project_obj(project_url=url)
@@ -176,7 +176,7 @@ def process_xform(xform_data: dict, project_id: int = None):
         title = xform_data.get('name') or xform_data.get('title')
 
         obj, created = XForm.objects.get_or_create(
-            ona_pk=xformid,
+            ona_pk=xform_id,
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
@@ -205,7 +205,7 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
     if ona_project_id is not None:
         try:
             return Project.objects.get(ona_pk=ona_project_id)
-        except Project.DoesNotExist:
+        except Project.DoesNotExist:  # pylint: disable=no-member
             project_data = get_project(
                 urljoin(ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'))
             process_project(project_data)
@@ -217,7 +217,7 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
         return Project.objects.get(ona_pk=ona_project_id)
 
 
-def get_instances(xformid: int):
+def get_instances(xform_id: int):
     """
     Custom Method that Takes in an XForm Object and Retrieves
     and returns Data on its Instances from OnaData
@@ -226,7 +226,7 @@ def get_instances(xformid: int):
     start = 0
 
     while end_page is None:
-        url = urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}')
+        url = urljoin(ONA_BASE_URL, f'api/v1/data/{xform_id}')
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
@@ -236,13 +236,13 @@ def get_instances(xformid: int):
         yield data
 
 
-def get_instance(xformid: int, instanceid: int):
+def get_instance(xform_id: int, instance_id: int):
     """
     Custom Method that takes in an XFormID and InstanceID
     and retrieves instance date
     """
     return request(
-        urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}/{instanceid}'))
+        urljoin(ONA_BASE_URL, f'api/v1/data/{xform_id}/{instance_id}'))
 
 
 def process_instances(instances_data: iter, xform: object = None):
@@ -304,7 +304,7 @@ def get_xform_obj(ona_xform_id: int):
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
         return xform
-    except XForm.DoesNotExist:
+    except XForm.DoesNotExist:  # pylint: disable=no-member
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
         return XForm.objects.get(ona_pk=ona_xform_id)
