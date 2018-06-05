@@ -93,6 +93,50 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(7, len(response.data))
 
+    def test_list_filtering(self):
+        """
+        test that you can get and sort a list of userprofiles
+        """
+        user = create_admin_user()  # ADMIN & EXPERT
+        ben = mommy.make('auth.User', first_name='ben')
+        ben.userprofile.role = UserProfile.CONTRIBUTOR
+        ben.userprofile.expertise = UserProfile.ADVANCED
+        ben.userprofile.save()
+
+        alice = mommy.make('auth.User', first_name='alice')
+        alice.userprofile.role = UserProfile.CONTRIBUTOR
+        alice.userprofile.expertise = UserProfile.ADVANCED
+        alice.userprofile.save()
+
+        joe = mommy.make('auth.User', first_name='joe')
+        joe.userprofile.role = UserProfile.CONTRIBUTOR
+        joe.userprofile.expertise = UserProfile.BEGINNER
+        joe.userprofile.save()
+
+        view = UserProfileViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get('/userprofiles')
+        force_authenticate(request=request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(4, len(response.data))
+
+        # role filter: there is only one admin
+        request2 = self.factory.get(
+            '/userprofiles', {'role': UserProfile.ADMIN})
+        force_authenticate(request=request2, user=user)
+        response2 = view(request=request2)
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(1, len(response2.data))
+
+        # expertise filter: there are two asvanced users
+        request = self.factory.get(
+            '/userprofiles', {'expertise': UserProfile.ADVANCED})
+        force_authenticate(request=request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(2, len(response.data))
+
     def test_update(self):
         """
         Test that you can update userprofiles
