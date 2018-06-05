@@ -4,7 +4,8 @@ pipeline:
     commands:
         - pip install --upgrade pip
         - pip install tox
-        - sleep 10 && psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
+        - sleep 40
+        - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
         - redis-cli -h redis ping
         - tox
     environment:
