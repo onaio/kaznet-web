@@ -28,6 +28,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
+    submission_count = serializers.SerializerMethodField()
 
     class Meta(object):  # pylint:  disable=too-few-public-methods
         """
@@ -48,8 +49,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'role',
             'expertise',
             'gender',
-            'national_id'
+            'national_id',
+            'submission_count'
         ]
+
+    def get_submission_count(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the submission count
+        """
+        return obj.user.submission_set.count()
 
     def create(self, validated_data):
         """

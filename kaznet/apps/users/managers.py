@@ -5,9 +5,9 @@ from django.db import models
 
 
 # pylint: disable=too-few-public-methods
-class TaskManager(models.Manager):
+class UserProfileManager(models.Manager):
     """
-    Custom manager for main.Task
+    Custom manager for users.UserProfile
     """
 
     def get_queryset(self):
@@ -17,5 +17,5 @@ class TaskManager(models.Manager):
         queryset = super().get_queryset()
         # add submission count to queryset as annotation
         queryset = queryset.annotate(
-            submission_count=models.Count('submission__id'))
+            submission_count=models.Count('user__submission__id'))
         return queryset

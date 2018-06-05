@@ -24,3 +24,16 @@ class TestUserModels(TestCase):
         self.assertEqual('mosh', user.userprofile.user.username)
         # check the __str__ method on UserProfile
         self.assertEqual("mosh's profile", user.userprofile.__str__())
+
+    def test_submission_count(self):
+        """
+        Test that submission_count works
+        """
+        userprofile = mommy.make('auth.User').userprofile
+        # make some submissions
+        mommy.make('main.Submission', _quantity=789, user=userprofile.user)
+
+        # user .objects so that we can get the submission count
+        profile = UserProfile.objects.get(id=userprofile.id)
+
+        self.assertEqual(789, profile.submission_count)
