@@ -249,3 +249,80 @@ class TestUserProfileViewSet(TestCase):
         # pylint: disable=no-member
         self.assertFalse(
             UserProfile.objects.filter(id=bob_userprofile.id).exists())
+
+    def test_authentication_required(self):
+        """
+        Test that authentication is required for all endpoints
+        """
+        # cant create
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Doe',
+            'email': 'bobbie@example.com',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'payment_number': '+254722222222',
+            'phone_number': '+254722222222',
+            'ona_pk': 1337,
+            'ona_username': 'bobbie'
+        }
+
+        view = UserProfileViewSet.as_view({'post': 'create'})
+        request = self.factory.post('/userprofiles', data)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'Authentication credentials were not provided.',
+            response.data['detail']
+        )
+
+        user = mommy.make('auth.User')
+        userprofile = user.userprofile
+
+        # cant retrieve
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+        request = self.factory.get(f'/userprofiles/{userprofile.id}')
+        response = view(request=request, pk=userprofile.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'Authentication credentials were not provided.',
+            response.data['detail']
+        )
+
+        # cant list
+        view = UserProfileViewSet.as_view({'get': 'list'})
+        request = self.factory.get(f'/userprofiles')
+        response = view(request=request)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'Authentication credentials were not provided.',
+            response.data['detail']
+        )
+
+        # cant update
+        data = {
+            'first_name': 'Peter',
+            'phone_number': '+254722111111',
+            'role': UserProfile.CONTRIBUTOR
+        }
+        view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+        request = self.factory.patch(f'/userprofiles/{userprofile.id}',
+                                     data=data)
+        response = view(request=request, pk=userprofile.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'Authentication credentials were not provided.',
+            response.data['detail']
+        )
+
+        # cant delete
+        view = UserProfileViewSet.as_view({'delete': 'destroy'})
+        request = self.factory.delete(f'/userprofiles/{userprofile.id}')
+        response = view(request=request, pk=userprofile.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'Authentication credentials were not provided.',
+            response.data['detail']
+        )
