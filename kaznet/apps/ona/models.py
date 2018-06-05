@@ -4,6 +4,7 @@ Models from Onadata
 See: https://github.com/onaio/onadata
 """
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -45,6 +46,12 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
+    tasks = GenericRelation(
+        'main.Task',
+        content_type_field='target_content_type',
+        object_id_field='target_object_id'
+    )
+
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
@@ -92,6 +99,15 @@ class Instance(TimeStampedModel, models.Model):
         Meta Options for Instance
         """
         ordering = ['ona_pk', 'deleted_at']
+
+    def get_task(self):
+        """
+        Get the task for this submission
+        This might return None or might return a task
+        """
+        xform = self.xform
+        return xform.tasks.first()
+
 
 
 class Project(TimeStampedModel, models.Model):
