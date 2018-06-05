@@ -20,8 +20,16 @@ def create_occurrences(sender, instance, created, **kwargs):
         generate_task_occurrences(
             instance, OccurrenceModelClass=TaskOccurrence)
 
+def create_submission():
+    pass
+
 
 post_save.connect(
     create_occurrences,
     sender='main.Task',
     dispatch_uid='create_task_occurrences')
+
+post_save.connect(
+    create_submission,
+    sender='ona.OnaInstance',
+    dispatch_uid='create_kaznet_main_submission')
