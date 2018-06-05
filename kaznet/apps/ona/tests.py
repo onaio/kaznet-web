@@ -254,17 +254,18 @@ class TestApiMethods(TestCase):
             }
         ]
         mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/data/1755?start=0&limit=100'),
+            urljoin(ONA_BASE_URL, '/api/v1/data/53?start=0&limit=100'),
             json=mocked_instances
         )
         mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/data/1755?start=100&limit=100'),
+            urljoin(ONA_BASE_URL, '/api/v1/data/53?start=100&limit=100'),
             json=[]
         )
 
-        response = get_instances(1755)
-
-        self.assertEqual(response, mocked_instances)
+        response = get_instances(53)
+        for i in response:
+            mocked_data = i
+        self.assertEqual(mocked_data, mocked_instances)
 
     @requests_mock.Mocker()
     def test_get_project(self, mocked):
@@ -330,7 +331,6 @@ class TestApiMethods(TestCase):
             json=mocked_instance_data
             )
         response = get_instance(53, 142)
-
         self.assertTrue(response, mocked_instance_data)
 
     # pylint: disable=no-self-use
@@ -478,21 +478,25 @@ class TestApiMethods(TestCase):
         """
         Test that process_instances calls process_instance
         """
-        mocked_instances = [
-            {
-                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "_edited": True,
-                "_last_edited": "2018-05-30T07:51:59.187363Z",
-                "_xform_id": 53,
-                "_id": 1755
-            }
-        ]
+        mocked_instances = (
+            [
+                [
+                    {
+                        "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                        "_edited": True,
+                        "_last_edited": "2018-05-30T07:51:59.187363Z",
+                        "_xform_id": 53,
+                        "_id": 1755
+                    }
+                ]
+            ]
+        )
 
         mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
 
         # Test that when valid forms data is passed it calls process_instance
         process_instances(mocked_instances, mocked_xform)
-        mockclass.assert_called_with(mocked_instances[0], mocked_xform)
+        mockclass.assert_called_with(mocked_instances[0][0], mocked_xform)
 
     @requests_mock.Mocker()
     def test_process_instance_good_data(self, mocked):

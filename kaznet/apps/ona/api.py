@@ -227,7 +227,6 @@ def get_instances(xformid: int):
     """
     end_page = None
     start = 0
-    instances_data = []
 
     while end_page is None:
         url = urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}')
@@ -237,10 +236,7 @@ def get_instances(xformid: int):
         if data == []:
             end_page = True
             break
-        elif data is not None:
-            instances_data = instances_data + data
-
-    return instances_data
+        yield data
 
 
 def get_instance(xformid: int, instanceid: int):
@@ -252,15 +248,15 @@ def get_instance(xformid: int, instanceid: int):
         urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}/{instanceid}'))
 
 
-def process_instances(instances_data: dict, xform: object):
+def process_instances(instances_data: iter, xform: object = None):
     """
     Custom Method that takes in a Dictionary containing Data
     of Instances and an XForm object then processes the Instances
     by sending each one to process_instance
     """
     if instances_data is not None:
-        if instances_data != []:
-            for instance_data in instances_data:
+        for instance_data_list in instances_data:
+            for instance_data in instance_data_list:
                 process_instance(instance_data, xform)
 
 
