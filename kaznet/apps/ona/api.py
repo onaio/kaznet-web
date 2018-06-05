@@ -4,8 +4,6 @@ with the OnaData API
 """
 from urllib.parse import urljoin
 
-from django.core.exceptions import ObjectDoesNotExist
-
 import dateutil.parser
 import requests
 from requests.adapters import HTTPAdapter
@@ -206,9 +204,8 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
     """
     if ona_project_id is not None:
         try:
-            project_obj = Project.objects.get(ona_pk=ona_project_id)
-            return project_obj
-        except ObjectDoesNotExist:
+            return Project.objects.get(ona_pk=ona_project_id)
+        except Project.DoesNotExist:
             project_data = get_project(
                 urljoin(ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'))
             process_project(project_data)
@@ -307,7 +304,7 @@ def get_xform_obj(ona_xform_id: int):
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
         return xform
-    except ObjectDoesNotExist:
+    except XForm.DoesNotExist:
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
         return XForm.objects.get(ona_pk=ona_xform_id)
