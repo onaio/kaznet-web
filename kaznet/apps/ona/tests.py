@@ -204,6 +204,7 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(form.title, response.data['title'])
 
 
+# pylint: disable=too-many-public-methods
 class TestApiMethods(TestCase):
     """
     Tests for the API Methods
