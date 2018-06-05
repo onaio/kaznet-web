@@ -422,7 +422,8 @@ class TestApiMethods(TestCase):
         process_xforms(mocked_forms_data, project_id=18)
         mockclass.assert_called_once()
 
-    def test_processxform_good_data(self):
+    @requests_mock.Mocker()
+    def test_processxform_good_data(self, mocked):
         """
         Test that when process_xform is called with valid data
         it creates an XForm Object and a Project Object
@@ -434,6 +435,18 @@ class TestApiMethods(TestCase):
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "is_merged_dataset": False
         }
+
+        mocked_project_data = {
+            "projectid": 18,
+            "name": "Changed2",
+            "date_modified": "2018-05-30T07:51:59.267839Z",
+            "deleted_at": None
+        }
+
+        mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
+            json=mocked_project_data
+        )
 
         self.assertEqual(XForm.objects.all().count(), 0)
         self.assertEqual(Project.objects.all().count(), 0)
@@ -480,7 +493,8 @@ class TestApiMethods(TestCase):
         process_instances(mocked_instances, mocked_xform)
         mockclass.assert_called_with(mocked_instances[0], mocked_xform)
 
-    def test_processinstance_good_data(self):
+    @requests_mock.Mocker()
+    def test_processinstance_good_data(self, mocked):
         """
         Test that when process_instance is called with valid data
         it creates an Instance Object and an XForm Object if its not already
@@ -494,6 +508,30 @@ class TestApiMethods(TestCase):
             "_id": 1755
         }
 
+        mocked_form_data = {
+            "name": "Changed",
+            "formid": 53,
+            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "project": "https://stage-api.ona.io/api/v1/projects/18"
+        }
+
+        mocked_project_data = {
+            "projectid": 18,
+            "name": "Changed2",
+            "date_modified": "2018-05-30T07:51:59.267839Z",
+            "deleted_at": None
+        }
+
+        mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
+            json=mocked_project_data
+        )
+
+        mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/forms/53'),
+            json=mocked_form_data
+        )
         self.assertEqual(Instance.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
 
