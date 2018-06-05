@@ -159,7 +159,6 @@ def process_xforms(forms_data: dict, project_id: int):
             process_xform(xform_data, project_id=project_id)
 
 
-# pylint: disable=too-many-branches
 def process_xform(xform_data: dict, project_id: int = None):
     """
     Custom Method that takes in a Dictionary containing Data
@@ -170,44 +169,12 @@ def process_xform(xform_data: dict, project_id: int = None):
 
     # Confirm that the XForm_data contains the XFormID
     if xformid is not None:
-
-        # Checks to see if project_id has been Passed, If it hasn't
-        # We try to see if projectid has been Passed from project_data
-        # And either retrieve the Project Object or Create it if it's
-        # non_existant
         if project_id is None:
-            project_url = xform_data.get('project')
-            project_data = get_project(project_url)
-            ona_pk = project_data.get('projectid')
-
-            try:
-                project = Project.objects.get(ona_pk=ona_pk)
-            except ObjectDoesNotExist:
-                process_project(project_data)
-                project = Project.objects.get(ona_pk=ona_pk)
-                project_id = project.id
-            else:
-                project_id = project.id
-
-        # If project_id has been passed we check if we have a Project Object
-        # With the ona_pk set as project_id and either create or retrieve
-        # the objects
-
+            url = xform_data.get('project')
+            project = get_project_obj(project_url=url)
         else:
+            project = get_project_obj(project_id)
 
-            try:
-                project = Project.objects.get(ona_pk=project_id)
-            except ObjectDoesNotExist:
-                url = urljoin(ONA_BASE_URL, f'api/v1/projects/{project_id}')
-                project_data = get_project(url)
-                process_project(project_data)
-                project = Project.objects.get(ona_pk=project_id)
-                project_id = project.id
-            else:
-                project_id = project.id
-
-        # Check if name is present in Data passed in
-        # If it is not use title if Present
         title = xform_data.get('name') or xform_data.get('title')
 
         obj, created = XForm.objects.get_or_create(
@@ -215,14 +182,14 @@ def process_xform(xform_data: dict, project_id: int = None):
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
-                'project_id': project_id,
+                'project_id': project.id,
                 'last_updated': xform_data.get('last_updated_at')
             }
             )
 
         if not created:
 
-            last_updated_ona = dateutil.parser.parse(project_data.get(
+            last_updated_ona = dateutil.parser.parse(xform_data.get(
                 'date_modified'))
 
             if last_updated_ona and obj.last_updated != last_updated_ona:
@@ -231,6 +198,26 @@ def process_xform(xform_data: dict, project_id: int = None):
                 obj.title = title
 
             obj.save()
+
+
+def get_project_obj(ona_project_id: int = None, project_url: str = None):
+    """
+    Custom Method that returns a Project object
+    """
+    if ona_project_id is not None:
+        try:
+            project_obj = Project.objects.get(ona_pk=ona_project_id)
+            return project_obj
+        except ObjectDoesNotExist:
+            project_data = get_project(
+                urljoin(ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'))
+            process_project(project_data)
+            return Project.objects.get(ona_pk=ona_project_id)
+    else:
+        project_data = get_project(project_url)
+        ona_project_id = project_data.get('projectid')
+        process_project(project_data)
+        return Project.objects.get(ona_pk=ona_project_id)
 
 
 def get_instances(xformid: int):
@@ -286,16 +273,10 @@ def process_instance(instance_data: dict, xform: object = None):
 
     if instanceid is not None:
         # Check whether XForm has been Passed
-        # If it hasnt try to get an XForm Object or Create it
+        # If it hasnt try get an XForm Object using xform_id
         if xform is None:
             xform_id = instance_data.get('_xform_id')
-
-            try:
-                xform = XForm.objects.get(ona_pk=xform_id)
-            except ObjectDoesNotExist:
-                response = get_xform(xform_id)
-                process_xform(response)
-                xform = XForm.objects.get(ona_pk=xform_id)
+            xform = get_xform_obj(xform_id)
 
         obj, created = Instance.objects.get_or_create(
             ona_pk=instanceid,
@@ -319,3 +300,18 @@ def process_instance(instance_data: dict, xform: object = None):
                 obj.last_updated = instance_data.get('_last_edited')
                 obj.json = instance_data
                 obj.save()
+
+
+def get_xform_obj(ona_xform_id: int):
+    """
+    Custom Method that takes in an XForms ona pk
+    and returns the object
+    """
+
+    try:
+        xform = XForm.objects.get(ona_pk=ona_xform_id)
+        return xform
+    except ObjectDoesNotExist:
+        xform_data = get_xform(ona_xform_id)
+        process_xform(xform_data)
+        return XForm.objects.get(ona_pk=ona_xform_id)

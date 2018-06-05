@@ -15,10 +15,11 @@ from requests.packages.urllib3.util.retry import Retry
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.ona.api import (get_instance, get_instances, get_project,
-                                 get_projects, get_xform, process_instance,
-                                 process_instances, process_project,
-                                 process_projects, process_xform,
-                                 process_xforms, request, request_session)
+                                 get_project_obj, get_projects, get_xform,
+                                 process_instance, process_instances,
+                                 process_project, process_projects,
+                                 process_xform, process_xforms, request,
+                                 request_session, get_xform_obj)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.serializers import (InstanceSerializer, ProjectSerializer,
                                          XFormSerializer)
@@ -653,3 +654,21 @@ class TestApiMethods(TestCase):
         # We assert it's 3 since _sleep_backoff is called
         # first on Initialization Then repeated each Retry
         self.assertEqual(mocked.call_count, 3)
+
+    def test_get_project_obj(self):
+        """
+        Test that get_project_obj returns correct Project Object
+        """
+        mocked_project = mommy.make('ona.Project', ona_pk=999)
+        project = get_project_obj(ona_project_id=999)
+
+        self.assertEqual(mocked_project, project)
+
+    def test_get_xfrom_obj(self):
+        """
+        Test that get_xform_obj returns correct XForm Object
+        """
+        mocked_xform = mommy.make('ona.XForm', ona_pk=876)
+        project = get_xform_obj(876)
+
+        self.assertTrue(mocked_xform, project)
