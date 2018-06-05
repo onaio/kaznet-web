@@ -53,9 +53,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'submission_count'
         ]
 
-    def get_submission_count(self, obj):
-        import ipdb; ipdb.set_trace()
-        return obj.submission_count
+    def get_submission_count(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the submission count
+        """
+        return obj.user.submission_set.count()
 
     def create(self, validated_data):
         """
