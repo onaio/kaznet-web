@@ -42,8 +42,6 @@ class TestSignals(TestCase):
         mommy.make(
             'ona.OnaInstance',
             xform=ona_form,
-            # TODO: make sure JSON data from ONA is saved in a consistent way
-            # TODO: add user field to ona submission
             json=dict(
                 submission_time=timezone.now().isoformat(),
                 user_id=user.id
