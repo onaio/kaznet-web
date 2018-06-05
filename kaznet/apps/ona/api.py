@@ -94,9 +94,7 @@ def get_project(url: str):
     Custom Method that returns a specific project
     from the OnaData API
     """
-    project_data = request(url)
-
-    return project_data
+    return request(url)
 
 
 def process_projects(projects_data: dict):
@@ -127,7 +125,7 @@ def process_project(project_data: dict):
                 }
             )
 
-        if created is False:
+        if not created:
             # If object was not created this means it exists so we check
             # if it needs updating or not.
 
@@ -147,10 +145,7 @@ def get_xform(xform_id: int):
     """
     Custom Method that return a specific Form
     """
-    url = urljoin(ONA_BASE_URL, f'api/v1/forms/{xform_id}')
-    xform_data = request(url)
-
-    return xform_data
+    return request(urljoin(ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
 
 
 def process_xforms(forms_data: dict, project_id: int):
@@ -213,11 +208,7 @@ def process_xform(xform_data: dict, project_id: int = None):
 
         # Check if name is present in Data passed in
         # If it is not use title if Present
-
-        if xform_data.get('name') is None:
-            title = xform_data.get('title')
-        else:
-            title = xform_data.get('name')
+        title = xform_data.get('name') or xform_data.get('title')
 
         obj, created = XForm.objects.get_or_create(
             ona_pk=xformid,
@@ -229,22 +220,17 @@ def process_xform(xform_data: dict, project_id: int = None):
             }
             )
 
-        if created is False:
+        if not created:
 
             last_updated_ona = dateutil.parser.parse(project_data.get(
                 'date_modified'))
 
-            if last_updated_ona is not None:
-                if obj.last_updated != last_updated_ona:
-                    obj.last_updated = last_updated_ona
-                    obj.title = title
-                    obj.id_string = xform_data.get('id_string')
-                    obj.save()
-            else:
-                if obj.title != title:
-                    obj.title = title
-                    obj.id_string = xform_data.get('id_string')
-                    obj.save()
+            if last_updated_ona and obj.last_updated != last_updated_ona:
+                obj.last_updated = last_updated_ona
+            if obj.title != title:
+                obj.title = title
+
+            obj.save()
 
 
 def get_instances(xformid: int):
@@ -275,10 +261,8 @@ def get_instance(xformid: int, instanceid: int):
     Custom Method that takes in an XFormID and InstanceID
     and retrieves instance date
     """
-    url = urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}/{instanceid}')
-    instance_data = request(url)
-
-    return instance_data
+    return request(
+        urljoin(ONA_BASE_URL, f'api/v1/data/{xformid}/{instanceid}'))
 
 
 def process_instances(instances_data: dict, xform: object):
@@ -321,21 +305,17 @@ def process_instance(instance_data: dict, xform: object = None):
             }
         )
 
-        if created is False:
+        if not created:
             # If object was not created this means it exists so we check
             data = obj.json
             edited = data.get('_edited')
             data_edited = instance_data.get('_edited')
             last_updated = instance_data.get('_last_edited')
-
-            if edited is not True and data_edited is True:
-                obj.last_updated = instance_data.get('_last_edited')
-                obj.json = instance_data
-                obj.save()
-
             last_updated_ona = dateutil.parser.parse(last_updated)
 
-            if obj.last_updated != last_updated_ona:
-                obj.json = instance_data
+            if (edited is not True and data_edited is True) or (
+                    obj.last_updated != last_updated_ona
+            ):
                 obj.last_updated = instance_data.get('_last_edited')
+                obj.json = instance_data
                 obj.save()
