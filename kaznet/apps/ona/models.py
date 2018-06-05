@@ -20,8 +20,8 @@ class XForm(TimeStampedModel, models.Model):
     """
     ona_pk = models.PositiveIntegerField(
         _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
-    ona_project_id = models.PositiveIntegerField(
-        _("Onadata project ID"), db_index=True, unique=False, blank=False)
+    project_id = models.PositiveIntegerField(
+        _("Project ID"), db_index=True, unique=False, blank=False)
     title = models.CharField(
         _('Title'), editable=False, max_length=XFORM_TITLE_LENGTH)
     id_string = models.SlugField(
@@ -30,7 +30,11 @@ class XForm(TimeStampedModel, models.Model):
         max_length=MAX_ID_LENGTH)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
-
+    last_updated = models.DateTimeField(
+        _('Last Updated'),
+        null=True,
+        blank=True,
+        default=None)
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
@@ -39,12 +43,13 @@ class XForm(TimeStampedModel, models.Model):
         Meta Options for XForm
         """
         ordering = ['title', 'id_string']
+        unique_together = ('project_id', 'id_string')
 
     def __str__(self):
-        return self.id_string
+        return self.title
 
 
-class OnaInstance(TimeStampedModel, models.Model):
+class Instance(TimeStampedModel, models.Model):
     """
     Instance model from onadata
     """
@@ -55,35 +60,48 @@ class OnaInstance(TimeStampedModel, models.Model):
     json = JSONField(default=dict, null=False)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
-
+    last_updated = models.DateTimeField(
+        _('Last Updated'),
+        null=True,
+        blank=True,
+        default=None)
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
         """
-        Meta Options for OnaInstance
+        Meta Options for Instance
         """
         ordering = ['ona_pk', 'deleted_at']
 
 
-class OnaProject(TimeStampedModel, models.Model):
+class Project(TimeStampedModel, models.Model):
     """
     Project model from onadata
     """
     ona_pk = models.PositiveIntegerField(
         _("Onadata Primary Key"), db_index=True, unique=True, blank=False)
-    ona_organization = models.PositiveIntegerField(
-        _("Onadata Organization ID"), db_index=True, unique=False, blank=False)
+    organization = models.PositiveIntegerField(
+        _("Organization ID"),
+        blank=True,
+        null=True,
+        default=None
+        )
     name = models.CharField(max_length=255)
     deleted_at = models.DateTimeField(
         _('Deleted at'), null=True, default=None)
+    last_updated = models.DateTimeField(
+        _('Last Updated'),
+        null=True,
+        blank=True,
+        default=None)
 
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
         """
-        Meta Options for OnaProject
+        Meta Options for Project
         """
         ordering = ['name', 'ona_pk']
 

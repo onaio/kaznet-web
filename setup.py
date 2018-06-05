@@ -19,6 +19,7 @@ setup(
         'django-prices',
         'django-phonenumber-field',
         'django-allauth',
+        'requests',
     ],
     classifiers=[
         'Programming Language :: Python',
