@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
+from kaznet.apps.users.filters import UserProfileOrderingFilter
 
 
 # pylint: disable=too-many-ancestors
@@ -20,7 +21,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     permission_classes = [IsAuthenticated]
     filter_backends = [
         DjangoFilterBackend,
-        filters.OrderingFilter,
+        UserProfileOrderingFilter,
         filters.SearchFilter]
     filter_fields = ['role', 'expertise']
     search_fields = [
