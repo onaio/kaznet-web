@@ -49,3 +49,11 @@ class TestSignals(TestCase):
         )
 
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())
+
+        # when dict is empty fail silently
+        mommy.make(
+            'ona.Instance',
+            xform=ona_form,
+            json=dict
+        )
+        self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())

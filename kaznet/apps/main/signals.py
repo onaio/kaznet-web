@@ -28,14 +28,17 @@ def create_submission(sender, instance, created, **kwargs):
     kaznet.apps.ona submission is created
     """
     task = instance.get_task()
-    if task is not None:
+    submission_time = instance.json.get("submission_time")
+    user_id = instance.json.get("user_id")
+
+    if task and submission_time and user_id:
         bounty = task.bounty_set.all().order_by('-created').first()
         submission = Submission(
             task=task,
             bounty=bounty,
             location=None,
-            submission_time=instance.json["submission_time"],
-            user_id=instance.json["user_id"]
+            submission_time=submission_time,
+            user_id=user_id
         )
         submission.save()
 
