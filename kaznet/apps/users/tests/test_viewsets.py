@@ -137,6 +137,43 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(2, len(response.data))
 
+    def test_list_searching(self):
+        """
+        test that you can get and search a list of userprofiles
+        """
+        user = create_admin_user()  # ADMIN & EXPERT
+        ben = mommy.make('auth.User', first_name='ben')
+        ben.userprofile.national_id = 123456
+        ben.userprofile.save()
+
+        alice = mommy.make('auth.User', first_name='alice')
+        alice.userprofile.national_id = 89768
+        alice.userprofile.save()
+
+        joe = mommy.make('auth.User', first_name='joe')
+        joe.userprofile.national_id = 1337
+        joe.userprofile.save()
+
+        view = UserProfileViewSet.as_view({'get': 'list'})
+
+        # search by national_id
+        request = self.factory.get(
+            '/userprofiles', {'search': 1337})
+        force_authenticate(request=request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(1, len(response.data))
+        self.assertEqual('joe', response.data[0]['first_name'])
+
+        # search by last name
+        request2 = self.factory.get(
+            '/userprofiles', {'search': 'alice'})
+        force_authenticate(request=request2, user=user)
+        response2 = view(request=request2)
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(1, len(response2.data))
+        self.assertEqual('alice', response2.data[0]['first_name'])
+
     def test_list_ordering(self):
         """
         test that you can get and order a list of userprofiles
