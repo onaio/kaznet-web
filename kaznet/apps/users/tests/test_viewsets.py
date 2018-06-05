@@ -95,7 +95,7 @@ class TestUserProfileViewSet(TestCase):
 
     def test_list_filtering(self):
         """
-        test that you can get and sort a list of userprofiles
+        test that you can get and filter a list of userprofiles
         """
         user = create_admin_user()  # ADMIN & EXPERT
         ben = mommy.make('auth.User', first_name='ben')
@@ -136,6 +136,39 @@ class TestUserProfileViewSet(TestCase):
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(2, len(response.data))
+
+    def test_list_ordering(self):
+        """
+        test that you can get and order a list of userprofiles
+        """
+        user = create_admin_user()  # ADMIN & EXPERT
+        ben = mommy.make('auth.User', first_name='ben')
+        mosh = mommy.make('auth.User', first_name='mosh')
+
+        mommy.make('main.Submission', user=ben)
+        mommy.make('main.Submission', user=mosh, _quantity=17)
+
+        view = UserProfileViewSet.as_view({'get': 'list'})
+
+        # sort by submission count
+        request1 = self.factory.get(
+            '/userprofiles', {'ordering': '-submission_count'})
+        force_authenticate(request=request1, user=user)
+        response1 = view(request=request1)
+        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(3, len(response1.data))
+        self.assertEqual('mosh', response1.data[0]['first_name'])
+        self.assertEqual('ben', response1.data[1]['first_name'])
+
+        # sort by first_name
+        request1 = self.factory.get(
+            '/userprofiles', {'ordering': 'first_name'})
+        force_authenticate(request=request1, user=user)
+        response1 = view(request=request1)
+        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(3, len(response1.data))
+        self.assertEqual('ben', response1.data[0]['first_name'])
+        self.assertEqual('mosh', response1.data[1]['first_name'])
 
     def test_update(self):
         """
