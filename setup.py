@@ -20,6 +20,7 @@ setup(
         'django-phonenumber-field',
         'django-allauth',
         'requests',
+        'celery'
     ],
     classifiers=[
         'Programming Language :: Python',
