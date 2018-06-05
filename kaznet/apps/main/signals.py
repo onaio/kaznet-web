@@ -33,6 +33,7 @@ def create_submission(sender, instance, created, **kwargs):
         submission = Submission(
             task=task,
             bounty=bounty,
+            # pylint: disable=fixme
             location=None,  # TODO: in different PR
             # TODO: what if dict lacks some keys
             submission_time=instance.json["submission_time"],
