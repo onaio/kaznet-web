@@ -17,6 +17,13 @@ class Submission(BaseSubmission):
         on_delete=models.PROTECT,
         help_text=_('This represents the Task.')
     )
+    bounty = models.ForeignKey(
+        'main.Bounty',
+        verbose_name=_('Bounty'),
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text=_('This represents the Bounty.')
+    )
     location = models.ForeignKey(
         'main.Location',
         verbose_name=_('Location'),
