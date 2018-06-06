@@ -271,23 +271,19 @@ def process_instance(instance_data: dict, xform: object = None):
         # If it hasn't try get an XForm Object using xform_id
         if xform is None:
             xform_id = instance_data.get('_xform_id')
-            #TODO: make sure it returns an xform or none
-            try:
-                xform = get_xform_obj(xform_id)
-            except:
-                xform = None
+            xform = get_xform_obj(xform_id)
 
         try:
-            user = User.objects.get(username=instance_data.get("_submitted_by"))
-        except User.DoesNotExist:
+            user = User.objects.get(
+                username=instance_data.get("_submitted_by"))
+        except User.DoesNotExist:  # pylint: disable=no-member
             pass
         else:
             if xform is not None:
                 try:
                     obj = Instance.objects.get(ona_pk=instanceid)
-                except Instance.DoesNotExist:
+                except Instance.DoesNotExist:  # pylint: disable=no-member
                     # new object
-
                     obj = Instance(
                         ona_pk=instanceid,
                         xform=xform,
@@ -298,7 +294,8 @@ def process_instance(instance_data: dict, xform: object = None):
                     obj.save()
                 else:
                     # existing object
-                    # If object was not created this means it exists so we check
+                    # If object was not created this means
+                    # it exists so we check
                     data = obj.json
                     edited = data.get('_edited')
                     data_edited = instance_data.get('_edited')
@@ -325,4 +322,4 @@ def get_xform_obj(ona_xform_id: int):
     except XForm.DoesNotExist:  # pylint: disable=no-member
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
-        return XForm.objects.get(ona_pk=ona_xform_id)
+        return XForm.objects.filter(ona_pk=ona_xform_id).first()

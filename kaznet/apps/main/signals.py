@@ -1,13 +1,13 @@
 """
 Signals for tasking
 """
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
 from tasking.utils import generate_task_occurrences
 
-from kaznet.apps.main.models import TaskOccurrence
-from kaznet.apps.main.models import Submission
-from django.contrib.auth.models import User
+from kaznet.apps.main.models import Submission, TaskOccurrence
+
 
 # pylint: disable=unused-argument
 def create_occurrences(sender, instance, created, **kwargs):
@@ -32,10 +32,10 @@ def create_submission(sender, instance, created, **kwargs):
 
     try:
         user = instance.user
-    except User.DoesNotExist:
+    except User.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
-        if all([task, submission_time, user]) :
+        if all([task, submission_time, user]):
             bounty = task.bounty_set.all().order_by('-created').first()
             submission = Submission(
                 task=task,
