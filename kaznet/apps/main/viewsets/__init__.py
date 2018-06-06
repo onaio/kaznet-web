@@ -1,0 +1,1 @@
+from kaznet.apps.main.viewsets.tasks import TaskViewSet  # noqa
