@@ -34,7 +34,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return check_admin_permission(request)
 
 
-class IsOwnObjectOrAdmin(permissions.BasePermission):
+class IsOwnUserProfileOrAdmin(permissions.BasePermission):
     """
     Custom permissions class for Kaznet users
     """

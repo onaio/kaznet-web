@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from kaznet.apps.users.filters import UserProfileOrderingFilter
 from kaznet.apps.users.models import UserProfile
-from kaznet.apps.users.permissions import IsOwnObjectOrAdmin
+from kaznet.apps.users.permissions import IsOwnUserProfileOrAdmin
 from kaznet.apps.users.serializers import UserProfileSerializer
 
 
@@ -20,7 +20,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     serializer_class = UserProfileSerializer
     permission_classes = [
-        IsAuthenticated, IsOwnObjectOrAdmin]
+        IsAuthenticated, IsOwnUserProfileOrAdmin]
     filter_backends = [
         DjangoFilterBackend,
         UserProfileOrderingFilter,
