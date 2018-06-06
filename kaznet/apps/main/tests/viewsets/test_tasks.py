@@ -15,6 +15,7 @@ from tasking.common_tags import TARGET_DOES_NOT_EXIST
 from kaznet.apps.main.models import Task
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import KaznetTaskViewSet
+from kaznet.apps.users.tests.base import create_admin_user
 
 
 class TestKaznetTaskViewSet(MainTestBase):
@@ -35,7 +36,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         rule1 = mommy.make('main.SegmentRule')
         rule2 = mommy.make('main.SegmentRule')
 
-        user = mommy.make('auth.User')
+        user = create_admin_user()
 
         data = {
             'name': 'Cow price',
@@ -89,8 +90,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that we get appropriate errors when trying to create an object
         with bad data
         """
-        bob_user = mommy.make('auth.User')
-        alice_user = mommy.make('auth.User')
+        bob_user = create_admin_user()
         mocked_target_object = mommy.make('ona.XForm')
 
         # test bad target_id validation
@@ -106,7 +106,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         view1 = KaznetTaskViewSet.as_view({'post': 'create'})
         request1 = self.factory.post('/tasks', bad_target_id)
-        # Need authenticated user
+        # Need admin user
         force_authenticate(request1, user=bob_user)
         response1 = view1(request=request1)
 
@@ -128,8 +128,8 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         view2 = KaznetTaskViewSet.as_view({'post': 'create'})
         request2 = self.factory.post('/tasks', bad_content_type)
-        # Need authenticated user
-        force_authenticate(request2, user=alice_user)
+        # Need admin user
+        force_authenticate(request2, user=bob_user)
         response2 = view2(request=request2)
 
         self.assertEqual(response2.status_code, 400)
@@ -143,7 +143,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         Test DELETE tasks.
         """
-        user = mommy.make('auth.User')
+        user = create_admin_user()
         task = mommy.make('main.Task')
 
         # assert that task exists
@@ -188,8 +188,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         Test UPDATE task
         """
-        user = mommy.make('auth.User')
-        user2 = mommy.make('auth.User')
+        user = create_admin_user()
         xform = mommy.make('ona.XForm')
         task_data = self._create_task()
         task_data2 = self._create_task()
@@ -221,7 +220,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         view2 = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
         request2 = self.factory.patch(
             '/tasks/{id}'.format(id=task_data2['id']), data=data2)
-        force_authenticate(request2, user=user2)
+        force_authenticate(request2, user=user)
         response2 = view2(request=request2, pk=task_data2['id'])
 
         self.assertEqual(response2.status_code, 200)
@@ -740,3 +739,80 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 200)
         self.assertEqual(len(response3.data), 1)
         self.assertEqual(response3.data[0]['id'], task.id)
+
+    def test_permission_required(self):
+        """
+        Test that Admin permission is required for POST, PATCH and
+        DELETE API Requests
+        """
+
+        # Can't Create Task
+
+        mocked_target_object = mommy.make('ona.XForm')
+
+        rule1 = mommy.make('main.SegmentRule')
+        rule2 = mommy.make('main.SegmentRule')
+
+        user = mommy.make('auth.User')
+
+        data = {
+            'name': 'Cow price',
+            'description': 'Some description',
+            'total_submission_target': 10,
+            'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+        }
+
+        data_with_segment_rules = data.copy()
+        data_with_segment_rules['segment_rules'] = [rule1.id, rule2.id]
+
+        view = KaznetTaskViewSet.as_view({'post': 'create'})
+        request = self.factory.post('/tasks', data_with_segment_rules)
+        # Need authenticated user
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'You shall not pass.',
+            response.data['detail']
+        )
+
+        # Can't Update Task
+        xform = mommy.make('ona.XForm')
+        task_data = self._create_task()
+        data = {
+            'name': "Milk Price",
+            'target_content_type': self.xform_type.id,
+            'target_id': xform.id,
+            }
+
+        view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
+        request = self.factory.patch(
+            '/tasks/{id}'.format(id=task_data['id']), data=data)
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task_data['id'])
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'You shall not pass.',
+            response.data['detail']
+        )
+
+        # Can't Delete Task
+        task = mommy.make('main.Task')
+
+        # assert that task exists
+        self.assertTrue(Task.objects.filter(pk=task.id).exists())
+        # delete task
+        view = KaznetTaskViewSet.as_view({'delete': 'destroy'})
+        request = self.factory.delete('/tasks/{id}'.format(id=task.id))
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task.id)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'You shall not pass.',
+            response.data['detail']
+        )
