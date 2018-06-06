@@ -197,7 +197,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         Test the connection between a parent and child task
         """
         mocked_parent_task = mommy.make('main.Task', name='Cow Price')
-        mocked_target_object = mommy.make('main.Task')
+        mocked_target_object = mommy.make('ona.XForm')
         now = timezone.now()
 
         data = {

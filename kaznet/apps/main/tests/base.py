@@ -20,7 +20,7 @@ class MainTestBase(TestCase):
         self.xform_type = get_allowed_contenttypes().filter(
             model='xform').first()
         # get the content type for Instance model
-        self.xform_type = get_allowed_contenttypes().filter(
+        self.instance_type = get_allowed_contenttypes().filter(
             model='instance').first()
         # get the content type for User model
         self.user_type = get_allowed_contenttypes().filter(
