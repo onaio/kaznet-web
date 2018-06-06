@@ -14,6 +14,13 @@ class TestSignals(TestCase):
     """
     Tests for Kanzet app signals
     """
+
+    def setUp(self):
+        self.user = mommy.make(
+            'auth.User',
+            username='sluggie'
+        )
+
     def test_task_occurrences(self):
         """
         Test that task occurrences are created when a new Task object is
@@ -33,7 +40,6 @@ class TestSignals(TestCase):
         submission is made
         """
         ona_form = mommy.make('ona.XForm')
-        user = mommy.make('auth.User')
         puppy_task = mommy.make(
             'main.Task',
             name='Puppy Prices',
@@ -42,10 +48,8 @@ class TestSignals(TestCase):
         mommy.make(
             'ona.Instance',
             xform=ona_form,
-            json=dict(
-                submission_time=timezone.now().isoformat(),
-                user_id=user.id
-            )
+            user=self.user,
+            json=dict(submission_time=timezone.now().isoformat())
         )
 
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())

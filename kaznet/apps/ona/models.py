@@ -86,6 +86,10 @@ class Instance(TimeStampedModel, models.Model):
         _('Deleted at'),
         null=True,
         default=None)
+    user = models.ForeignKey(
+        'auth.User',
+        null=False,
+        on_delete=models.PROTECT)
     last_updated = models.DateTimeField(
         _('Last Updated'),
         null=True,

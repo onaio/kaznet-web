@@ -5,8 +5,7 @@ from django.db.models.signals import post_save
 
 from tasking.utils import generate_task_occurrences
 
-from kaznet.apps.main.models import TaskOccurrence
-from kaznet.apps.main.models import Submission
+from kaznet.apps.main.models import Submission, TaskOccurrence
 
 
 # pylint: disable=unused-argument
@@ -29,16 +28,16 @@ def create_submission(sender, instance, created, **kwargs):
     """
     task = instance.get_task()
     submission_time = instance.json.get("submission_time")
-    user_id = instance.json.get("user_id")
+    user = instance.user
 
-    if task and submission_time and user_id:
+    if all([task, submission_time, user]):
         bounty = task.bounty_set.all().order_by('-created').first()
         submission = Submission(
             task=task,
             bounty=bounty,
             location=None,
             submission_time=submission_time,
-            user_id=user_id
+            user=user
         )
         submission.save()
 

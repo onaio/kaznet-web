@@ -30,6 +30,12 @@ class TestApiMethods(TestCase):
     Tests for the API Methods
     """
 
+    def setUp(self):
+        self.user = mommy.make(
+            'auth.User',
+            username='sluggie'
+        )
+
     @requests_mock.Mocker()
     def test_get_projects(self, mocked):
         """
@@ -307,6 +313,7 @@ class TestApiMethods(TestCase):
                         "_edited": True,
                         "_last_edited": "2018-05-30T07:51:59.187363Z",
                         "_xform_id": 53,
+                        "_submitted_by": "sluggie",
                         "_id": 1755
                     }
                 ]
@@ -331,6 +338,7 @@ class TestApiMethods(TestCase):
             "_edited": True,
             "_last_edited": "2018-05-30T07:51:59.187363Z",
             "_xform_id": 53,
+            "_submitted_by": "sluggie",
             "_id": 1755
         }
 
@@ -373,6 +381,7 @@ class TestApiMethods(TestCase):
         Test that when process_instance is called with invalid data
         it doesn't create an Instance Object or an XForm Object
         """
+        # TODO: submitted by with bad data
         mocked_instance_data = {
             "name": "Changed",
             "formid": 53,
