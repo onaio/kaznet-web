@@ -1,8 +1,9 @@
 """
 Kaznet users permissions module
 """
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import permissions
+
+from kaznet.apps.users.common_tags import PERMISSION_MISSING
 from kaznet.apps.users.models import UserProfile
 
 
@@ -22,7 +23,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """
     Custom permissions class for Kaznet admin users
     """
-    message = _('You shall not pass.')
+    message = PERMISSION_MISSING
 
     def has_permission(self, request, view):
         """
@@ -38,7 +39,7 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
     """
     Custom permissions class for Kaznet users
     """
-    message = _('You shall not pass.')
+    message = PERMISSION_MISSING
 
     def has_permission(self, request, view):
         """
