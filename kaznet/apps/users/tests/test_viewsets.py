@@ -403,7 +403,7 @@ class TestUserProfileViewSet(TestCase):
             response.data['detail']
         )
 
-        # Cant update userprofile if Requester is the User linked to it
+        # Can update userprofile if Requester is the User linked to it
         data = {
             'first_name': 'Peter',
             'phone_number': '+254722111111',
