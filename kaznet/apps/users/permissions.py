@@ -19,6 +19,19 @@ def check_admin_permission(request: object):
     return False
 
 
+class IsAdmin(permissions.BasePermission):
+    """
+    Custom permissions class for Kaznet admin users
+    """
+    message = PERMISSION_MISSING
+
+    def has_permission(self, request, view):
+        """
+        Checks that user in the request object is a Kaznet admin
+        """
+        return check_admin_permission(request)
+
+
 class IsAdminOrReadOnly(permissions.BasePermission):
     """
     Custom permissions class for Kaznet admin users
