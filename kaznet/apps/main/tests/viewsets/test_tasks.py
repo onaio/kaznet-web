@@ -30,10 +30,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         Helper to create a single task
         """
-        mocked_target_object = mommy.make('auth.User')
+        mocked_target_object = mommy.make('ona.XForm')
 
-        rule1 = mommy.make('tasking.SegmentRule')
-        rule2 = mommy.make('tasking.SegmentRule')
+        rule1 = mommy.make('main.SegmentRule')
+        rule2 = mommy.make('main.SegmentRule')
 
         user = mommy.make('auth.User')
 
@@ -42,7 +42,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             'description': 'Some description',
             'total_submission_target': 10,
             'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
-            'target_content_type': self.user_type.id,
+            'target_content_type': self.xform_type.id,
             'target_id': mocked_target_object.id,
         }
 
@@ -91,7 +91,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         bob_user = mommy.make('auth.User')
         alice_user = mommy.make('auth.User')
-        mocked_target_object = mommy.make('tasking.Task')
+        mocked_target_object = mommy.make('ona.XForm')
 
         # test bad target_id validation
         bad_target_id = dict(
@@ -100,7 +100,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             start=timezone.now(),
             total_submission_target=10,
             timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
-            target_content_type=self.task_type.id,
+            target_content_type=self.xform_type.id,
             target_id=1337,
         )
 
@@ -144,7 +144,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test DELETE tasks.
         """
         user = mommy.make('auth.User')
-        task = mommy.make('tasking.Task')
+        task = mommy.make('main.Task')
 
         # assert that task exists
         self.assertTrue(Task.objects.filter(pk=task.id).exists())
@@ -190,13 +190,14 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         user = mommy.make('auth.User')
         user2 = mommy.make('auth.User')
+        xform = mommy.make('ona.XForm')
         task_data = self._create_task()
         task_data2 = self._create_task()
 
         data = {
             'name': "Milk Price",
-            'target_content_type': self.user_type.id,
-            'target_id': user.id,
+            'target_content_type': self.xform_type.id,
+            'target_id': xform.id,
             }
 
         view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
@@ -208,9 +209,9 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual('Milk Price', response.data['name'])
         self.assertEqual(
-            self.user_type.id,
+            self.xform_type.id,
             response.data['target_content_type'])
-        self.assertEqual(user.id, response.data['target_id'])
+        self.assertEqual(xform.id, response.data['target_id'])
 
         data2 = {
             'name': "Cattle Price",
@@ -234,10 +235,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         Test that authentication is required for all viewset actions
         """
-        mocked_target_object = mommy.make('tasking.Task')
+        mocked_target_object = mommy.make('ona.XForm')
         task_data = self._create_task()
-        task = mommy.make('tasking.Task')
-        user = mommy.make('auth.User')
+        task = mommy.make('main.Task')
+        xform = mommy.make('ona.XForm')
 
         # test that you need authentication for creating a task
         good_data = {
@@ -246,7 +247,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             'start': timezone.now(),
             'total_submission_target': 10,
             'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
-            'target_content_type': self.task_type.id,
+            'target_content_type': self.xform_type.id,
             'target_id': mocked_target_object.id,
         }
         view = KaznetTaskViewSet.as_view({'post': 'create'})
@@ -290,8 +291,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         # test that you need authentication for updating a task
         data = {
             'name': "Milk Price",
-            'target_content_type': self.user_type.id,
-            'target_id': user.id,
+            'target_content_type': self.xform_type.id,
+            'target_id': xform.id,
             }
 
         view5 = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
@@ -309,10 +310,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can filter by location
         """
         user = mommy.make('auth.User')
-        nairobi = mommy.make('tasking.Location', name='Nairobi')
-        arusha = mommy.make('tasking.Location', name='Arusha')
+        nairobi = mommy.make('main.Location', name='Nairobi')
+        arusha = mommy.make('main.Location', name='Arusha')
         for _ in range(0, 7):
-            task = mommy.make('tasking.Task')
+            task = mommy.make('main.Task')
             task.locations.add(nairobi)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
@@ -334,7 +335,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(Task.objects.filter(locations=nairobi).count(), 7)
 
         # add one Arusha task and assert that we get it back
-        task2 = mommy.make('tasking.Task')
+        task2 = mommy.make('main.Task')
         task2.locations.add(arusha)
         request = self.factory.get('/tasks', {'locations': arusha.id})
         force_authenticate(request, user=user)
@@ -348,10 +349,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can filter by parent
         """
         user = mommy.make('auth.User')
-        parent1 = mommy.make('tasking.Task')
-        parent2 = mommy.make('tasking.Task')
+        parent1 = mommy.make('main.Task')
+        parent2 = mommy.make('main.Task')
 
-        mommy.make('tasking.Task', parent=parent1, _quantity=7)
+        mommy.make('main.Task', parent=parent1, _quantity=7)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -372,7 +373,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(Task.objects.filter(parent=parent1.id).count(), 7)
 
         # create a task whose parent is parent2 and assert its there
-        mommy.make('tasking.Task', parent=parent2)
+        mommy.make('main.Task', parent=parent2)
 
         request = self.factory.get('/tasks', {'parent': parent2.id})
         force_authenticate(request, user=user)
@@ -386,7 +387,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can filter by status
         """
         user = mommy.make('auth.User')
-        mommy.make('tasking.Task', status=Task.DEACTIVATED, _quantity=7)
+        mommy.make('main.Task', status=Task.DEACTIVATED, _quantity=7)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -408,7 +409,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             Task.objects.filter(status=Task.DEACTIVATED).count(), 7)
 
         # add a task with with an Active Status and assert that we get it back
-        mommy.make('tasking.Task', status=Task.ACTIVE)
+        mommy.make('main.Task', status=Task.ACTIVE)
         request = self.factory.get('/tasks', {'status': Task.ACTIVE})
         force_authenticate(request, user=user)
         response = view(request=request)
@@ -421,10 +422,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can filter by Project
         """
         user = mommy.make('auth.User')
-        project1 = mommy.make('tasking.Project', name='Test Case Scenario')
-        project2 = mommy.make('tasking.Project', name='Reality Check')
+        project1 = mommy.make('main.Project', name='Test Case Scenario')
+        project2 = mommy.make('main.Project', name='Reality Check')
         for _ in range(0, 7):
-            task = mommy.make('tasking.Task')
+            task = mommy.make('main.Task')
             project1.tasks.add(task)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
@@ -447,7 +448,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             Task.objects.filter(project=project1.id).count(), 7)
 
         # add a task to project Reality Check and assert its there
-        task2 = mommy.make('tasking.Task')
+        task2 = mommy.make('main.Task')
         project2.tasks.add(task2)
 
         request = self.factory.get('/tasks', {'project': project2.id})
@@ -463,8 +464,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can search by Name
         """
         user = mommy.make('auth.User')
-        mommy.make('tasking.Task', name='Cattle Price')
-        mommy.make('tasking.Task', name='Chicken Price', _quantity=7)
+        mommy.make('main.Task', name='Cattle Price')
+        mommy.make('main.Task', name='Chicken Price', _quantity=7)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
         request = self.factory.get('/tasks', {'search': 'Cattle Price'})
@@ -480,10 +481,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that sorting works
         """
         user = mommy.make('auth.User')
-        project1 = mommy.make('tasking.Project')
-        project2 = mommy.make('tasking.Project')
+        project1 = mommy.make('main.Project')
+        project2 = mommy.make('main.Project')
         task1 = mommy.make(
-            'tasking.Task',
+            'main.Task',
             name='Milk Production Size',
             status=Task.DRAFT,
             estimated_time=timedelta(4, 4520))
@@ -492,23 +493,23 @@ class TestKaznetTaskViewSet(MainTestBase):
         for _ in range(0, 7):
             # create other tasks
             task = mommy.make(
-                'tasking.Task',
+                'main.Task',
                 name='Cow Price',
                 status=Task.DEACTIVATED,
                 estimated_time=timedelta(3, 3250)
                 )
-            mommy.make('tasking.Submission', task=task, _quantity=3)
+            mommy.make('main.Submission', task=task, _quantity=3)
             project1.tasks.add(task)
         task2 = mommy.make(
-            'tasking.Task',
+            'main.Task',
             name='Allocated land for farming',
             status=Task.ACTIVE,
             estimated_time=timedelta(2, 4520))
         project2.tasks.add(task2)
 
         # Create and add Submissions to Task1 and Task2
-        mommy.make('tasking.Submission', task=task1, _quantity=4)
-        mommy.make('tasking.Submission', task=task2, _quantity=1)
+        mommy.make('main.Submission', task=task1, _quantity=4)
+        mommy.make('main.Submission', task=task2, _quantity=1)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -587,15 +588,15 @@ class TestKaznetTaskViewSet(MainTestBase):
         user = mommy.make('auth.User')
 
         task = mommy.make(
-            'tasking.Task', name='Cattle Price', status=Task.ACTIVE)
+            'main.Task', name='Cattle Price', status=Task.ACTIVE)
         task2 = mommy.make(
-            'tasking.Task', name='Cattle Price', status=Task.ACTIVE)
+            'main.Task', name='Cattle Price', status=Task.ACTIVE)
 
-        mommy.make('tasking.Task', name='Cattle Price', status=Task.DRAFT)
+        mommy.make('main.Task', name='Cattle Price', status=Task.DRAFT)
 
         for _ in range(0, 4):
             mommy.make(
-                'tasking.Task', name='Cattle Price', status=Task.DEACTIVATED)
+                'main.Task', name='Cattle Price', status=Task.DEACTIVATED)
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -617,8 +618,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test that you can filter by date
         """
         user = mommy.make('auth.User')
-        task = mommy.make('tasking.Task')
-        task2 = mommy.make('tasking.Task')
+        task = mommy.make('main.Task')
+        task2 = mommy.make('main.Task')
 
         # remove any autocreated task occurrences
         # pylint: disable=no-member
@@ -627,13 +628,13 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # make a bunch of occurrences
         mommy.make(
-            'tasking.TaskOccurrence',
+            'main.TaskOccurrence',
             _quantity=7,
             task=task,
             date='2018-07-12')
 
         # make one occurrence using a unique date
-        mommy.make('tasking.TaskOccurrence', task=task2, date='2017-09-09')
+        mommy.make('main.TaskOccurrence', task=task2, date='2017-09-09')
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -648,7 +649,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # make some tasks that happen after 2018-07-12
         mommy.make(
-            'tasking.TaskOccurrence',
+            'main.TaskOccurrence',
             _quantity=5,
             task=task,
             date='2018-11-11')
@@ -668,8 +669,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         user = mommy.make('auth.User')
         view = KaznetTaskViewSet.as_view({'get': 'list'})
-        task = mommy.make('tasking.Task')
-        task2 = mommy.make('tasking.Task')
+        task = mommy.make('main.Task')
+        task2 = mommy.make('main.Task')
 
         # remove any autocreated tasks
         # pylint: disable=no-member
@@ -678,12 +679,12 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # make some occurrences that start at 7
         mommy.make(
-            'tasking.TaskOccurrence', _quantity=5, task=task,
+            'main.TaskOccurrence', _quantity=5, task=task,
             start_time='07:00')
 
         # make some occurrences that happen after 9:00
         mommy.make(
-            'tasking.TaskOccurrence', _quantity=6, task=task2,
+            'main.TaskOccurrence', _quantity=6, task=task2,
             start_time='09:15')
 
         # test that we can get tasks before or after a certain time
@@ -710,16 +711,16 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         user = mommy.make('auth.User')
         view = KaznetTaskViewSet.as_view({'get': 'list'})
-        task = mommy.make('tasking.Task')
-        task2 = mommy.make('tasking.Task')
+        task = mommy.make('main.Task')
+        task2 = mommy.make('main.Task')
 
         # make some occurrences that end at 5pm
         mommy.make(
-            'tasking.TaskOccurrence', _quantity=5, task=task, end_time='17:00')
+            'main.TaskOccurrence', _quantity=5, task=task, end_time='17:00')
 
         # make some tasks that end after 9pm
         mommy.make(
-            'tasking.TaskOccurrence', _quantity=6, task=task2,
+            'main.TaskOccurrence', _quantity=6, task=task2,
             end_time='21:15')
 
         # test that we can get tasks before or after a certain time
