@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5fb8c35f9641da31b827a3c6f5ee5995bfaf25cc9b8d0044fd006c5884cbd387"
+            "sha256": "e9471fddba5b54fbc309de652e69f3a1125e4812bc7fb904d2f0f10153c46d9c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -167,7 +167,7 @@
         "ona-tasking": {
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
-            "ref": "v0.0.5"
+            "ref": "v0.0.6"
         },
         "prices": {
             "hashes": [
