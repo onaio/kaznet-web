@@ -47,3 +47,4 @@ class Bounty(TimeStampedModel):
         """
         ordering = ['created', 'id']
         abstract = False
+        app_label = 'main'

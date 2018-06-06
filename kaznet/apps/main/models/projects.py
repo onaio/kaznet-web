@@ -25,6 +25,7 @@ class Project(BaseProject):
         """
         abstract = False
         ordering = ['name']
+        app_label = 'main'
 
     def __str__(self):
         """

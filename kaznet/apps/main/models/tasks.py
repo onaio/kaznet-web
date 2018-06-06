@@ -36,6 +36,7 @@ class Task(BaseTask):
         """
         abstract = False
         ordering = ['start', 'name', 'id']
+        app_label = 'main'
 
     def __str__(self):
         """

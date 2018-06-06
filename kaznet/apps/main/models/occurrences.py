@@ -25,6 +25,7 @@ class TaskOccurrence(BaseOccurrence):
         """
         abstract = False
         ordering = ['task', 'date', 'start_time']
+        app_label = 'main'
 
     def __str__(self):
         """
