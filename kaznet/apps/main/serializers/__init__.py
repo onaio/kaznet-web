@@ -1,0 +1,1 @@
+from kaznet.apps.main.serializers.tasks import KaznetTaskSerializer  # noqa
