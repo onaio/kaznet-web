@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from kaznet.apps.main.filters import KaznetTaskFilterSet
 from kaznet.apps.main.models import Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
+from kaznet.apps.users.permissions import IsAdminOrReadOnly
 
 
 # pylint: disable=too-many-ancestors
@@ -18,13 +19,13 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     Main Task Viewset class
     """
     serializer_class = KaznetTaskSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [
         DjangoFilterBackend,
         filters.OrderingFilter,
         filters.SearchFilter]
     filter_class = KaznetTaskFilterSet
-    search_fields = ['name', ]
+    search_fields = ['name']
     ordering_fields = [
         'created',
         'status',
