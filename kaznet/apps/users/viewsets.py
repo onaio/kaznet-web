@@ -5,10 +5,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from kaznet.apps.users.models import UserProfile
-from kaznet.apps.users.serializers import UserProfileSerializer
 from kaznet.apps.users.filters import UserProfileOrderingFilter
-from kaznet.apps.users.permissions import AdminUserPermission
+from kaznet.apps.users.models import UserProfile
+from kaznet.apps.users.permissions import IsOwnObjectOrAdmin
+from kaznet.apps.users.serializers import UserProfileSerializer
 
 
 # pylint: disable=too-many-ancestors
@@ -19,7 +19,8 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     ViewSet class for UserProfiles
     """
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated, AdminUserPermission]
+    permission_classes = [
+        IsAuthenticated, IsOwnObjectOrAdmin]
     filter_backends = [
         DjangoFilterBackend,
         UserProfileOrderingFilter,
