@@ -392,6 +392,17 @@ class TestUserProfileViewSet(TestCase):
             response.data['detail']
         )
 
+        # Cant delete own userprofile
+        view = UserProfileViewSet.as_view({'delete': 'destroy'})
+        request = self.factory.delete(f'/userprofiles/{userprofile.id}')
+        force_authenticate(request, mocked_user2)
+        response = view(request=request, pk=userprofile.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            'You shall not pass.',
+            response.data['detail']
+        )
+
         # Cant update userprofile if Requester is the User linked to it
         data = {
             'first_name': 'Peter',
