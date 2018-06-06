@@ -1,1 +1,1 @@
-from kaznet.apps.main.viewsets.tasks import TaskViewSet  # noqa
+from kaznet.apps.main.viewsets.tasks import KaznetTaskViewSet  # noqa
