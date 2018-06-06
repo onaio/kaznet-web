@@ -7,7 +7,7 @@ from tasking.utils import generate_task_occurrences
 
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.models import Submission
-
+from django.contrib.auth.models import User
 
 # pylint: disable=unused-argument
 def create_occurrences(sender, instance, created, **kwargs):
@@ -29,18 +29,22 @@ def create_submission(sender, instance, created, **kwargs):
     """
     task = instance.get_task()
     submission_time = instance.json.get("submission_time")
-    user_id = instance.json.get("user_id")
 
-    if task and submission_time and user_id:
-        bounty = task.bounty_set.all().order_by('-created').first()
-        submission = Submission(
-            task=task,
-            bounty=bounty,
-            location=None,
-            submission_time=submission_time,
-            user_id=user_id
-        )
-        submission.save()
+    try:
+        user = instance.user
+    except User.DoesNotExist:
+        pass
+    else:
+        if all([task, submission_time, user]) :
+            bounty = task.bounty_set.all().order_by('-created').first()
+            submission = Submission(
+                task=task,
+                bounty=bounty,
+                location=None,
+                submission_time=submission_time,
+                user=user
+            )
+            submission.save()
 
 
 post_save.connect(
