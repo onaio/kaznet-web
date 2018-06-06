@@ -1,7 +1,6 @@
 """
 Signals for tasking
 """
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 
 from tasking.utils import generate_task_occurrences
@@ -29,22 +28,18 @@ def create_submission(sender, instance, created, **kwargs):
     """
     task = instance.get_task()
     submission_time = instance.json.get("submission_time")
+    user = instance.user
 
-    try:
-        user = instance.user
-    except User.DoesNotExist:  # pylint: disable=no-member
-        pass
-    else:
-        if all([task, submission_time, user]):
-            bounty = task.bounty_set.all().order_by('-created').first()
-            submission = Submission(
-                task=task,
-                bounty=bounty,
-                location=None,
-                submission_time=submission_time,
-                user=user
-            )
-            submission.save()
+    if all([task, submission_time, user]):
+        bounty = task.bounty_set.all().order_by('-created').first()
+        submission = Submission(
+            task=task,
+            bounty=bounty,
+            location=None,
+            submission_time=submission_time,
+            user=user
+        )
+        submission.save()
 
 
 post_save.connect(
