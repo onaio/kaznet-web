@@ -30,6 +30,12 @@ class TestApiMethods(TestCase):
     Tests for the API Methods
     """
 
+    def setUp(self):
+        self.user = mommy.make(
+            'auth.User',
+            username='sluggie'
+        )
+
     @requests_mock.Mocker()
     def test_get_projects(self, mocked):
         """

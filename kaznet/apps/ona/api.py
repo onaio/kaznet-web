@@ -4,6 +4,8 @@ with the OnaData API
 """
 from urllib.parse import urljoin
 
+from django.contrib.auth.models import User
+
 import dateutil.parser
 import requests
 from requests.adapters import HTTPAdapter
@@ -266,34 +268,49 @@ def process_instance(instance_data: dict, xform: object = None):
 
     if instanceid is not None:
         # Check whether XForm has been Passed
-        # If it hasnt try get an XForm Object using xform_id
+        # If it hasn't try get an XForm Object using xform_id
         if xform is None:
             xform_id = instance_data.get('_xform_id')
-            xform = get_xform_obj(xform_id)
+            #TODO: make sure it returns an xform or none
+            try:
+                xform = get_xform_obj(xform_id)
+            except:
+                xform = None
 
-        obj, created = Instance.objects.get_or_create(
-            ona_pk=instanceid,
-            defaults={
-                'xform': xform,
-                'json': instance_data
-            }
-        )
+        try:
+            user = User.objects.get(username=instance_data.get("_submitted_by"))
+        except User.DoesNotExist:
+            pass
+        else:
+            if xform is not None:
+                try:
+                    obj = Instance.objects.get(ona_pk=instanceid)
+                except Instance.DoesNotExist:
+                    # new object
 
-        if not created:
-            # If object was not created this means it exists so we check
-            data = obj.json
-            edited = data.get('_edited')
-            data_edited = instance_data.get('_edited')
-            last_updated = instance_data.get('_last_edited')
-            submitted_by = instance_data.get('_submitted_by')
-            last_updated_ona = dateutil.parser.parse(last_updated)
+                    obj = Instance(
+                        ona_pk=instanceid,
+                        xform=xform,
+                        user=user,
+                        last_updated=instance_data.get('_last_edited'),
+                        json=instance_data
+                    )
+                    obj.save()
+                else:
+                    # existing object
+                    # If object was not created this means it exists so we check
+                    data = obj.json
+                    edited = data.get('_edited')
+                    data_edited = instance_data.get('_edited')
+                    last_updated = instance_data.get('_last_edited')
+                    last_updated_ona = dateutil.parser.parse(last_updated)
 
-            if (edited is not True and data_edited is True) or (
-                    obj.last_updated != last_updated_ona
-            ):
-                obj.last_updated = instance_data.get('_last_edited')
-                obj.json = instance_data
-                obj.save()
+                    if (edited is not True and data_edited is True) or (
+                            obj.last_updated != last_updated_ona
+                    ):
+                        obj.last_updated = instance_data.get('_last_edited')
+                        obj.json = instance_data
+                        obj.save()
 
 
 def get_xform_obj(ona_xform_id: int):
