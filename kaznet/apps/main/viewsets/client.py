@@ -10,6 +10,7 @@ from kaznet.apps.main.serializers import ClientSerializer
 from kaznet.apps.users.permissions import IsAdmin
 
 
+# pylint: disable=too-many-ancestors
 class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                     mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
                     mixins.UpdateModelMixin, viewsets.GenericViewSet):
