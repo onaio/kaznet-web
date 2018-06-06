@@ -42,6 +42,7 @@ class Submission(BaseSubmission):
         """
         abstract = False
         ordering = ['submission_time', 'task__name', 'id']
+        app_label = 'main'
 
     def __str__(self):
         """

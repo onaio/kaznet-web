@@ -18,6 +18,7 @@ class Location(BaseLocation):
         """
         abstract = False
         ordering = ['country', 'name', 'id']
+        app_label = 'main'
 
     # pylint: disable=no-else-return
     def __str__(self):
