@@ -28,6 +28,9 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         """
         Checks if the user in the request object is a Kaznet admin
         """
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
         return check_admin_permission(request)
 
 
