@@ -86,10 +86,10 @@ class Instance(TimeStampedModel, models.Model):
         _('Deleted at'),
         null=True,
         default=None)
-    submitted_by = models.CharField(
-        _('Submitted by'),
-        max_length=255,
-        help_text=_('Ona username of the person who submitted the data.'))
+    user = models.ForeignKey(
+        'auth.User',
+        null=False,
+        on_delete=models.PROTECT)
     last_updated = models.DateTimeField(
         _('Last Updated'),
         null=True,
