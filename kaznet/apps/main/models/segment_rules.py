@@ -15,8 +15,8 @@ class SegmentRule(BaseSegmentRule):
         Meta options for SegmentRule
         """
         abstract = False
-        ordering = ['name']
         app_label = 'main'
+        ordering = ['name']
 
     def __str__(self):
         return self.name

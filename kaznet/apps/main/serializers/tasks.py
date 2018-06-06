@@ -6,6 +6,7 @@ from tasking.serializers import TaskSerializer
 from kaznet.apps.main.models import Task
 
 
+# pylint: disable=too-many-ancestors
 class KaznetTaskSerializer(TaskSerializer):
     """
     Main Task Serializer class
