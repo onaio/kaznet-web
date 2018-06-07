@@ -481,6 +481,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         user = mommy.make('auth.User')
         project1 = mommy.make('main.Project')
+        project3 = mommy.make('main.Project')
         project2 = mommy.make('main.Project')
         task1 = mommy.make(
             'main.Task',
@@ -498,7 +499,7 @@ class TestKaznetTaskViewSet(MainTestBase):
                 estimated_time=timedelta(3, 3250)
                 )
             mommy.make('main.Submission', task=task, _quantity=3)
-            project1.tasks.add(task)
+            project3.tasks.add(task)
         task2 = mommy.make(
             'main.Task',
             name='Allocated land for farming',
