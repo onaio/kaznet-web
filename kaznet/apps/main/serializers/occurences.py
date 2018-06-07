@@ -6,7 +6,7 @@ from tasking.serializers import TaskOccurrenceSerializer
 from kaznet.apps.main.models import TaskOccurrence
 
 
-class KaznetTaskOccurenceSerializer(TaskOccurrenceSerializer):
+class KaznetTaskOccurrenceSerializer(TaskOccurrenceSerializer):
     """
     Main Occurence Serializer
     """

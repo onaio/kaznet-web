@@ -5,7 +5,7 @@ Test for KaznetTaskOccurrenceSerializer
 from model_mommy import mommy
 from kaznet.apps.main.tests.base import MainTestBase
 
-from kaznet.apps.main.serializers import KaznetTaskOccurenceSerializer
+from kaznet.apps.main.serializers import KaznetTaskOccurrenceSerializer
 
 
 class TestTaskOccurrenceSerializer(MainTestBase):
@@ -27,7 +27,7 @@ class TestTaskOccurrenceSerializer(MainTestBase):
             'end_time': '19:00:00'
         }
 
-        serializer_instance = KaznetTaskOccurenceSerializer(data=data)
+        serializer_instance = KaznetTaskOccurrenceSerializer(data=data)
         self.assertTrue(serializer_instance.is_valid())
         occurrence = serializer_instance.save()
 
