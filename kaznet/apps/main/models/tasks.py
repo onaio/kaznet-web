@@ -62,9 +62,22 @@ class Task(BaseTask):
         """
         return self.submission_set.count()
 
+    def get_bounty(self):
+        """
+        Custom method to get latest bounty for task
+        """
+        return self.bounty_set.all().order_by('-created').first()
+
     @property
     def submissions(self):
         """
         Number of Submissions made for this task
         """
         return self.get_submissions()
+
+    @property
+    def latest_bounty(self):
+        """
+        Latest bounty for Task
+        """
+        return self.get_bounty()
