@@ -24,6 +24,15 @@ class Task(BaseTask):
         blank=True,
         default=None,
         help_text=_('This represents the location.'))
+    client = models.ForeignKey(
+        'main.Client',
+        verbose_name=_('Client'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_('This represents the client.')
+    )
 
     # Custom Manager that has submission_count field
     with_submission_count = TaskManager()
