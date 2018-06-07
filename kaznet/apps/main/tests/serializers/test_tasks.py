@@ -133,6 +133,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'name',
             'parent',
             'description',
+            'latest_bounty',
             'start',
             'client',
             'end',
@@ -184,6 +185,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(Bounty.objects.all().count(), 1)
 
         bounty = Bounty.objects.get(task=task)
+        self.assertEqual(task.latest_bounty, bounty)
         self.assertEqual(task, bounty.task)
 
         updated_data = {
@@ -206,6 +208,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         bounty2 = Bounty.objects.get(amount=Money('10000000.00', 'KES'))
 
         self.assertEqual(bounty2.task, task)
+        self.assertEqual(task.latest_bounty, bounty2)
         # Keeps track of previous bounties
         self.assertEqual(bounty.task, task)
         self.assertEqual(Bounty.objects.all().count(), 2)
