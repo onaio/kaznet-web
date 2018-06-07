@@ -14,7 +14,6 @@ class KaznetTaskSerializer(TaskSerializer):
     """
     Main Task Serializer class
     """
-
     amount = SerializableAmountField(source='main.Bounty', required=False)
 
     # pylint: disable=too-few-public-methods
@@ -39,6 +38,7 @@ class KaznetTaskSerializer(TaskSerializer):
             'user_submission_target',
             'status',
             'submission_count',
+            'latest_bounty',
             'target_content_type',
             'target_id',
             'segment_rules',
