@@ -38,7 +38,7 @@ class KaznetTaskSerializer(TaskSerializer):
             'user_submission_target',
             'status',
             'submission_count',
-            'latest_bounty',
+            'bounty',
             'target_content_type',
             'target_id',
             'segment_rules',

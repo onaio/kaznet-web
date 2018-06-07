@@ -76,7 +76,7 @@ class Task(BaseTask):
         return self.get_submissions()
 
     @property
-    def latest_bounty(self):
+    def bounty(self):
         """
         Latest bounty for Task
         """
