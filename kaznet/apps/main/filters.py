@@ -63,6 +63,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
             'status',
             'project',
             'parent',
+            'client',
             'date',
             'start_time',
             'end_time'

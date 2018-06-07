@@ -25,6 +25,7 @@ class KaznetTaskSerializer(TaskSerializer):
             'parent',
             'estimated_time',
             'description',
+            'client',
             'start',
             'end',
             'timing_rule',

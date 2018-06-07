@@ -740,6 +740,41 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(len(response3.data), 1)
         self.assertEqual(response3.data[0]['id'], task.id)
 
+    def test_client_filter(self):
+        """
+        Test that you can filter by client
+        """
+        user = mommy.make('auth.User')
+
+        client1 = mommy.make('main.Client', name='Knight Order')
+        client2 = mommy.make('main.Client', name='Sun Order')
+
+        mommy.make('main.Task', client=client2, _quantity=7)
+
+        # Test there is no Task under Client1
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+        request = self.factory.get(
+            '/tasks?', {'client': client1.id})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
+        # Test there is 1 Task under Client1
+
+        task = mommy.make('main.Task', client=client1)
+
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+        request = self.factory.get(
+            '/tasks?', {'client': client1.id})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], task.id)
+
     def test_permission_required(self):
         """
         Test that Admin permission is required for POST, PATCH and

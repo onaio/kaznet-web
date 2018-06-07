@@ -128,6 +128,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'parent',
             'description',
             'start',
+            'client',
             'end',
             'timing_rule',
             'estimated_time',
@@ -218,3 +219,30 @@ class TestKaznetTaskSerializer(MainTestBase):
         task = serializer_instance.save()
 
         self.assertEqual(mocked_parent_task, task.parent)
+
+    def test_task_client_link(self):
+        """
+        Test the connection between a client and task
+        """
+        mocked_client = mommy.make('main.Client', name='Knights Order')
+        mocked_target_object = mommy.make('ona.XForm')
+        now = timezone.now()
+
+        data = {
+            'name': 'Milk Production',
+            'description': 'Some description',
+            'start': now,
+            'total_submission_target': 10,
+            'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'client': mocked_client.id
+        }
+
+        serializer_instance = KaznetTaskSerializer(data=data)
+
+        self.assertTrue(serializer_instance.is_valid())
+
+        task = serializer_instance.save()
+
+        self.assertEqual(mocked_client, task.client)
