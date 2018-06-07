@@ -613,6 +613,56 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.data[1]['status'], task2.status)
         self.assertEqual(response.data[1]['id'], task2.id)
 
+    def test_latest_bounty_ordering(self):
+        """
+        Test that we can sort Tasks by latest_bounty amount
+        """
+        user = mommy.make('auth.User')
+
+        task1 = mommy.make('main.Task', name='Cattle Price')
+        task2 = mommy.make('main.Task', name='SpaceShip Price')
+        task3 = mommy.make('main.Task', name='Earth Price')
+
+        mommy.make('main.Bounty', amount=5000, task=task1)
+        mommy.make('main.Bounty', amount=10000000, task=task2)
+        mommy.make('main.Bounty', amount=10000, task=task3)
+
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+
+        # Test ordering ascending
+        request = self.factory.get('/tasks', {'ordering': 'bounty__amount'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(
+            response.data[0]['bounty'],
+            task1.bounty)
+        self.assertEqual(response.data[0]['id'], task1.id)
+        self.assertEqual(
+            response.data[1]['bounty'],
+            task3.bounty)
+        self.assertEqual(response.data[1]['id'], task3.id)
+        self.assertEqual(
+            response.data[-1]['bounty'],
+            task2.bounty)
+        self.assertEqual(response.data[-1]['id'], task2.id)
+
+        # Test ordering descending
+        request = self.factory.get('/tasks', {'ordering': '-bounty__amount'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(
+            response.data[0]['bounty'],
+            task2.bounty)
+        self.assertEqual(response.data[0]['id'], task2.id)
+        self.assertEqual(
+            response.data[1]['bounty'],
+            task3.bounty)
+        self.assertEqual(response.data[1]['id'], task3.id)
+        self.assertEqual(
+            response.data[-1]['bounty'],
+            task1.bounty)
+        self.assertEqual(response.data[-1]['id'], task1.id)
+
     def test_date_filter(self):
         """
         Test that you can filter by date
