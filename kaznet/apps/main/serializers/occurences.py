@@ -1,5 +1,5 @@
 """
-Main Occurences Serializer module
+Main Occurrences Serializer module
 """
 from tasking.serializers import TaskOccurrenceSerializer
 
