@@ -257,11 +257,13 @@ class TestApiMethods(TestCase):
         it creates an XForm Object and a Project Object
         If its not present
         """
+        # Creates Project if not present
         mocked_form_data = {
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "is_merged_dataset": False
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z"
         }
 
         mocked_project_data = {
@@ -282,6 +284,42 @@ class TestApiMethods(TestCase):
 
         self.assertEqual(XForm.objects.all().count(), 1)
         self.assertEqual(Project.objects.all().count(), 1)
+
+        # Doesnt create a project if present
+
+        mommy.make('ona.Project', ona_pk=49)
+
+        mocked_form_data = {
+            "name": "Salaries",
+            "formid": 90,
+            "id_string": "aFEjJKzULJlQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z"
+        }
+
+        self.assertEqual(XForm.objects.all().count(), 1)
+        self.assertEqual(Project.objects.all().count(), 2)
+        process_xform(mocked_form_data, 49)
+
+        self.assertEqual(XForm.objects.all().count(), 2)
+        self.assertEqual(Project.objects.all().count(), 2)
+
+        # Doesn't Create an XForm if already Present
+
+        mocked_form_data = {
+            "name": "Salaries",
+            "formid": 90,
+            "id_string": "aFEjJKzULJlQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z",
+        }
+
+        self.assertEqual(XForm.objects.all().count(), 2)
+        self.assertEqual(Project.objects.all().count(), 2)
+        process_xform(mocked_form_data, 49)
+
+        self.assertEqual(XForm.objects.all().count(), 2)
+        self.assertEqual(Project.objects.all().count(), 2)
 
     def test_process_xform_bad_data(self):
         """
@@ -333,6 +371,7 @@ class TestApiMethods(TestCase):
         it creates an Instance Object as well as an XForm object and a Project
         Object if not present.
         """
+        # Creates XForm and Project if Missing
         mocked_instance_data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "_edited": True,
@@ -363,6 +402,11 @@ class TestApiMethods(TestCase):
         )
 
         mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/projects/20'),
+            json=mocked_project_data
+        )
+
+        mocked.get(
             urljoin(ONA_BASE_URL, '/api/v1/forms/53'),
             json=mocked_form_data
         )
@@ -375,6 +419,86 @@ class TestApiMethods(TestCase):
         self.assertEqual(Instance.objects.all().count(), 1)
         self.assertEqual(XForm.objects.all().count(), 1)
         self.assertEqual(Project.objects.all().count(), 1)
+
+        # Doesn't Create a Project if its already there
+
+        mommy.make('ona.Project', ona_pk=20)
+
+        mocked_instance_data = {
+            "_xform_id_string": "aFEjJKzPLJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-05-30T07:51:59.187363Z",
+            "_xform_id": 52,
+            "_submitted_by": "sluggie",
+            "_id": 1785
+        }
+
+        mocked_form_data = {
+            "name": "Changed",
+            "formid": 52,
+            "id_string": "aFEjJKzPLJbQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "project": "https://stage-api.ona.io/api/v1/projects/20"
+        }
+
+        mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/forms/52'),
+            json=mocked_form_data
+        )
+
+        self.assertEqual(Instance.objects.all().count(), 1)
+        self.assertEqual(XForm.objects.all().count(), 1)
+        self.assertEqual(Project.objects.all().count(), 2)
+
+        process_instance(mocked_instance_data)
+
+        self.assertEqual(Instance.objects.all().count(), 2)
+        self.assertEqual(XForm.objects.all().count(), 2)
+        self.assertEqual(Project.objects.all().count(), 2)
+
+        # Doesn't create an XForm or Project if both are present
+
+        mocked_instance_data = {
+            "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-05-30T07:51:59.187363Z",
+            "_xform_id": 25,
+            "_submitted_by": "sluggie",
+            "_id": 1759
+        }
+
+        mommy.make('ona.Project', ona_pk=49)
+        mommy.make('ona.XForm', ona_pk=25, project_id=49)
+
+        self.assertEqual(Instance.objects.all().count(), 2)
+        self.assertEqual(XForm.objects.all().count(), 3)
+        self.assertEqual(Project.objects.all().count(), 3)
+
+        process_instance(mocked_instance_data)
+
+        self.assertEqual(Instance.objects.all().count(), 3)
+        self.assertEqual(XForm.objects.all().count(), 3)
+        self.assertEqual(Project.objects.all().count(), 3)
+
+        # Doesn't create an Instance if its Already Present
+        mocked_instance_data = {
+            "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-06-01T07:51:59.187363Z",
+            "_xform_id": 25,
+            "_submitted_by": "sluggie",
+            "_id": 1759
+        }
+
+        self.assertEqual(Instance.objects.all().count(), 3)
+        self.assertEqual(XForm.objects.all().count(), 3)
+        self.assertEqual(Project.objects.all().count(), 3)
+
+        process_instance(mocked_instance_data)
+
+        self.assertEqual(Instance.objects.all().count(), 3)
+        self.assertEqual(XForm.objects.all().count(), 3)
+        self.assertEqual(Project.objects.all().count(), 3)
 
     def test_process_instance_bad_data(self):
         """
@@ -431,12 +555,24 @@ class TestApiMethods(TestCase):
 
         self.assertEqual(response, None)
 
+        # Request returns None for requests that aren't GET or POST
+
+        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
+        response = request(url, method='PUT')
+
+        self.assertEqual(response, None)
+
     def test_request_session(self):
         """
-        Tests that a valid url can be accessed normally
+        Tests that request_session works the way it should
         """
         response = request_session('https://example.com', 'GET')
-        self.assertTrue(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
+
+        # Returns None for request methods that aren't GET or POST
+
+        response = request_session('https://example.com', 'PUT')
+        self.assertEqual(response, None)
 
     def test_request_session_bad_url(self):
         """
@@ -489,14 +625,54 @@ class TestApiMethods(TestCase):
         # first on Initialization Then repeated each Retry
         self.assertEqual(mocked.call_count, 3)
 
-    def test_get_project_obj(self):
+    @requests_mock.Mocker()
+    def test_get_project_obj(self, mocked):
         """
         Test that get_project_obj returns correct Project Object
         """
+        # Can retrieve project object by use of id
         mocked_project = mommy.make('ona.Project', ona_pk=999)
         project = get_project_obj(ona_project_id=999)
 
         self.assertEqual(mocked_project, project)
+
+        # Creates Project if not in system
+
+        mocked_project_data = {
+            "projectid": 3,
+            "name": "Solo",
+            "date_modified": "2018-05-30T07:51:59.267839Z",
+            "deleted_at": None
+        }
+
+        mocked.get(
+            urljoin(ONA_BASE_URL, '/api/v1/projects/3'),
+            json=mocked_project_data
+        )
+        self.assertEqual(Project.objects.all().count(), 1)
+        project = get_project_obj(ona_project_id=3)
+
+        self.assertEqual(Project.objects.all().count(), 2)
+        self.assertEqual(project.name, 'Solo')
+
+        # Returns correct project when given a url
+
+        mocked_project_data = {
+            "projectid": 3,
+            "name": "Solo",
+            "date_modified": "2018-05-30T07:51:59.267839Z",
+            "deleted_at": None
+        }
+        url = urljoin(ONA_BASE_URL, '/api/v1/projects/3')
+        mocked.get(
+            url,
+            json=mocked_project_data
+        )
+        self.assertEqual(Project.objects.all().count(), 2)
+        mocked_project = get_project_obj(project_url=url)
+
+        self.assertEqual(Project.objects.all().count(), 2)
+        self.assertEqual(project, mocked_project)
 
     def test_get_xfrom_obj(self):
         """
