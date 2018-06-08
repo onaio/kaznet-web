@@ -6,7 +6,6 @@ pipeline:
         - pip install tox
         - sleep 40
         - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
-        - redis-cli -h redis ping
         - tox
     environment:
       - KAZNET_POSTGRES_HOST=postgres
