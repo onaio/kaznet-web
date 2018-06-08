@@ -7,7 +7,7 @@ from django.test import TestCase
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory
 
-from kaznet.apps.ona.views import create_instance
+from kaznet.apps.ona.views import create_or_update_instance
 from kaznet.apps.ona.models import Instance
 
 
@@ -43,7 +43,7 @@ class TestViews(TestCase):
         request = self.factory.post(
             'api/v1/create_instance', data=instance_data)
         self.assertEqual(Instance.objects.all().count(), 0)
-        response = create_instance(request)
+        response = create_or_update_instance(request)
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['success'], True)

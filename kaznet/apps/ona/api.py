@@ -329,10 +329,10 @@ def get_xform_obj(ona_xform_id: int):
         return XForm.objects.filter(ona_pk=ona_xform_id).first()
 
 
-def create_instance_obj(instance_data: dict):
+def create_or_update_instance_hook(instance_data: dict):
     """
-    Custom Method that takes instance data and creates the Instance
-    Then Returns True if Instance was created
+    Custom Method that takes instance data and creates or Updates
+    an Instance Then Returns True if Instance was created or updated
     """
     instance_obj = process_instance(instance_data)
     if instance_obj is None:

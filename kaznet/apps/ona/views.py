@@ -5,16 +5,16 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from kaznet.apps.ona.api import create_instance_obj
+from kaznet.apps.ona.api import create_or_update_instance_hook
 
 
 @api_view(['GET', 'POST'])
-def create_instance(request):
+def create_or_update_instance(request):
     """
-    Creates an Instance
+    Creates or Updates an Instance
     """
     if request.method == 'POST':
         data = request.data.dict()
-        if create_instance_obj(data):
+        if create_or_update_instance_hook(data):
             return Response({"success": True}, status=status.HTTP_201_CREATED)
     return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
