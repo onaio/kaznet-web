@@ -8,9 +8,11 @@ from datetime import timedelta
 from django.utils import timezone
 
 from dateutil.rrule import rrulestr
+from django_prices.models import Money
 from model_mommy import mommy
 from tasking.utils import get_rrule_end, get_rrule_start
 
+from kaznet.apps.main.models import Bounty
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.main.tests.base import MainTestBase
 
@@ -120,6 +122,10 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(rule1, task.segment_rules.get(id=rule1.id))
         self.assertEqual(rule2, task.segment_rules.get(id=rule2.id))
 
+        # test no bounty was created since amount wasn't passed
+        # pylint: disable=no-member
+        self.assertEqual(Bounty.objects.all().count(), 0)
+
         expected_fields = [
             'id',
             'created',
@@ -127,6 +133,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'name',
             'parent',
             'description',
+            'bounty',
             'start',
             'client',
             'end',
@@ -143,6 +150,87 @@ class TestKaznetTaskSerializer(MainTestBase):
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
+
+    def test_create_task_with_bounty(self):
+        """
+        Test that a bounty is created if Task is passed into
+        KaznetTaskSerializer
+        """
+        mocked_target_object = mommy.make('ona.XForm')
+
+        rrule = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'
+
+        initial_data = {
+            'name': 'Cow price',
+            'description': 'Some description',
+            'total_submission_target': 10,
+            'timing_rule': rrule,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'estimated_time': 'P4DT1H15M20S',
+            'amount': '5400'
+        }
+
+        serializer_instance = KaznetTaskSerializer(
+            data=initial_data)
+        self.assertTrue(serializer_instance.is_valid())
+
+        # No Bounty In System Yet
+        # pylint: disable=no-member
+        self.assertEqual(Bounty.objects.all().count(), 0)
+
+        task = serializer_instance.save()
+
+        # Bounty should have been created since amount is Present
+        self.assertEqual(Bounty.objects.all().count(), 1)
+
+        bounty = Bounty.objects.get(task=task)
+        self.assertEqual(task.bounty, bounty)
+        self.assertEqual(task, bounty.task)
+
+        updated_data = {
+            'name': 'Spaceship Price',
+            'description': 'To the moon and back',
+            'timing_rule': rrule,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'amount': '10000000'
+        }
+
+        # If amount changes in Task update create a new Bounty
+        serializer_instance = KaznetTaskSerializer(
+            instance=task, data=updated_data)
+        self.assertTrue(serializer_instance.is_valid())
+
+        task = serializer_instance.save()
+
+        # Retrieve Created Bounty
+        bounty2 = Bounty.objects.get(amount=Money('10000000.00', 'KES'))
+
+        self.assertEqual(bounty2.task, task)
+        self.assertEqual(task.bounty, bounty2)
+        # Keeps track of previous bounties
+        self.assertEqual(bounty.task, task)
+        self.assertEqual(Bounty.objects.all().count(), 2)
+
+        # Test doesn't create a new Bounty if Amount hasnt changed
+
+        updated_data = {
+            'name': 'Space Price',
+            'description': 'To the Infinity',
+            'timing_rule': rrule,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'amount': '10000000'
+        }
+
+        # If amount changes in Task update create a new Bounty
+        serializer_instance = KaznetTaskSerializer(
+            instance=task, data=updated_data)
+        self.assertTrue(serializer_instance.is_valid())
+
+        # No new Bounty Created
+        self.assertEqual(Bounty.objects.all().count(), 2)
 
     def test_validate_timing_rule(self):
         """

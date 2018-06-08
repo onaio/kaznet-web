@@ -8,10 +8,10 @@ Once a Task is created it's stored in the database and can be retrieved via the 
 
 ### POST /api/v1/tasks :: Requires User to be an Admin
 
-Creates a Task, requires a `name`, `timing_rule`, `target_content_type` and `target_id`.
+Creates a Task, requires a `name`, `timing_rule`, `target_content_type` and `target_id`. It can optionally also create a bounty if an `amount` is passed.
 
 ```console
-curl -X POST -H "Content-Type:application/json" '{"name": "Cow price", "description": "Some description", "total_submission_target": 10, "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5", "target_content_type": 9, "target_id": 234}' https://example.com/api/v1/tasks
+curl -X POST -H "Content-Type:application/json" '{"name": "Cow price", "description": "Some description", "total_submission_target": 10, "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5", "target_content_type": 9, "target_id": 234, "amount": 5400}' https://example.com/api/v1/tasks
 ```
 
 `target_content_type`: *integer*, is a unique identifier for any of the allowed content types.
@@ -33,6 +33,7 @@ It can take additional optional inputs in the content such as:
 - `locations`: *list of integers*, is the unique identifier for a location.
 - `estimated_time`: *string*, is a [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) *string*.
 - `client`: *integer*, is the unique identifier for a client object.
+- `amount`: *integer*, is the bounty of the task.
 
 ### GET /api/v1/tasks
 
@@ -92,10 +93,10 @@ Returns a list of all tasks filtered by time if given `end_time` query parameter
 curl -X GET https://example.com/api/v1/tasks?end_time=21:00
 ```
 
-Returns a list of all tasks ordered by either creation date, task status, number of submissions or name of task if given a `ordering` query parameter. The `ordering` query parameter takes either `created`, `status`, `submission_count`, `estimated_time`, `project__id` or `name` for ascending order and either `-created`, `-status`, `-submission_count`, `-project_id`, `-estimated_time` or `-name` for descending order.
+Returns a list of all tasks ordered by either creation date, task status, number of submissions or name of task if given a `ordering` query parameter. The `ordering` query parameter takes either `created`, `status`, `submission_count`, `estimated_time`, `project__id`, `bounty__amount` or `name` for ascending order and either `-created`, `-status`, `-submission_count`, `-project_id`, `-estimated_time`, `-bounty__amount` or `-name` for descending order.
 
 ```console
-curl -X GET https://example.com/api/v1/tasks?ordering=-created,status,name,submission_count,-project__id,-submission_count
+curl -X GET https://example.com/api/v1/tasks?ordering=-created,status,name,submission_count,-project__id,-submission_count,-bounty__amount
 ```
 
 ### GET /api/v1/tasks/[pk]

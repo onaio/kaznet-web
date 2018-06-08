@@ -32,6 +32,7 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         'estimated_time',
         'submission_count',
         'project__id',
-        'name'
+        'name',
+        'bounty__amount'
     ]
     queryset = Task.with_submission_count.all()
