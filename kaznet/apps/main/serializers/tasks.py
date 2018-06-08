@@ -31,6 +31,7 @@ class KaznetTaskSerializer(TaskSerializer):
             'approved_submissions_count',
             'pending_submissions_count',
             'rejected_submissions_count',
+            'total_bounty_payout',
             'description',
             'client',
             'start',
