@@ -26,7 +26,7 @@ class TestKaznetSubmissionSerializer(MainTestBase):
         Test that the serializer creates a submission
         """
         now = timezone.now()
-        mocked_target_object = mommy.make('ona.XForm')
+        mocked_target_object = mommy.make('ona.Instance')
         mocked_task = mommy.make('main.Task', name='Cow Prices')
         mocked_location = mommy.make('main.Location', name='Nairobi')
         mocked_user = mommy.make('auth.User', username='Bob')
@@ -39,7 +39,7 @@ class TestKaznetSubmissionSerializer(MainTestBase):
             'comments': 'Approved',
             'status': Submission.REJECTED,
             'valid': True,
-            'target_content_type': self.xform_type.id,
+            'target_content_type': self.instance_type.id,
             'target_id': mocked_target_object.id,
         }
 
@@ -92,7 +92,7 @@ class TestKaznetSubmissionSerializer(MainTestBase):
         for bad data
         """
         now = timezone.now()
-        mocked_target_object = mommy.make('ona.XForm')
+        mocked_target_object = mommy.make('ona.Instance')
         mocked_task = mommy.make('main.Task', name='Cow Prices')
         mocked_location = mommy.make('main.Location', name='Nairobi')
         mocked_user = mommy.make('auth.User', username='Bob')
@@ -105,7 +105,7 @@ class TestKaznetSubmissionSerializer(MainTestBase):
             comments='Approved',
             status=Submission.APPROVED,
             valid=True,
-            target_content_type=self.xform_type.id,
+            target_content_type=self.instance_type.id,
             target_id=5487,
         )
 
