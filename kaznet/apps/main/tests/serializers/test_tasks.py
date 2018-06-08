@@ -121,8 +121,8 @@ class TestKaznetTaskSerializer(MainTestBase):
 
         # we test that total_bounty_payout is None
         self.assertEqual(
-            serializer_instance.data['total_bounty_payout'], None)
-        self.assertEqual(task.total_bounty_payout, None)
+            serializer_instance.data['total_bounty_payout'], Money(0, 'KES'))
+        self.assertEqual(task.total_bounty_payout, Money(0, 'KES'))
 
         # Add a submission to task and assert it changes.
         mocked_submission = mommy.make('main.Submission', task=task)
