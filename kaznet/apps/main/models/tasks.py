@@ -136,6 +136,6 @@ class Task(BaseTask):
     @property
     def total_bounty_payout(self):
         """
-        Total amount to pay for Task
+        Total Amount to be paid for Task Submissions
         """
         return self.get_total_bounty_payout()
