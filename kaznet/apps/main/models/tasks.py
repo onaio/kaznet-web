@@ -1,11 +1,10 @@
 """
 Module for the Task model(s)
 """
-from django.conf import settings
+from django.db.models import Sum
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from django_prices.models import Money
 from tasking.models import BaseTask
 
 from kaznet.apps.main.models.managers import TaskManager
@@ -88,9 +87,8 @@ class Task(BaseTask):
         Custom method to get total bounty amount for all
         approved submissions
         """
-        if self.bounty is not None:
-            return self.bounty.amount*self.approved_submissions_count
-        return Money(0, settings.KAZNET_DEFAULT_CURRENCY)
+        return self.submission_set.filter(status='a').aggregate(
+            Sum('bounty__amount'))
 
     def get_bounty(self):
         """
@@ -138,4 +136,4 @@ class Task(BaseTask):
         """
         Total Amount to be paid for Task Submissions
         """
-        return self.get_total_bounty_payout()
+        return self.get_total_bounty_payout()['bounty__amount__sum']
