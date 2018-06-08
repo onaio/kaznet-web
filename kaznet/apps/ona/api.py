@@ -292,6 +292,9 @@ def process_instance(instance_data: dict, xform: object = None):
                         json=instance_data
                     )
                     obj.save()
+
+                    return obj
+
                 else:
                     # existing object
                     # If object was not created this means
@@ -308,6 +311,8 @@ def process_instance(instance_data: dict, xform: object = None):
                         obj.last_updated = instance_data.get('_last_edited')
                         obj.json = instance_data
                         obj.save()
+                    return obj
+    return None
 
 
 def get_xform_obj(ona_xform_id: int):
@@ -315,7 +320,6 @@ def get_xform_obj(ona_xform_id: int):
     Custom Method that takes in an XForms ona pk
     and returns the object
     """
-
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
         return xform
@@ -323,3 +327,14 @@ def get_xform_obj(ona_xform_id: int):
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
         return XForm.objects.filter(ona_pk=ona_xform_id).first()
+
+
+def process_ona_webhook(instance_data: dict):
+    """
+    Custom Method that takes instance data and creates or Updates
+    an Instance Then Returns True if Instance was created or updated
+    """
+    instance_obj = process_instance(instance_data)
+    if instance_obj is None:
+        return False
+    return True
