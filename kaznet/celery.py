@@ -17,11 +17,3 @@ APP.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Load task modules from all registered Django app configs.
 APP.autodiscover_tasks()
-
-
-@APP.task(bind=True)
-def debug_task(self):
-    """
-    celery test
-    """
-    print('Request: {0!r}'.format(self.request))
