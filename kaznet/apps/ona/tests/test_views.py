@@ -24,7 +24,7 @@ class TestViews(TestCase):
             username='sluggie'
         )
 
-    def test_create_instance(self):
+    def test_create_or_update_instance(self):
         """
         Test create_instance api view returns a Response 201
         When passed in correct data

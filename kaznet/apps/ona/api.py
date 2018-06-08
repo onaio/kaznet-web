@@ -329,7 +329,7 @@ def get_xform_obj(ona_xform_id: int):
         return XForm.objects.filter(ona_pk=ona_xform_id).first()
 
 
-def create_or_update_instance_hook(instance_data: dict):
+def process_ona_webhook(instance_data: dict):
     """
     Custom Method that takes instance data and creates or Updates
     an Instance Then Returns True if Instance was created or updated
