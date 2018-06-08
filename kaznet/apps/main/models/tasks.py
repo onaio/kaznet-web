@@ -2,9 +2,12 @@
 Module for the Task model(s)
 """
 from django.db import models
+from django.db.models import Sum, Value as V
+from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
 
 from tasking.models import BaseTask
+
 from kaznet.apps.main.models.managers import TaskManager
 
 
@@ -62,6 +65,33 @@ class Task(BaseTask):
         """
         return self.submission_set.count()
 
+    def get_approved_submissions(self):
+        """
+        Custom method to get number of accepted submissions
+        """
+        return self.submission_set.filter(status='a').count()
+
+    def get_pending_submissions(self):
+        """
+        Custom method to get number of pending submissions
+        """
+        return self.submission_set.filter(status='d').count()
+
+    def get_rejected_submissions(self):
+        """
+        Custom method to get number of rejected submissions
+        """
+        return self.submission_set.filter(status='b').count()
+
+    def get_total_bounty_payout(self):
+        """
+        Custom method to get total bounty amount for all
+        approved submissions
+        """
+        return self.submission_set.filter(status='a').aggregate(
+            combined_amount=Coalesce(
+                Sum('bounty__amount'), V(0)))
+
     def get_bounty(self):
         """
         Custom method to get latest bounty for task
@@ -76,8 +106,36 @@ class Task(BaseTask):
         return self.get_submissions()
 
     @property
+    def approved_submissions_count(self):
+        """
+        Number of Approved Submissions
+        """
+        return self.get_approved_submissions()
+
+    @property
+    def pending_submissions_count(self):
+        """
+        Number of Pending Submissions
+        """
+        return self.get_pending_submissions()
+
+    @property
+    def rejected_submissions_count(self):
+        """
+        Number of Rejected Submissions
+        """
+        return self.get_rejected_submissions()
+
+    @property
     def bounty(self):
         """
         Latest bounty for Task
         """
         return self.get_bounty()
+
+    @property
+    def total_bounty_payout(self):
+        """
+        Total Amount to be paid for Task Submissions
+        """
+        return self.get_total_bounty_payout()['combined_amount']

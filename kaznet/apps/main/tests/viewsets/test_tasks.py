@@ -162,27 +162,27 @@ class TestKaznetTaskViewSet(MainTestBase):
         Test GET /tasks/[pk] return a task matching pk.
         """
         user = mommy.make('auth.User')
-        task_data = self._create_task()
+        task = mommy.make('main.Task')
         view = KaznetTaskViewSet.as_view({'get': 'retrieve'})
-        request = self.factory.get('/tasks/{id}'.format(id=task_data['id']))
+        request = self.factory.get('/tasks/{id}'.format(id=task.id))
         force_authenticate(request, user=user)
-        response = view(request=request, pk=task_data['id'])
+        response = view(request=request, pk=task.id)
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(response.data, task_data)
+        self.assertEqual(response.data['id'], task.id)
 
     def test_list_tasks(self):
         """
         Test GET /tasks listing of tasks for specific forms.
         """
         user = mommy.make('auth.User')
-        task_data = self._create_task()
+        task = mommy.make('main.Task')
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
         request = self.factory.get('/tasks')
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(response.data.pop(), task_data)
+        self.assertEqual(response.data[0]['id'], task.id)
 
     def test_update_task(self):
         """

@@ -3,10 +3,9 @@ Main Tasks serializer module
 """
 from tasking.serializers import TaskSerializer
 
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Bounty, Task
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField)
-from kaznet.apps.main.models import Bounty
 
 
 # pylint: disable=too-many-ancestors
@@ -29,6 +28,10 @@ class KaznetTaskSerializer(TaskSerializer):
             'amount',
             'parent',
             'estimated_time',
+            'approved_submissions_count',
+            'pending_submissions_count',
+            'rejected_submissions_count',
+            'total_bounty_payout',
             'description',
             'client',
             'start',
