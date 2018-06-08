@@ -1,8 +1,9 @@
 """
 Module for the Task model(s)
 """
-from django.db.models import Sum
 from django.db import models
+from django.db.models import Sum, Value as V
+from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
 
 from tasking.models import BaseTask
@@ -88,7 +89,8 @@ class Task(BaseTask):
         approved submissions
         """
         return self.submission_set.filter(status='a').aggregate(
-            Sum('bounty__amount'))
+            combined_amount=Coalesce(
+                Sum('bounty__amount'), V(0)))
 
     def get_bounty(self):
         """
@@ -136,4 +138,4 @@ class Task(BaseTask):
         """
         Total Amount to be paid for Task Submissions
         """
-        return self.get_total_bounty_payout()['bounty__amount__sum']
+        return self.get_total_bounty_payout()['combined_amount']
