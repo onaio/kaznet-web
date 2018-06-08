@@ -38,7 +38,7 @@ class TestViews(TestCase):
             '_id': 1755
         }
 
-        xfrom = mommy.make('ona.XForm', ona_pk=53)
+        mommy.make('ona.XForm', ona_pk=53)
 
         request = self.factory.post(
             'api/v1/create_instance', data=instance_data)

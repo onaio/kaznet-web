@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from kaznet.apps.ona.api import process_instance
+from kaznet.apps.ona.api import create_instance_obj
 
 
 @api_view(['GET', 'POST'])
@@ -15,6 +15,6 @@ def create_instance(request):
     """
     if request.method == 'POST':
         data = request.data.dict()
-        if process_instance(data):
+        if create_instance_obj(data):
             return Response({"success": True}, status=status.HTTP_201_CREATED)
     return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
