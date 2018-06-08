@@ -104,6 +104,21 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(serializer_instance.data['submission_count'], 0)
         self.assertEqual(task.submissions, 0)
 
+        # we test that rejectedsubmissions are equal to 0
+        self.assertEqual(
+            serializer_instance.data['rejected_submissions_count'], 0)
+        self.assertEqual(task.rejected_submissions_count, 0)
+
+        # we test that pending submissions are equal to 0
+        self.assertEqual(
+            serializer_instance.data['pending_submissions_count'], 0)
+        self.assertEqual(task.pending_submissions_count, 0)
+
+        # we test that approved submissions are equal to 0
+        self.assertEqual(
+            serializer_instance.data['approved_submissions_count'], 0)
+        self.assertEqual(task.approved_submissions_count, 0)
+
         # Add a submission to task and assert it changes.
         mocked_submission = mommy.make('main.Submission', task=task)
         self.assertTrue(mocked_submission.task, task)
@@ -133,6 +148,9 @@ class TestKaznetTaskSerializer(MainTestBase):
             'name',
             'parent',
             'description',
+            'approved_submissions_count',
+            'pending_submissions_count',
+            'rejected_submissions_count',
             'bounty',
             'start',
             'client',
