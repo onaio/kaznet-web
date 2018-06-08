@@ -4,6 +4,7 @@ Models module for users app
 """
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -78,3 +79,63 @@ class UserProfile(TimeStampedModel, models.Model):
 
     def __str__(self):
         return _(f"{self.user}'s profile")
+
+    # pylint: disable=no-member
+    def get_approved_submissions(self):
+        """
+        Returns the number of approved submission for user
+        """
+        return self.user.submission_set.filter(status='a').count()
+
+    def get_rejected_submissions(self):
+        """
+        Returns the number of approved submission for user
+        """
+        return self.user.submission_set.filter(status='b').count()
+
+    def get_approval_rate(self):
+        """
+        Returns the approval rate for user
+        """
+        approved = self.user.submission_set.filter(status='a').count()
+        rejected = self.user.submission_set.filter(status='b').count()
+
+        if approved > 0 and rejected > 0:
+            return f'{(approved / rejected) * 100}%'
+        return '100%'
+
+    def get_amount_earned(self):
+        """
+        Returns the amount earned by user
+        """
+        return self.user.submission_set.filter(
+            status='a').aggregate(Sum('bounty__amount'))
+
+    @property
+    def approved_submissions(self):
+        """
+        Returns the number of approved submissions for user
+        """
+        return self.get_approved_submissions
+
+    @property
+    def rejected_submissions(self):
+        """
+        Returns the number of rejected submissions for user
+        """
+        return self.get_rejected_submissions
+
+    @property
+    def approval_rate(self):
+        """
+        Returns the users approval rate
+        """
+        return self.get_approval_rate
+
+    @property
+    def amount_earned(self):
+        """
+        Total amount earned
+        """
+
+        return self.get_amount_earned
