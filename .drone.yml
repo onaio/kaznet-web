@@ -4,7 +4,7 @@ pipeline:
     commands:
         - pip install --upgrade pip
         - pip install tox
-        - sleep 40
+        - sleep 20
         - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
         - tox
     environment:
