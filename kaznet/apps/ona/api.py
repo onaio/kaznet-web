@@ -292,6 +292,8 @@ def process_instance(instance_data: dict, xform: object = None):
                         json=instance_data
                     )
                     obj.save()
+
+                    return True
                 else:
                     # existing object
                     # If object was not created this means
@@ -308,6 +310,8 @@ def process_instance(instance_data: dict, xform: object = None):
                         obj.last_updated = instance_data.get('_last_edited')
                         obj.json = instance_data
                         obj.save()
+                    return True
+        return False
 
 
 def get_xform_obj(ona_xform_id: int):
@@ -315,7 +319,6 @@ def get_xform_obj(ona_xform_id: int):
     Custom Method that takes in an XForms ona pk
     and returns the object
     """
-
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
         return xform
