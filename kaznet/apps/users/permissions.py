@@ -68,3 +68,34 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
         Object
         """
         return request.user == obj.user or check_admin_permission(request)
+
+
+class IsOwnSubmissionOrAdmin(permissions.BasePermission):
+    """
+    Custom permissions class for Kaznet users
+    """
+    message = PERMISSION_MISSING
+
+    def has_permission(self, request, view):
+        """
+        Checks if the user is an Admin when trying to list
+        """
+        if view.action == 'list':
+            user_params = request.query_params.get('user')
+            if user_params is not None:
+                user_params = int(user_params)
+                return(
+                    user_params == request.user.id or
+                    check_admin_permission(request)
+                    )
+        if view.action == 'retrieve':
+            return True
+
+        return check_admin_permission(request)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Checks if the user in the request is linked to the Object
+        or if they are an admin
+        """
+        return request.user == obj.user or check_admin_permission(request)
