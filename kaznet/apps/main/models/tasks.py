@@ -62,6 +62,24 @@ class Task(BaseTask):
         """
         return self.submission_set.count()
 
+    def get_approved_submissions(self):
+        """
+        Custom method to get number of accepted submissions
+        """
+        return self.submission_set.filter(status='a').count()
+
+    def get_pending_submissions(self):
+        """
+        Custom method to get number of pending submissions
+        """
+        return self.submission_set.filter(status='d').count()
+
+    def get_rejected_submissions(self):
+        """
+        Custom method to get number of rejected submissions
+        """
+        return self.submission_set.filter(status='b').count()
+
     def get_bounty(self):
         """
         Custom method to get latest bounty for task
@@ -74,6 +92,27 @@ class Task(BaseTask):
         Number of Submissions made for this task
         """
         return self.get_submissions()
+
+    @property
+    def approved_submissions_count(self):
+        """
+        Number of Approved Submissions
+        """
+        return self.get_approved_submissions()
+
+    @property
+    def pending_submissions_count(self):
+        """
+        Number of Pending Submissions
+        """
+        return self.get_pending_submissions()
+
+    @property
+    def rejected_submissions_count(self):
+        """
+        Number of Rejected Submissions
+        """
+        return self.get_rejected_submissions()
 
     @property
     def bounty(self):
