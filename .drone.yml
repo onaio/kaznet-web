@@ -4,7 +4,8 @@ pipeline:
     commands:
         - pip install --upgrade pip
         - pip install tox
-        - sleep 10 && psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
+        - sleep 20
+        - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
         - tox
     environment:
       - KAZNET_POSTGRES_HOST=postgres
@@ -21,6 +22,8 @@ services:
     environment:
         - POSTGRES_USER=kaznet
         - POSTGRES_PASSWORD=kaznet
+  redis:
+    image: redis
 matrix:
   PYTHON_VERSION:
     - 3.6

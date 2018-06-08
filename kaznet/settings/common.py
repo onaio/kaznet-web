@@ -158,7 +158,17 @@ ONA_BASE_URL = 'https://stage-api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
 
+# CELERY
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Nairobi'
 
+CELERY_BEAT_SCHEDULE = {}
+
+# Tasking
 TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'xform'},
     {'app_label': 'ona', 'model': 'instance'}
