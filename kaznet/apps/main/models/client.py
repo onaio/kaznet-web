@@ -16,5 +16,15 @@ class Client(TimeStampedModel):
         max_length=255,
         help_text=_('Name of the client.'))
 
+    # pylint: disable=too-few-public-methods
+    class Meta(object):
+        """
+        Meta Options for Client Model
+        """
+        ordering = ['id', 'name']
+        app_label = 'main'
+        verbose_name = _("Client")
+        verbose_name_plural = _("Clients")
+
     def __str__(self):
         return self.name
