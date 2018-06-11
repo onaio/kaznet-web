@@ -22,6 +22,8 @@ model-mommy = "*"
 "autopep8" = "*"
 tblib = "*"
 requests-mock = "*"
+werkzeug = "*"
+pyopenssl = "*"
 
 [requires]
 python_version = "3.6"
