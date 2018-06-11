@@ -1,7 +1,6 @@
 """
 Provider module for authentication with ona.io
 """
-from allauth.socialaccount import providers
 from allauth.socialaccount.providers.base import ProviderAccount
 from allauth.socialaccount.providers.oauth2.provider import OAuth2Provider
 
@@ -48,4 +47,4 @@ class OnadataProvider(OAuth2Provider):
         )
 
 
-providers.registry.register(OnadataProvider)
+provider_classes = [OnadataProvider]
