@@ -50,7 +50,9 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     # custom apps
+    'kaznet.apps.allauth_ona',
     'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
     'kaznet.apps.users.apps.UsersConfig',
@@ -71,7 +73,7 @@ ROOT_URLCONF = 'kaznet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -154,6 +156,8 @@ ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_ADAPTER = "kaznet.apps.users.adapter.AccountAdapter"
 ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_UNIQUE_EMAIL = True
+
+# Ona
 ONA_BASE_URL = 'https://stage-api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
