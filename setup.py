@@ -21,7 +21,8 @@ setup(
         'django-allauth',
         'requests',
         'celery',
-        'django-cors-headers'
+        'django-cors-headers',
+        'whitenoise'
     ],
     classifiers=[
         'Programming Language :: Python',
