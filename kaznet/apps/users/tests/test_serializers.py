@@ -34,6 +34,7 @@ class TestUserProfileSerializer(TestCase):
             UserProfile.objects.filter(user__username='bobbie').exists())
         serializer_instance = UserProfileSerializer(data=data)
         self.assertTrue(serializer_instance.is_valid())
+
         serializer_instance.save()
         self.assertTrue(
             UserProfile.objects.filter(user__username='bobbie').exists())
@@ -58,6 +59,15 @@ class TestUserProfileSerializer(TestCase):
             'ona_username',
             'payment_number',
             'phone_number',
+            'approval_rate',
+            'avg_submissions',
+            'avg_rejected_submissions',
+            'avg_amount_earned',
+            'avg_approval_rate',
+            'avg_approved_submissions',
+            'rejected_submissions',
+            'amount_earned',
+            'approved_submissions',
             'role',
             'expertise',
             'gender',
