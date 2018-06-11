@@ -6,6 +6,7 @@ from rest_framework_json_api import serializers
 from kaznet.apps.ona.models import XForm, Instance, Project
 
 
+# pylint: disable=too-many-ancestors
 class XFormSerializer(serializers.ModelSerializer):
     """
     Serializer for XForm Model

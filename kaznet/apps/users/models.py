@@ -80,11 +80,16 @@ class UserProfile(TimeStampedModel, models.Model):
     # custom manager
     objects = UserProfileManager()
 
+    # pylint: disable=too-few-public-methods
     class Meta:
+        """
+        Meta Options for UserProfile
+        """
         verbose_name = _("Profile")
         verbose_name_plural = _("Profiles")
         ordering = ['user__first_name', 'user__last_name', 'user__email']
 
+    # pylint: disable=no-member
     def get_name(self):
         """
         Get pretty name for this user profile

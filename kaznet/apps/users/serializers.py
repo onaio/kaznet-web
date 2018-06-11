@@ -8,6 +8,7 @@ from rest_framework_json_api import serializers
 from kaznet.apps.users.models import UserProfile
 
 
+# pylint: disable=too-many-ancestors
 class UserSerializer(serializers.ModelSerializer):
     """
     UserSerializer class

@@ -11,6 +11,9 @@ from kaznet.apps.main.models import (Bounty, Client, Location, Project,
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Location Model
+    """
     list_display = (
         'id',
         'created',
@@ -24,6 +27,9 @@ class LocationAdmin(admin.ModelAdmin):
 
 @admin.register(TaskOccurrence)
 class TaskOccurrenceAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for TaskOccurence Model
+    """
     list_display = (
         'id',
         'date',
@@ -36,6 +42,9 @@ class TaskOccurrenceAdmin(admin.ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Project Model
+    """
     list_display = (
         'id',
         'name',
@@ -47,6 +56,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Submission Model
+    """
     list_display = (
         'id',
         'user',
@@ -73,6 +85,9 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Task Model
+    """
     list_display = (
         'id',
         'parent',
@@ -98,12 +113,18 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(Bounty)
 class BountyAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Bounty Model
+    """
     list_display = ('id', 'task', 'amount')
     list_filter = ('created', 'task')
 
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
+    """
+    Admin Definition for Client Model
+    """
     list_display = ('id', 'name')
     list_filter = ('created', 'modified')
     search_fields = ('name',)
