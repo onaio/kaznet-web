@@ -1,6 +1,7 @@
 """
 Kaznet URL Configuration
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
@@ -36,3 +37,9 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('api/v1/', include((ROUTER.urls, 'app_name'))),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar  # noqa
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

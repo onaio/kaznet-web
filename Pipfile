@@ -24,6 +24,7 @@ model-mommy = "*"
 tblib = "*"
 requests-mock = "*"
 django-extensions = "*"
+django-debug-toolbar = "*"
 
 [requires]
 python_version = "3.6"
