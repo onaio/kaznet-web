@@ -13,6 +13,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from tasking.models.base import TimeStampedModel
 
 from kaznet.apps.users.managers import UserProfileManager
+from kaznet.apps.main.models import Submission
 
 USER = settings.AUTH_USER_MODEL
 
@@ -87,22 +88,25 @@ class UserProfile(TimeStampedModel, models.Model):
         """
         Returns the number of approved submission for user
         """
-        return self.user.submission_set.filter(status='a').count()
+        return self.user.submission_set.filter(
+            status=Submission.APPROVED).count()
 
     def get_rejected_submissions(self):
         """
         Returns the number of approved submission for user
         """
-        return self.user.submission_set.filter(status='b').count()
+        return self.user.submission_set.filter(
+            status=Submission.REJECTED).count()
 
     def get_approval_rate(self):
         """
         Returns the approval rate for user
         """
-        approved = self.user.submission_set.filter(status='a').count()
+        approved = self.user.submission_set.filter(
+            status=Submission.APPROVED).count()
         all_submissions = self.user.submission_set.all().count()
         if all_submissions > 0:
-            return f'{(approved / all_submissions)}'
+            return approved / all_submissions
         return 0.0
 
     def get_avg_submissions(self):
@@ -121,24 +125,26 @@ class UserProfile(TimeStampedModel, models.Model):
         Gets Average Approved Submissions per month for
         User
         """
-        return self.user.submission_set.filter(status='a').annotate(
-            month_sub=ExtractMonth('submission_time')
-            ).values('month_sub').annotate(
-                count=Count('month_sub')
-                ).order_by().aggregate(submissions=Coalesce(
-                    Avg('count'), V(0)))
+        return self.user.submission_set.filter(
+            status=Submission.APPROVED).annotate(
+                month_sub=ExtractMonth('submission_time')
+                ).values('month_sub').annotate(
+                    count=Count('month_sub')
+                    ).order_by().aggregate(submissions=Coalesce(
+                        Avg('count'), V(0)))
 
     def get_avg_rejected_submissions(self):
         """
         Gets Rejected Approved Submissions per month for
         User
         """
-        return self.user.submission_set.filter(status='b').annotate(
-            month_sub=ExtractMonth('submission_time')
-            ).values('month_sub').annotate(
-                count=Count('month_sub')
-                ).order_by().aggregate(submissions=Coalesce(
-                    Avg('count'), V(0)))
+        return self.user.submission_set.filter(
+            status=Submission.REJECTED).annotate(
+                month_sub=ExtractMonth('submission_time')
+                ).values('month_sub').annotate(
+                    count=Count('month_sub')
+                    ).order_by().aggregate(submissions=Coalesce(
+                        Avg('count'), V(0)))
 
     def get_avg_approval_rate(self):
         """
@@ -155,19 +161,20 @@ class UserProfile(TimeStampedModel, models.Model):
         Returns the amount earned by user
         """
         return self.user.submission_set.filter(
-            status='a').aggregate(amount=Coalesce(
+            status=Submission.APPROVED).aggregate(amount=Coalesce(
                 Sum('bounty__amount'), V(0)))
 
     def get_avg_amount_earned(self):
         """
         Returns Average Amount Earned Per Month
         """
-        return self.user.submission_set.filter(status='a').annotate(
-            month_sub=ExtractMonth('submission_time')
-            ).values('month_sub').annotate(
-                amount_earned=Sum('bounty__amount')
-                ).order_by().aggregate(amount=Coalesce(
-                    Avg('amount_earned'), V(0)))
+        return self.user.submission_set.filter(
+            status=Submission.APPROVED).annotate(
+                month_sub=ExtractMonth('submission_time')
+                ).values('month_sub').annotate(
+                    amount_earned=Sum('bounty__amount')
+                    ).order_by().aggregate(amount=Coalesce(
+                        Avg('amount_earned'), V(0)))
 
     @property
     def approved_submissions(self):
