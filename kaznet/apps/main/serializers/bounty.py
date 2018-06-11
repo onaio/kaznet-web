@@ -19,7 +19,7 @@ class SerializableAmountField(serializers.Field):
         """
         Custom to representation for Serializable amount field
         """
-        return f'{value.amount} {value.currency}'
+        return value
 
     def to_internal_value(self, data):
         """
@@ -28,6 +28,7 @@ class SerializableAmountField(serializers.Field):
         return Money(data, settings.KAZNET_DEFAULT_CURRENCY)
 
 
+# pylint: disable=too-many-ancestors
 class BountySerializer(serializers.ModelSerializer):
     """
     Client Serializer class
