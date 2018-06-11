@@ -15,8 +15,7 @@ class KaznetTaskSerializer(TaskSerializer):
     """
     amount = SerializableAmountField(
         source='main.Bounty', required=False, write_only=True)
-    total_bounty_payout = SerializableAmountField(
-        source='main.Bounty', read_only=True)
+    total_bounty_payout = SerializableAmountField(read_only=True)
     bounty = BountySerializer(read_only=True)
 
     # pylint: disable=too-few-public-methods
