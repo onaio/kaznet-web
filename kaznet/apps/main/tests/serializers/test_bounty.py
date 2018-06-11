@@ -1,6 +1,8 @@
 """
 Test module for BountySerializer
 """
+from collections import OrderedDict
+
 from django.test import TestCase
 
 from django_prices.models import Money
@@ -20,9 +22,15 @@ class TestBountySerializer(TestCase):
         """
 
         mocked_task = mommy.make('main.Task')
+        task = OrderedDict(
+            type='Task',
+            # Needs to be a string so as to not cause a conflict on
+            # Dict assertation after serialization
+            id=f'{mocked_task.id}'
+        )
 
         data = {
-            "task": mocked_task.id,
+            "task": task,
             "amount": '5400.00'
         }
 
@@ -32,7 +40,7 @@ class TestBountySerializer(TestCase):
         bounty = serializer_instance.save()
 
         # Serializer Changes the amount
-        data['amount'] = '5400.00 KES'
+        data['amount'] = Money(5400, 'KES')
 
         self.assertDictContainsSubset(data, serializer_instance.data)
         self.assertEqual(bounty.task, mocked_task)

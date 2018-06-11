@@ -76,6 +76,8 @@ class TestKaznetSubmissionSerializer(MainTestBase):
             'comments',
             'status',
             'valid',
+            'approved',
+            'bounty',
             'target_content_type',
             'target_id',
             'id',

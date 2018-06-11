@@ -80,6 +80,7 @@ class TestKaznetTaskSerializer(MainTestBase):
 
         serializer_instance = KaznetTaskSerializer(
             data=data_with_segment_rules)
+
         self.assertTrue(serializer_instance.is_valid())
 
         task = serializer_instance.save()
@@ -119,7 +120,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             serializer_instance.data['approved_submissions_count'], 0)
         self.assertEqual(task.approved_submissions_count, 0)
 
-        # we test that total_bounty_payout is None
+        # we test that total_bounty_payout is 0
         self.assertEqual(
             serializer_instance.data['total_bounty_payout'], Money(0, 'KES'))
         self.assertEqual(task.total_bounty_payout, Money(0, 'KES'))

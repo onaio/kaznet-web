@@ -111,9 +111,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         response1 = view1(request=request1)
 
         self.assertEqual(response1.status_code, 400)
-        self.assertIn('target_id', response1.data.keys())
         self.assertEqual(TARGET_DOES_NOT_EXIST,
-                         six.text_type(response1.data['target_id'][0]))
+                         six.text_type(response1.data[0]['detail']))
 
         # test bad content type validation
         bad_content_type = dict(
@@ -133,11 +132,9 @@ class TestKaznetTaskViewSet(MainTestBase):
         response2 = view2(request=request2)
 
         self.assertEqual(response2.status_code, 400)
-
-        self.assertIn('target_content_type', response2.data.keys())
         self.assertEqual(
             'Invalid pk "999" - object does not exist.',
-            six.text_type(response2.data['target_content_type'][0]))
+            six.text_type(response2.data[0]['detail']))
 
     def test_delete_task(self):
         """
@@ -182,7 +179,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['id'], task.id)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
 
     def test_update_task(self):
         """
@@ -255,7 +252,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response.data['detail']))
+            six.text_type(response.data[0]['detail']))
 
         # test that you need authentication for retrieving a task
         view2 = KaznetTaskViewSet.as_view({'get': 'retrieve'})
@@ -264,7 +261,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data['detail']))
+            six.text_type(response2.data[0]['detail']))
 
         # test that you need authentication for listing a task
         view3 = KaznetTaskViewSet.as_view({'get': 'list'})
@@ -273,7 +270,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data['detail']))
+            six.text_type(response3.data[0]['detail']))
 
         # test that you need authentication for deleting a task
         self.assertTrue(Task.objects.filter(pk=task.id).exists())
@@ -285,7 +282,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response4.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response4.data['detail']))
+            six.text_type(response4.data[0]['detail']))
 
         # test that you need authentication for updating a task
         data = {
@@ -302,7 +299,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response5.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response5.data['detail']))
+            six.text_type(response5.data[0]['detail']))
 
     def test_location_filter(self):
         """
@@ -322,7 +319,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(Task.objects.filter(locations=arusha).count(), 0)
 
         # assert that there are 7 tasks for Nairobi
@@ -330,7 +327,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(Task.objects.filter(locations=nairobi).count(), 7)
 
         # add one Arusha task and assert that we get it back
@@ -340,7 +337,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(Task.objects.filter(locations=arusha).count(), 1)
 
     def test_parent_filter(self):
@@ -360,7 +357,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(Task.objects.filter(parent=parent2.id).count(), 0)
 
         # assert that there are 7 tasks whose parent is parent1
@@ -368,7 +365,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(Task.objects.filter(parent=parent1.id).count(), 7)
 
         # create a task whose parent is parent2 and assert its there
@@ -378,7 +375,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(Task.objects.filter(parent=parent2.id).count(), 1)
 
     def test_status_filter(self):
@@ -395,7 +392,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(Task.objects.filter(status=Task.ACTIVE).count(), 0)
 
         # assert that there are 7 tasks with an Deactivated Status
@@ -403,7 +400,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(
             Task.objects.filter(status=Task.DEACTIVATED).count(), 7)
 
@@ -413,7 +410,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(Task.objects.filter(status=Task.ACTIVE).count(), 1)
 
     def test_project_filter(self):
@@ -433,7 +430,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(
             Task.objects.filter(project=project2.id).count(), 0)
 
@@ -442,7 +439,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(
             Task.objects.filter(project=project1.id).count(), 7)
 
@@ -454,7 +451,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             Task.objects.filter(project=project2.id).count(), 1)
 
@@ -471,7 +468,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             Task.objects.filter(name='Cattle Price').count(), 1)
 
@@ -517,56 +514,58 @@ class TestKaznetTaskViewSet(MainTestBase):
         request = self.factory.get('/tasks', {'ordering': '-status'})
         force_authenticate(request, user=user)
         response = view(request=request)
-        self.assertEqual(response.data[0]['id'], task1.id)
-        self.assertEqual(response.data[0]['status'], task1.status)
-        self.assertEqual(response.data[-1]['id'], task2.id)
-        self.assertEqual(response.data[-1]['status'], task2.status)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
+        self.assertEqual(response.data['results'][0]['status'], task1.status)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
+        self.assertEqual(response.data['results'][-1]['status'], task2.status)
 
         # order by created ascending
         request = self.factory.get('/tasks', {'ordering': 'created'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            parse(response.data[0]['created']).astimezone(pytz.utc),
+            parse(response.data['results'][0]['created']).astimezone(pytz.utc),
             task1.created)
-        self.assertEqual(response.data[0]['id'], task1.id)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
         self.assertEqual(
-            parse(response.data[-1]['created']).astimezone(pytz.utc),
+            parse(
+                response.data['results'][-1]['created']).astimezone(
+                    pytz.utc),
             task2.created)
-        self.assertEqual(response.data[-1]['id'], task2.id)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
 
         # order by name ascending
         request = self.factory.get('/tasks', {'ordering': 'name'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[-1]['name'], task1.name)
-        self.assertEqual(response.data[-1]['id'], task1.id)
+            response.data['results'][-1]['name'], task1.name)
+        self.assertEqual(response.data['results'][-1]['id'], task1.id)
         self.assertEqual(
-            response.data[0]['name'], task2.name)
-        self.assertEqual(response.data[0]['id'], task2.id)
+            response.data['results'][0]['name'], task2.name)
+        self.assertEqual(response.data['results'][0]['id'], task2.id)
 
         # order by project ascending
         request = self.factory.get('/tasks', {'ordering': 'project__id'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['name'], task1.name)
-        self.assertEqual(response.data[0]['id'], task1.id)
+            response.data['results'][0]['name'], task1.name)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
         self.assertEqual(
-            response.data[-1]['name'], task2.name)
-        self.assertEqual(response.data[-1]['id'], task2.id)
+            response.data['results'][-1]['name'], task2.name)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
 
         # order by submissions descending
         request = self.factory.get('/tasks', {'ordering': '-submission_count'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['name'], task1.name)
-        self.assertEqual(response.data[0]['id'], task1.id)
+            response.data['results'][0]['name'], task1.name)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
         self.assertEqual(
-            response.data[-1]['name'], task2.name)
-        self.assertEqual(response.data[-1]['id'], task2.id)
+            response.data['results'][-1]['name'], task2.name)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
         self.assertTrue(task1.submissions > task2.submissions)
 
         # order by Estimated Time descending
@@ -574,11 +573,11 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['name'], task1.name)
-        self.assertEqual(response.data[0]['id'], task1.id)
+            response.data['results'][0]['name'], task1.name)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
         self.assertEqual(
-            response.data[-1]['name'], task2.name)
-        self.assertEqual(response.data[-1]['id'], task2.id)
+            response.data['results'][-1]['name'], task2.name)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
         self.assertTrue(task1.estimated_time > task2.estimated_time)
 
     def test_search_filter_order(self):
@@ -607,11 +606,11 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         response = view(request=request)
 
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['status'], task.status)
-        self.assertEqual(response.data[0]['id'], task.id)
-        self.assertEqual(response.data[1]['status'], task2.status)
-        self.assertEqual(response.data[1]['id'], task2.id)
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['results'][0]['status'], task.status)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
+        self.assertEqual(response.data['results'][1]['status'], task2.status)
+        self.assertEqual(response.data['results'][1]['id'], task2.id)
 
     def test_latest_bounty_ordering(self):
         """
@@ -633,35 +632,36 @@ class TestKaznetTaskViewSet(MainTestBase):
         request = self.factory.get('/tasks', {'ordering': 'bounty__amount'})
         force_authenticate(request, user=user)
         response = view(request=request)
+
         self.assertEqual(
-            response.data[0]['bounty'],
-            task1.bounty)
-        self.assertEqual(response.data[0]['id'], task1.id)
+            response.data['results'][0]['bounty']['id'],
+            task1.bounty.id)
+        self.assertEqual(response.data['results'][0]['id'], task1.id)
         self.assertEqual(
-            response.data[1]['bounty'],
-            task3.bounty)
-        self.assertEqual(response.data[1]['id'], task3.id)
+            response.data['results'][1]['bounty']['id'],
+            task3.bounty.id)
+        self.assertEqual(response.data['results'][1]['id'], task3.id)
         self.assertEqual(
-            response.data[-1]['bounty'],
-            task2.bounty)
-        self.assertEqual(response.data[-1]['id'], task2.id)
+            response.data['results'][-1]['bounty']['id'],
+            task2.bounty.id)
+        self.assertEqual(response.data['results'][-1]['id'], task2.id)
 
         # Test ordering descending
         request = self.factory.get('/tasks', {'ordering': '-bounty__amount'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['bounty'],
-            task2.bounty)
-        self.assertEqual(response.data[0]['id'], task2.id)
+            response.data['results'][0]['bounty']['id'],
+            task2.bounty.id)
+        self.assertEqual(response.data['results'][0]['id'], task2.id)
         self.assertEqual(
-            response.data[1]['bounty'],
-            task3.bounty)
-        self.assertEqual(response.data[1]['id'], task3.id)
+            response.data['results'][1]['bounty']['id'],
+            task3.bounty.id)
+        self.assertEqual(response.data['results'][1]['id'], task3.id)
         self.assertEqual(
-            response.data[-1]['bounty'],
-            task1.bounty)
-        self.assertEqual(response.data[-1]['id'], task1.id)
+            response.data['results'][-1]['bounty']['id'],
+            task1.bounty.id)
+        self.assertEqual(response.data['results'][-1]['id'], task1.id)
 
     def test_date_filter(self):
         """
@@ -694,8 +694,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], task2.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], task2.id)
 
         # make some tasks that happen after 2018-07-12
         mommy.make(
@@ -710,8 +710,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 1)
-        self.assertEqual(response2.data[0]['id'], task.id)
+        self.assertEqual(len(response2.data['results']), 1)
+        self.assertEqual(response2.data['results'][0]['id'], task.id)
 
     def test_start_time_filter(self):
         """
@@ -743,8 +743,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 1)
-        self.assertEqual(response2.data[0]['id'], task2.id)
+        self.assertEqual(len(response2.data['results']), 1)
+        self.assertEqual(response2.data['results'][0]['id'], task2.id)
 
         # check that we can get tasks before a certain time
         request3 = self.factory.get(
@@ -752,8 +752,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request3, user=user)
         response3 = view(request=request3)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(len(response3.data), 1)
-        self.assertEqual(response3.data[0]['id'], task.id)
+        self.assertEqual(len(response3.data['results']), 1)
+        self.assertEqual(response3.data['results'][0]['id'], task.id)
 
     def test_end_time_filter(self):
         """
@@ -779,8 +779,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 1)
-        self.assertEqual(response2.data[0]['id'], task2.id)
+        self.assertEqual(len(response2.data['results']), 1)
+        self.assertEqual(response2.data['results'][0]['id'], task2.id)
 
         # check that we can get tasks before a certain time
         request3 = self.factory.get(
@@ -788,8 +788,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request3, user=user)
         response3 = view(request=request3)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(len(response3.data), 1)
-        self.assertEqual(response3.data[0]['id'], task.id)
+        self.assertEqual(len(response3.data['results']), 1)
+        self.assertEqual(response3.data['results'][0]['id'], task.id)
 
     def test_client_filter(self):
         """
@@ -810,7 +810,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
 
         # Test there is 1 Task under Client1
 
@@ -823,8 +823,8 @@ class TestKaznetTaskViewSet(MainTestBase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], task.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
 
     def test_permission_required(self):
         """
@@ -862,7 +862,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            response.data['detail']
+            response.data[0]['detail']
         )
 
         # Can't Update Task
@@ -883,7 +883,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            response.data['detail']
+            response.data[0]['detail']
         )
 
         # Can't Delete Task
@@ -900,5 +900,5 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            response.data['detail']
+            response.data[0]['detail']
         )

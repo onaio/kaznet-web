@@ -2,14 +2,16 @@
 Tests module for BountyViewSet
 """
 
+from collections import OrderedDict
+
 from django.test import TestCase
 
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.main.models import Bounty
-from kaznet.apps.main.viewsets import BountyViewSet
 from kaznet.apps.main.serializers import BountySerializer
+from kaznet.apps.main.viewsets import BountyViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
 
@@ -28,9 +30,15 @@ class TestBountyViewSet(TestCase):
         """
 
         task = mommy.make('main.Task', name='Ep1c')
+        task_data = OrderedDict(
+            type='Task',
+            # Needs to be a string so as to not cause a conflict on
+            # Dict assertation after serialization
+            id=f'{task.id}'
+        )
 
         data = {
-            "task": task.id,
+            "task": task_data,
             "amount": '5400.00'
         }
 
@@ -68,7 +76,7 @@ class TestBountyViewSet(TestCase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(response.data.pop(), bounty_data)
+        self.assertDictEqual(response.data['results'].pop(), bounty_data)
 
     def test_task_filter(self):
         """
@@ -94,8 +102,8 @@ class TestBountyViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], bounty.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], bounty.id)
 
     def test_submission_filter(self):
         """
@@ -121,8 +129,8 @@ class TestBountyViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], bounty.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], bounty.id)
 
     def test_authentication_required(self):
         """
@@ -137,7 +145,7 @@ class TestBountyViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         view = BountyViewSet.as_view({'get': 'list'})
 
@@ -147,4 +155,4 @@ class TestBountyViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))

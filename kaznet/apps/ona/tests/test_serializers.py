@@ -81,7 +81,7 @@ class TestInstanceSerializer(TestCase):
         self.assertEqual(set(expected_fields),
                          set(list(serializer_data.keys())))
         self.assertEqual(596, serializer_data['ona_pk'])
-        self.assertEqual(mocked_xform.id, serializer_data['xform'])
+        self.assertEqual(str(mocked_xform.id), serializer_data['xform']['id'])
         self.assertEqual(dict, serializer_data['json'])
 
 

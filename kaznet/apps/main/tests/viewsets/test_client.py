@@ -59,7 +59,7 @@ class TestClientViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 8)
+        self.assertEqual(len(response.data['results']), 8)
 
     def test_retrieve_client(self):
         """
@@ -89,7 +89,7 @@ class TestClientViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             # pylint: disable=no-member
             Client.objects.filter(name='Solair').count(), 1)
@@ -109,11 +109,11 @@ class TestClientViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 9)
-        self.assertEqual(response.data[0]['name'], client1.name)
-        self.assertEqual(response.data[0]['id'], client1.id)
-        self.assertEqual(response.data[-1]['name'], client2.name)
-        self.assertEqual(response.data[-1]['id'], client2.id)
+        self.assertEqual(len(response.data['results']), 9)
+        self.assertEqual(response.data['results'][0]['name'], client1.name)
+        self.assertEqual(response.data['results'][0]['id'], client1.id)
+        self.assertEqual(response.data['results'][-1]['name'], client2.name)
+        self.assertEqual(response.data['results'][-1]['id'], client2.id)
 
     def test_update_client(self):
         """
@@ -173,7 +173,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Update
 
@@ -189,7 +189,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Create
 
@@ -204,7 +204,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant List
 
@@ -218,7 +218,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Retrieve
 
@@ -231,7 +231,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
     def test_permission_required(self):
         """
@@ -253,7 +253,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Update
 
@@ -270,7 +270,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Create
 
@@ -286,7 +286,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant List
 
@@ -301,7 +301,7 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Retrieve
 
@@ -315,4 +315,4 @@ class TestClientViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
