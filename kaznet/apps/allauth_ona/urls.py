@@ -1,5 +1,9 @@
+"""
+urls module for allauth_ona
+"""
 from allauth.socialaccount.providers.oauth2.urls import default_urlpatterns
 
-from kaznet.apps.auth_ona.provider import OnadataProvider
+from .provider import OnadataProvider
 
+# pylint: disable=invalid-name
 urlpatterns = default_urlpatterns(OnadataProvider)
