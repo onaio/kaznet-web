@@ -4,7 +4,9 @@ Models module for users app
 """
 from django.conf import settings
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Value as V
+from django.db.models import Avg, Count, Sum
+from django.db.models.functions import Coalesce, ExtractMonth
 from django.utils.translation import ugettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
@@ -98,44 +100,137 @@ class UserProfile(TimeStampedModel, models.Model):
         Returns the approval rate for user
         """
         approved = self.user.submission_set.filter(status='a').count()
-        rejected = self.user.submission_set.filter(status='b').count()
+        all_submissions = self.user.submission_set.all().count()
+        if all_submissions > 0:
+            return f'{(approved / all_submissions)}'
+        return 0.0
 
-        if approved > 0 and rejected > 0:
-            return f'{(approved / rejected) * 100}%'
-        return '100%'
+    def get_avg_submissions(self):
+        """
+        Gets Average Submissions per month for user
+        """
+        return self.user.submission_set.annotate(
+            month_sub=ExtractMonth('submission_time')
+            ).values('month_sub').annotate(
+                count=Count('month_sub')
+                ).order_by().aggregate(submissions=Coalesce(
+                    Avg('count'), V(0)))
+
+    def get_avg_approved_submissions(self):
+        """
+        Gets Average Approved Submissions per month for
+        User
+        """
+        return self.user.submission_set.filter(status='a').annotate(
+            month_sub=ExtractMonth('submission_time')
+            ).values('month_sub').annotate(
+                count=Count('month_sub')
+                ).order_by().aggregate(submissions=Coalesce(
+                    Avg('count'), V(0)))
+
+    def get_avg_rejected_submissions(self):
+        """
+        Gets Rejected Approved Submissions per month for
+        User
+        """
+        return self.user.submission_set.filter(status='b').annotate(
+            month_sub=ExtractMonth('submission_time')
+            ).values('month_sub').annotate(
+                count=Count('month_sub')
+                ).order_by().aggregate(submissions=Coalesce(
+                    Avg('count'), V(0)))
+
+    def get_avg_approval_rate(self):
+        """
+        Gets Average Approval Rate for User
+        """
+        avg_submissions = self.avg_submissions
+        avg_approved_submissions = self.avg_approved_submissions
+        if avg_submissions > 0:
+            return avg_approved_submissions / avg_submissions
+        return 0.0
 
     def get_amount_earned(self):
         """
         Returns the amount earned by user
         """
         return self.user.submission_set.filter(
-            status='a').aggregate(Sum('bounty__amount'))
+            status='a').aggregate(amount=Coalesce(
+                Sum('bounty__amount'), V(0)))
+
+    def get_avg_amount_earned(self):
+        """
+        Returns Average Amount Earned Per Month
+        """
+        return self.user.submission_set.filter(status='a').annotate(
+            month_sub=ExtractMonth('submission_time')
+            ).values('month_sub').annotate(
+                amount_earned=Sum('bounty__amount')
+                ).order_by().aggregate(amount=Coalesce(
+                    Avg('amount_earned'), V(0)))
 
     @property
     def approved_submissions(self):
         """
         Returns the number of approved submissions for user
         """
-        return self.get_approved_submissions
+        return self.get_approved_submissions()
 
     @property
     def rejected_submissions(self):
         """
         Returns the number of rejected submissions for user
         """
-        return self.get_rejected_submissions
+        return self.get_rejected_submissions()
 
     @property
     def approval_rate(self):
         """
         Returns the users approval rate
         """
-        return self.get_approval_rate
+        return self.get_approval_rate()
 
     @property
     def amount_earned(self):
         """
         Total amount earned
         """
+        return self.get_amount_earned()['amount']
 
-        return self.get_amount_earned
+    @property
+    def avg_submissions(self):
+        """
+        Returns the Average Submissions Per Month
+        for User
+        """
+        return self.get_avg_submissions()['submissions']
+
+    @property
+    def avg_approved_submissions(self):
+        """
+        Returns the Average Approved Submissions Per Month
+        for User
+        """
+        return self.get_avg_approved_submissions()['submissions']
+
+    @property
+    def avg_rejected_submissions(self):
+        """
+        Returns the Average Approved Submissions Per Month
+        for User
+        """
+        return self.get_avg_rejected_submissions()['submissions']
+
+    @property
+    def avg_approval_rate(self):
+        """
+        Returns the Average Approval Rate For User
+        """
+        return self.get_avg_approval_rate()
+
+    @property
+    def avg_amount_earned(self):
+        """
+        Returns the Average Amount Earned Per Month
+        """
+        return self.get_avg_amount_earned()['amount']
