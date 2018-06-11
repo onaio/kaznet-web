@@ -2,7 +2,7 @@
 Model Serializers for Ona app
 """
 
-from rest_framework import serializers
+from rest_framework_json_api import serializers
 from kaznet.apps.ona.models import XForm, Instance, Project
 
 

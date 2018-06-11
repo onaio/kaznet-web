@@ -22,7 +22,8 @@ setup(
         'requests',
         'celery',
         'django-cors-headers',
-        'whitenoise'
+        'whitenoise',
+        'djangorestframework-jsonapi'
     ],
     classifiers=[
         'Programming Language :: Python',
