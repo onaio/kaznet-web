@@ -23,6 +23,7 @@ model-mommy = "*"
 "autopep8" = "*"
 tblib = "*"
 requests-mock = "*"
+django-extensions = "*"
 
 [requires]
 python_version = "3.6"
