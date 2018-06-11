@@ -12,8 +12,8 @@ from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from tasking.models.base import TimeStampedModel
 
-from kaznet.apps.users.managers import UserProfileManager
 from kaznet.apps.main.models import Submission
+from kaznet.apps.users.managers import UserProfileManager
 
 USER = settings.AUTH_USER_MODEL
 
@@ -80,8 +80,23 @@ class UserProfile(TimeStampedModel, models.Model):
     # custom manager
     objects = UserProfileManager()
 
+    class Meta:
+        verbose_name = _("Profile")
+        verbose_name_plural = _("Profiles")
+        ordering = ['user__first_name', 'user__last_name', 'user__email']
+
+    def get_name(self):
+        """
+        Get pretty name for this user profile
+        """
+        if self.user.get_full_name():
+            return self.user.get_full_name()
+        if self.user.email:
+            return self.user.email
+        return self.user.username
+
     def __str__(self):
-        return _(f"{self.user}'s profile")
+        return f"{self.get_name()}'s profile"
 
     # pylint: disable=no-member
     def get_approved_submissions(self):
