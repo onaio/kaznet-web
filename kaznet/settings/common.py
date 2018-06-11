@@ -50,7 +50,9 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     # custom apps
+    'kaznet.apps.auth_ona',
     'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
     'kaznet.apps.users.apps.UsersConfig',
@@ -154,7 +156,7 @@ ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_ADAPTER = "kaznet.apps.users.adapter.AccountAdapter"
 ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_UNIQUE_EMAIL = True
-ONA_BASE_URL = 'https://stage-api.ona.io'
+ONA_BASE_URL = 'https://api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
 
