@@ -137,7 +137,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         except KeyError:
             pass
 
-        task = super(KaznetTaskSerializer, self).update(
+        task = super().update(
             instance, validated_data)
 
         if amount is not None:
