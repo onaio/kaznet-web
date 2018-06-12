@@ -81,7 +81,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], submission.id)
-        self.assertEqual(response.data['results'][0]['user'], dave.id)
+        self.assertEqual(
+            int(response.data['results'][0]['user']['id']), dave.id)
 
         # test dave can filter for his own submissions
         request = self.factory.get('/submissions', {'user': dave.id})
@@ -90,7 +91,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], submission.id)
-        self.assertEqual(response.data['results'][0]['user'], dave.id)
+        self.assertEqual(
+            int(response.data['results'][0]['user']['id']), dave.id)
 
         # test random users can't filter for daves submissions
         request = self.factory.get('/submissions', {'user': dave.id})
@@ -394,4 +396,4 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         response = view(request=request, pk=submission.id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['id'], submission.id)
-        self.assertEqual(response.data['user'], user.id)
+        self.assertEqual(int(response.data['user']['id']), user.id)
