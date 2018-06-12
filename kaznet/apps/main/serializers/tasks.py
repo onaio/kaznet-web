@@ -1,6 +1,7 @@
 """
 Main Tasks serializer module
 """
+from rest_framework_json_api import serializers
 from tasking.serializers import TaskSerializer
 
 from kaznet.apps.main.models import Bounty, Task
@@ -9,13 +10,15 @@ from kaznet.apps.main.serializers.bounty import (BountySerializer,
 
 
 # pylint: disable=too-many-ancestors
-class KaznetTaskSerializer(TaskSerializer):
+class KaznetTaskSerializer(
+        serializers.ModelSerializer, TaskSerializer):
     """
     Main Task Serializer class
     """
     amount = SerializableAmountField(
         source='main.Bounty', required=False, write_only=True)
     total_bounty_payout = SerializableAmountField(read_only=True)
+    current_bounty_amount = SerializableAmountField(read_only=True)
     bounty = BountySerializer(read_only=True)
 
     # pylint: disable=too-few-public-methods
@@ -35,6 +38,7 @@ class KaznetTaskSerializer(TaskSerializer):
             'pending_submissions_count',
             'rejected_submissions_count',
             'total_bounty_payout',
+            'current_bounty_amount',
             'description',
             'client',
             'start',

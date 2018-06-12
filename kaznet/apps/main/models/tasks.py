@@ -2,7 +2,8 @@
 Module for the Task model(s)
 """
 from django.db import models
-from django.db.models import Sum, Value as V
+from django.db.models import Value as V
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
 
@@ -132,6 +133,16 @@ class Task(BaseTask):
         Latest bounty for Task
         """
         return self.get_bounty()
+
+    @property
+    def current_bounty_amount(self):
+        """
+        Get the current bounty amount
+        """
+        bounty = self.get_bounty()
+        if bounty is not None:
+            return bounty.amount
+        return None
 
     @property
     def total_bounty_payout(self):
