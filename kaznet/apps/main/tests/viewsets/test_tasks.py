@@ -33,9 +33,6 @@ class TestKaznetTaskViewSet(MainTestBase):
         """
         mocked_target_object = mommy.make('ona.XForm')
 
-        rule1 = mommy.make('main.SegmentRule')
-        rule2 = mommy.make('main.SegmentRule')
-
         user = create_admin_user()
 
         data = {
@@ -47,21 +44,13 @@ class TestKaznetTaskViewSet(MainTestBase):
             'target_id': mocked_target_object.id,
         }
 
-        data_with_segment_rules = data.copy()
-        data_with_segment_rules['segment_rules'] = [rule1.id, rule2.id]
-
         view = KaznetTaskViewSet.as_view({'post': 'create'})
-        request = self.factory.post('/tasks', data_with_segment_rules)
+        request = self.factory.post('/tasks', data)
         # Need authenticated user
         force_authenticate(request, user=user)
         response = view(request=request)
 
-        # we test that we do have our segment rules
-        self.assertEqual(set([rule1.id, rule2.id]),
-                         set(response.data['segment_rules']))
         self.assertEqual(response.status_code, 201, response.data)
-        # the order of segment_rules may have changed so a dict comparison
-        # may fail, we use `data` that does not include segment rules
         self.assertDictContainsSubset(data, response.data)
 
         # start and end were gotten from timing_rule
