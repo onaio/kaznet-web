@@ -40,7 +40,7 @@ class TestBountySerializer(TestCase):
         bounty = serializer_instance.save()
 
         # Serializer Changes the amount
-        data['amount'] = Money(5400, 'KES')
+        data['amount'] = '5400.00 KES'
 
         self.assertDictContainsSubset(data, serializer_instance.data)
         self.assertEqual(bounty.task, mocked_task)
