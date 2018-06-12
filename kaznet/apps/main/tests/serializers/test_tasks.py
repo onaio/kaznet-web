@@ -212,72 +212,68 @@ class TestKaznetTaskSerializer(MainTestBase):
             'estimated_time': 'P4DT1H15M20S',
             'amount': '5400'
         }
+        with self.settings(KAZNET_DEFAULT_CURRENCY='KES'):
+            serializer_instance = KaznetTaskSerializer(
+                data=initial_data)
+            self.assertTrue(serializer_instance.is_valid())
 
-        serializer_instance = KaznetTaskSerializer(
-            data=initial_data)
-        self.assertTrue(serializer_instance.is_valid())
+            # No Bounty In System Yet
+            # pylint: disable=no-member
+            self.assertEqual(Bounty.objects.all().count(), 0)
 
-        # No Bounty In System Yet
-        # pylint: disable=no-member
-        self.assertEqual(Bounty.objects.all().count(), 0)
+            task = serializer_instance.save()
 
-        task = serializer_instance.save()
+            # Bounty should have been created since amount is Present
+            self.assertEqual(Bounty.objects.all().count(), 1)
 
-        # Bounty should have been created since amount is Present
-        self.assertEqual(Bounty.objects.all().count(), 1)
+            bounty = Bounty.objects.get(task=task)
+            self.assertEqual(task.bounty, bounty)
+            self.assertEqual(task, bounty.task)
 
-        bounty = Bounty.objects.get(task=task)
-        self.assertEqual(task.bounty, bounty)
-        self.assertEqual(task, bounty.task)
+            updated_data = {
+                'name': 'Spaceship Price',
+                'description': 'To the moon and back',
+                'timing_rule': rrule,
+                'target_content_type': self.xform_type.id,
+                'target_id': mocked_target_object.id,
+                'amount': '10000000'
+            }
 
-        updated_data = {
-            "type": "Task",
-            'name': 'Spaceship Price',
-            'description': 'To the moon and back',
-            'timing_rule': rrule,
-            'target_content_type': self.xform_type.id,
-            'target_id': mocked_target_object.id,
-            'amount': '10000000'
-        }
+            # If amount changes in Task update create a new Bounty
+            serializer_instance = KaznetTaskSerializer(
+                instance=task, data=updated_data)
+            self.assertTrue(serializer_instance.is_valid())
 
-        # If amount changes in Task update create a new Bounty
-        serializer_instance = KaznetTaskSerializer(
-            instance=task, data=updated_data)
-        self.assertTrue(serializer_instance.is_valid())
+            task = serializer_instance.save()
 
-        task = serializer_instance.save()
+            # Retrieve Created Bounty
+            bounty2 = Bounty.objects.get(
+                amount=Money('10000000.00', 'KES'))
 
-        # Retrieve Created Bounty
-        bounty2 = Bounty.objects.get(amount=Money('10000000.00', 'KES'))
+            self.assertEqual(bounty2.task, task)
+            self.assertEqual(task.bounty, bounty2)
+            # Keeps track of previous bounties
+            self.assertEqual(bounty.task, task)
+            self.assertEqual(Bounty.objects.all().count(), 2)
 
-        self.assertEqual(bounty2.task, task)
-        self.assertEqual(task.bounty, bounty2)
-        self.assertEqual(
-            '10000000.00 KES',
-            serializer_instance.data['current_bounty_amount'])
-        # Keeps track of previous bounties
-        self.assertEqual(bounty.task, task)
-        self.assertEqual(Bounty.objects.all().count(), 2)
+            # Test doesn't create a new Bounty if Amount hasnt changed
 
-        # Test doesn't create a new Bounty if Amount hasnt changed
+            updated_data = {
+                'name': 'Space Price',
+                'description': 'To the Infinity',
+                'timing_rule': rrule,
+                'target_content_type': self.xform_type.id,
+                'target_id': mocked_target_object.id,
+                'amount': '10000000'
+            }
 
-        updated_data = {
-            "type": "Task",
-            'name': 'Space Price',
-            'description': 'To the Infinity',
-            'timing_rule': rrule,
-            'target_content_type': self.xform_type.id,
-            'target_id': mocked_target_object.id,
-            'amount': '10000000'
-        }
+            # If amount changes in Task update create a new Bounty
+            serializer_instance = KaznetTaskSerializer(
+                instance=task, data=updated_data)
+            self.assertTrue(serializer_instance.is_valid())
 
-        # If amount changes in Task update create a new Bounty
-        serializer_instance = KaznetTaskSerializer(
-            instance=task, data=updated_data)
-        self.assertTrue(serializer_instance.is_valid())
-
-        # No new Bounty Created
-        self.assertEqual(Bounty.objects.all().count(), 2)
+            # No new Bounty Created
+            self.assertEqual(Bounty.objects.all().count(), 2)
 
     def test_validate_timing_rule(self):
         """

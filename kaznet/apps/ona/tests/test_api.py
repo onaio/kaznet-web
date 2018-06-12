@@ -57,13 +57,15 @@ class TestApiMethods(TestCase):
                 "deleted_at": None
             }
         ]
-        mocked.get(
-            urljoin(ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
-            json=mocked_projects_data
-            )
-        response = get_projects()
 
-        self.assertEqual(response, mocked_projects_data)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            mocked.get(
+                urljoin(ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+                json=mocked_projects_data
+                )
+            response = get_projects()
+
+            self.assertEqual(response, mocked_projects_data)
 
     @requests_mock.Mocker()
     def test_get_instances(self, mocked):
@@ -80,19 +82,20 @@ class TestApiMethods(TestCase):
                 "_id": 1755
             }
         ]
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/data/53?start=0&limit=100'),
-            json=mocked_instances
-        )
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/data/53?start=100&limit=100'),
-            json=[]
-        )
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/data/53?start=0&limit=100'),
+                json=mocked_instances
+            )
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/data/53?start=100&limit=100'),
+                json=[]
+            )
 
-        response = get_instances(53)
-        for i in response:
-            mocked_data = i
-        self.assertEqual(mocked_data, mocked_instances)
+            response = get_instances(53)
+            for i in response:
+                mocked_data = i
+            self.assertEqual(mocked_data, mocked_instances)
 
     @requests_mock.Mocker()
     def test_get_project(self, mocked):
@@ -106,15 +109,15 @@ class TestApiMethods(TestCase):
             "date_modified": "2018-05-30T07:51:59.267839Z",
             "deleted_at": None
         }
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            url = urljoin(ONA_BASE_URL, 'api/v1/projects/18')
+            mocked.get(
+                url,
+                json=mocked_project_data
+                )
+            response = get_project(url)
 
-        url = urljoin(ONA_BASE_URL, 'api/v1/projects/18')
-        mocked.get(
-            url,
-            json=mocked_project_data
-            )
-        response = get_project(url)
-
-        self.assertTrue(response, mocked_project_data)
+            self.assertTrue(response, mocked_project_data)
 
     @requests_mock.Mocker()
     def test_get_xform(self, mocked):
@@ -129,14 +132,15 @@ class TestApiMethods(TestCase):
             "is_merged_dataset": False
         }
 
-        url = urljoin(ONA_BASE_URL, 'api/v1/forms/53')
-        mocked.get(
-            url,
-            json=mocked_xform_data
-            )
-        response = get_xform(53)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            url = urljoin(ONA_BASE_URL, 'api/v1/forms/53')
+            mocked.get(
+                url,
+                json=mocked_xform_data
+                )
+            response = get_xform(53)
 
-        self.assertTrue(response, mocked_xform_data)
+            self.assertTrue(response, mocked_xform_data)
 
     @requests_mock.Mocker()
     def test_get_instance(self, mocked):
@@ -152,13 +156,14 @@ class TestApiMethods(TestCase):
             "_id": 1755
         }
 
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53/142')
-        mocked.get(
-            url,
-            json=mocked_instance_data
-            )
-        response = get_instance(53, 142)
-        self.assertTrue(response, mocked_instance_data)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            url = urljoin(ONA_BASE_URL, 'api/v1/data/53/142')
+            mocked.get(
+                url,
+                json=mocked_instance_data
+                )
+            response = get_instance(53, 142)
+            self.assertTrue(response, mocked_instance_data)
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
@@ -273,53 +278,54 @@ class TestApiMethods(TestCase):
             "deleted_at": None
         }
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
-            json=mocked_project_data
-        )
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
+                json=mocked_project_data
+            )
 
-        self.assertEqual(XForm.objects.all().count(), 0)
-        self.assertEqual(Project.objects.all().count(), 0)
-        process_xform(mocked_form_data, 18)
+            self.assertEqual(XForm.objects.all().count(), 0)
+            self.assertEqual(Project.objects.all().count(), 0)
+            process_xform(mocked_form_data, 18)
 
-        self.assertEqual(XForm.objects.all().count(), 1)
-        self.assertEqual(Project.objects.all().count(), 1)
+            self.assertEqual(XForm.objects.all().count(), 1)
+            self.assertEqual(Project.objects.all().count(), 1)
 
-        # Doesnt create a project if present
+            # Doesnt create a project if present
 
-        mommy.make('ona.Project', ona_pk=49)
+            mommy.make('ona.Project', ona_pk=49)
 
-        mocked_form_data = {
-            "name": "Salaries",
-            "formid": 90,
-            "id_string": "aFEjJKzULJlQYsmQzKcpL9",
-            "is_merged_dataset": False,
-            "date_modified": "2018-02-15T07:51:59.267839Z"
-        }
+            mocked_form_data = {
+                "name": "Salaries",
+                "formid": 90,
+                "id_string": "aFEjJKzULJlQYsmQzKcpL9",
+                "is_merged_dataset": False,
+                "date_modified": "2018-02-15T07:51:59.267839Z"
+            }
 
-        self.assertEqual(XForm.objects.all().count(), 1)
-        self.assertEqual(Project.objects.all().count(), 2)
-        process_xform(mocked_form_data, 49)
+            self.assertEqual(XForm.objects.all().count(), 1)
+            self.assertEqual(Project.objects.all().count(), 2)
+            process_xform(mocked_form_data, 49)
 
-        self.assertEqual(XForm.objects.all().count(), 2)
-        self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(XForm.objects.all().count(), 2)
+            self.assertEqual(Project.objects.all().count(), 2)
 
-        # Doesn't Create an XForm if already Present
+            # Doesn't Create an XForm if already Present
 
-        mocked_form_data = {
-            "name": "Salaries",
-            "formid": 90,
-            "id_string": "aFEjJKzULJlQYsmQzKcpL9",
-            "is_merged_dataset": False,
-            "date_modified": "2018-02-15T07:51:59.267839Z",
-        }
+            mocked_form_data = {
+                "name": "Salaries",
+                "formid": 90,
+                "id_string": "aFEjJKzULJlQYsmQzKcpL9",
+                "is_merged_dataset": False,
+                "date_modified": "2018-02-15T07:51:59.267839Z",
+            }
 
-        self.assertEqual(XForm.objects.all().count(), 2)
-        self.assertEqual(Project.objects.all().count(), 2)
-        process_xform(mocked_form_data, 49)
+            self.assertEqual(XForm.objects.all().count(), 2)
+            self.assertEqual(Project.objects.all().count(), 2)
+            process_xform(mocked_form_data, 49)
 
-        self.assertEqual(XForm.objects.all().count(), 2)
-        self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(XForm.objects.all().count(), 2)
+            self.assertEqual(Project.objects.all().count(), 2)
 
     def test_process_xform_bad_data(self):
         """
@@ -396,109 +402,110 @@ class TestApiMethods(TestCase):
             "deleted_at": None
         }
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
-            json=mocked_project_data
-        )
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/projects/18'),
+                json=mocked_project_data
+            )
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/projects/20'),
-            json=mocked_project_data
-        )
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/projects/20'),
+                json=mocked_project_data
+            )
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/forms/53'),
-            json=mocked_form_data
-        )
-        self.assertEqual(Instance.objects.all().count(), 0)
-        self.assertEqual(XForm.objects.all().count(), 0)
-        self.assertEqual(Project.objects.all().count(), 0)
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/forms/53'),
+                json=mocked_form_data
+            )
+            self.assertEqual(Instance.objects.all().count(), 0)
+            self.assertEqual(XForm.objects.all().count(), 0)
+            self.assertEqual(Project.objects.all().count(), 0)
 
-        process_instance(mocked_instance_data)
+            process_instance(mocked_instance_data)
 
-        self.assertEqual(Instance.objects.all().count(), 1)
-        self.assertEqual(XForm.objects.all().count(), 1)
-        self.assertEqual(Project.objects.all().count(), 1)
+            self.assertEqual(Instance.objects.all().count(), 1)
+            self.assertEqual(XForm.objects.all().count(), 1)
+            self.assertEqual(Project.objects.all().count(), 1)
 
-        # Doesn't Create a Project if its already there
+            # Doesn't Create a Project if its already there
 
-        mommy.make('ona.Project', ona_pk=20)
+            mommy.make('ona.Project', ona_pk=20)
 
-        mocked_instance_data = {
-            "_xform_id_string": "aFEjJKzPLJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 52,
-            "_submitted_by": "sluggie",
-            "_id": 1785
-        }
+            mocked_instance_data = {
+                "_xform_id_string": "aFEjJKzPLJbQYsmQzKcpL9",
+                "_edited": True,
+                "_last_edited": "2018-05-30T07:51:59.187363Z",
+                "_xform_id": 52,
+                "_submitted_by": "sluggie",
+                "_id": 1785
+            }
 
-        mocked_form_data = {
-            "name": "Changed",
-            "formid": 52,
-            "id_string": "aFEjJKzPLJbQYsmQzKcpL9",
-            "is_merged_dataset": False,
-            "project": "https://stage-api.ona.io/api/v1/projects/20"
-        }
+            mocked_form_data = {
+                "name": "Changed",
+                "formid": 52,
+                "id_string": "aFEjJKzPLJbQYsmQzKcpL9",
+                "is_merged_dataset": False,
+                "project": "https://stage-api.ona.io/api/v1/projects/20"
+            }
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/forms/52'),
-            json=mocked_form_data
-        )
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/forms/52'),
+                json=mocked_form_data
+            )
 
-        self.assertEqual(Instance.objects.all().count(), 1)
-        self.assertEqual(XForm.objects.all().count(), 1)
-        self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(Instance.objects.all().count(), 1)
+            self.assertEqual(XForm.objects.all().count(), 1)
+            self.assertEqual(Project.objects.all().count(), 2)
 
-        process_instance(mocked_instance_data)
+            process_instance(mocked_instance_data)
 
-        self.assertEqual(Instance.objects.all().count(), 2)
-        self.assertEqual(XForm.objects.all().count(), 2)
-        self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(Instance.objects.all().count(), 2)
+            self.assertEqual(XForm.objects.all().count(), 2)
+            self.assertEqual(Project.objects.all().count(), 2)
 
-        # Doesn't create an XForm or Project if both are present
+            # Doesn't create an XForm or Project if both are present
 
-        mocked_instance_data = {
-            "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 25,
-            "_submitted_by": "sluggie",
-            "_id": 1759
-        }
+            mocked_instance_data = {
+                "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
+                "_edited": True,
+                "_last_edited": "2018-05-30T07:51:59.187363Z",
+                "_xform_id": 25,
+                "_submitted_by": "sluggie",
+                "_id": 1759
+            }
 
-        mommy.make('ona.Project', ona_pk=49)
-        mommy.make('ona.XForm', ona_pk=25, project_id=49)
+            mommy.make('ona.Project', ona_pk=49)
+            mommy.make('ona.XForm', ona_pk=25, project_id=49)
 
-        self.assertEqual(Instance.objects.all().count(), 2)
-        self.assertEqual(XForm.objects.all().count(), 3)
-        self.assertEqual(Project.objects.all().count(), 3)
+            self.assertEqual(Instance.objects.all().count(), 2)
+            self.assertEqual(XForm.objects.all().count(), 3)
+            self.assertEqual(Project.objects.all().count(), 3)
 
-        process_instance(mocked_instance_data)
+            process_instance(mocked_instance_data)
 
-        self.assertEqual(Instance.objects.all().count(), 3)
-        self.assertEqual(XForm.objects.all().count(), 3)
-        self.assertEqual(Project.objects.all().count(), 3)
+            self.assertEqual(Instance.objects.all().count(), 3)
+            self.assertEqual(XForm.objects.all().count(), 3)
+            self.assertEqual(Project.objects.all().count(), 3)
 
-        # Doesn't create an Instance if its Already Present
-        mocked_instance_data = {
-            "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-06-01T07:51:59.187363Z",
-            "_xform_id": 25,
-            "_submitted_by": "sluggie",
-            "_id": 1759
-        }
+            # Doesn't create an Instance if its Already Present
+            mocked_instance_data = {
+                "_xform_id_string": "aFEjJKzSLJbQYsmQzKcpL9",
+                "_edited": True,
+                "_last_edited": "2018-06-01T07:51:59.187363Z",
+                "_xform_id": 25,
+                "_submitted_by": "sluggie",
+                "_id": 1759
+            }
 
-        self.assertEqual(Instance.objects.all().count(), 3)
-        self.assertEqual(XForm.objects.all().count(), 3)
-        self.assertEqual(Project.objects.all().count(), 3)
+            self.assertEqual(Instance.objects.all().count(), 3)
+            self.assertEqual(XForm.objects.all().count(), 3)
+            self.assertEqual(Project.objects.all().count(), 3)
 
-        process_instance(mocked_instance_data)
+            process_instance(mocked_instance_data)
 
-        self.assertEqual(Instance.objects.all().count(), 3)
-        self.assertEqual(XForm.objects.all().count(), 3)
-        self.assertEqual(Project.objects.all().count(), 3)
+            self.assertEqual(Instance.objects.all().count(), 3)
+            self.assertEqual(XForm.objects.all().count(), 3)
+            self.assertEqual(Project.objects.all().count(), 3)
 
     def test_process_instance_bad_data(self):
         """
@@ -532,35 +539,37 @@ class TestApiMethods(TestCase):
                 "_id": 1755
             }
         ]
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
-        mocked.get(
-            url,
-            json=mocked_response
-            )
-        response = request(url)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
+            mocked.get(
+                url,
+                json=mocked_response
+                )
+            response = request(url)
 
-        self.assertEqual(mocked_response, response)
+            self.assertEqual(mocked_response, response)
 
     @requests_mock.Mocker()
     def test_request_bad_data(self, mocked):
         """
         Test that request returns None for Incorrect Data
         """
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
-        mocked.get(
-            url,
-            text='Oh! Hello There!'
-            )
-        response = request(url)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
+            mocked.get(
+                url,
+                text='Oh! Hello There!'
+                )
+            response = request(url)
 
-        self.assertEqual(response, None)
+            self.assertEqual(response, None)
 
-        # Request returns None for requests that aren't GET or POST
+            # Request returns None for requests that aren't GET or POST
 
-        url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
-        response = request(url, method='PUT')
+            url = urljoin(ONA_BASE_URL, 'api/v1/data/53')
+            response = request(url, method='PUT')
 
-        self.assertEqual(response, None)
+            self.assertEqual(response, None)
 
     def test_request_session(self):
         """
@@ -645,34 +654,35 @@ class TestApiMethods(TestCase):
             "deleted_at": None
         }
 
-        mocked.get(
-            urljoin(ONA_BASE_URL, '/api/v1/projects/3'),
-            json=mocked_project_data
-        )
-        self.assertEqual(Project.objects.all().count(), 1)
-        project = get_project_obj(ona_project_id=3)
+        with self.settings(ONA_BASE_URL='https://stage-api.ona.io'):
+            mocked.get(
+                urljoin(ONA_BASE_URL, '/api/v1/projects/3'),
+                json=mocked_project_data
+            )
+            self.assertEqual(Project.objects.all().count(), 1)
+            project = get_project_obj(ona_project_id=3)
 
-        self.assertEqual(Project.objects.all().count(), 2)
-        self.assertEqual(project.name, 'Solo')
+            self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(project.name, 'Solo')
 
-        # Returns correct project when given a url
+            # Returns correct project when given a url
 
-        mocked_project_data = {
-            "projectid": 3,
-            "name": "Solo",
-            "date_modified": "2018-05-30T07:51:59.267839Z",
-            "deleted_at": None
-        }
-        url = urljoin(ONA_BASE_URL, '/api/v1/projects/3')
-        mocked.get(
-            url,
-            json=mocked_project_data
-        )
-        self.assertEqual(Project.objects.all().count(), 2)
-        mocked_project = get_project_obj(project_url=url)
+            mocked_project_data = {
+                "projectid": 3,
+                "name": "Solo",
+                "date_modified": "2018-05-30T07:51:59.267839Z",
+                "deleted_at": None
+            }
+            url = urljoin(ONA_BASE_URL, '/api/v1/projects/3')
+            mocked.get(
+                url,
+                json=mocked_project_data
+            )
+            self.assertEqual(Project.objects.all().count(), 2)
+            mocked_project = get_project_obj(project_url=url)
 
-        self.assertEqual(Project.objects.all().count(), 2)
-        self.assertEqual(project, mocked_project)
+            self.assertEqual(Project.objects.all().count(), 2)
+            self.assertEqual(project, mocked_project)
 
     def test_get_xfrom_obj(self):
         """
