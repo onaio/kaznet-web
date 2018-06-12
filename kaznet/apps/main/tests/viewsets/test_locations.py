@@ -11,7 +11,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework_gis.fields import GeoJsonDict
 from tasking.common_tags import (GEODETAILS_ONLY, GEOPOINT_MISSING,
                                  RADIUS_MISSING)
-from tests.base import TestBase
+from kaznet.apps.main.tests.base import MainTestBase
 
 from kaznet.apps.main.models import Location
 from kaznet.apps.main.viewsets import KaznetLocationViewSet
@@ -20,7 +20,7 @@ from kaznet.apps.users.tests.base import create_admin_user
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
-class TestKaznetLocationViewSet(TestBase):
+class TestKaznetLocationViewSet(MainTestBase):
     """
     Test LocationViewSet class.
     """
