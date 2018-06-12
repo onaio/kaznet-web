@@ -2,14 +2,14 @@
 Main Submission Serializers
 """
 from rest_framework_json_api import serializers
-from tasking.serializers import SubmissionSerializer
+from tasking.common_tags import CANT_EDIT_TASK
 
 from kaznet.apps.main.models import Submission
+from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 
 
 # pylint: disable=too-many-ancestors
-class KaznetSubmissionSerializer(
-        serializers.ModelSerializer, SubmissionSerializer):
+class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     """
     Main Submission serializer class
     """
@@ -37,3 +37,17 @@ class KaznetSubmissionSerializer(
         ]
 
         model = Submission
+
+    def validate_task(self, value):
+        """
+        Validate Task
+        """
+        if self.instance is not None:
+            if self.instance.task == value:
+                return value
+            else:
+                raise serializers.ValidationError(
+                    CANT_EDIT_TASK
+                )
+        else:
+            return value
