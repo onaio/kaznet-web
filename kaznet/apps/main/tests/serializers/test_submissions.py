@@ -32,10 +32,19 @@ class TestKaznetSubmissionSerializer(MainTestBase):
         mocked_user = mommy.make('auth.User', username='Bob')
 
         data = {
-            'task': mocked_task.id,
-            'location': mocked_location.id,
+            'task': {
+                "type": "Task",
+                "id": mocked_task.id
+            },
+            'location': {
+                "type": "Location",
+                "id": mocked_location.id
+            },
             'submission_time': now,
-            'user': mocked_user.id,
+            'user': {
+                "type": "User",
+                "id": mocked_user.id
+            },
             'comments': 'Approved',
             'status': Submission.REJECTED,
             'valid': True,
@@ -51,7 +60,18 @@ class TestKaznetSubmissionSerializer(MainTestBase):
         # the subsmission_time field is going to be converted to isformat
         data['submission_time'] = now.astimezone(
             pytz.timezone('Africa/Nairobi')).isoformat()
-        self.assertDictContainsSubset(data, serializer_instance.data)
+
+        # we get OrderedDict(s) so we convert it to a dict for comparison
+        # also, the task id gets back as a string
+        data['task']['id'] = str(data['task']['id'])
+        data['user']['id'] = str(data['user']['id'])
+        data['location']['id'] = str(data['location']['id'])
+        instance_dict = serializer_instance.data.copy()
+        instance_dict['task'] = dict(instance_dict['task'])
+        instance_dict['location'] = dict(instance_dict['location'])
+        instance_dict['user'] = dict(instance_dict['user'])
+
+        self.assertDictContainsSubset(data, instance_dict)
 
         self.assertEqual(mocked_task, submission.task)
         self.assertEqual(mocked_location, submission.location)
