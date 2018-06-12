@@ -12,6 +12,7 @@ from tasking.serializers.location import (GeopointField,
 from kaznet.apps.main.models import Location
 
 
+# pylint: disable=too-many-ancestors
 class KaznetLocationSerializer(serializers.ModelSerializer):
     """
     KaznetLocationSerializer serializer class

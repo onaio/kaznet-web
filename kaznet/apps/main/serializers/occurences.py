@@ -6,6 +6,7 @@ from rest_framework_json_api import serializers
 from kaznet.apps.main.models import TaskOccurrence
 
 
+# pylint: disable=too-many-ancestors
 class KaznetTaskOccurrenceSerializer(serializers.ModelSerializer):
     """
     TaskOccurrence serializer class

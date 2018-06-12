@@ -62,7 +62,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
         model = Task
 
-    def get_submission_count(self, obj):
+    def get_submission_count(self, obj):  # pylint: disable=no-self-use
         """
         Add a custom method to get submission count
         """
