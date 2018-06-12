@@ -6,6 +6,7 @@ from tasking.common_tags import CANT_EDIT_TASK
 
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
+from kaznet.apps.main.serializers.bounty import SerializableAmountField
 
 
 # pylint: disable=too-many-ancestors
@@ -13,6 +14,7 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     """
     Main Submission serializer class
     """
+    amount = SerializableAmountField(read_only=True)
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
@@ -34,6 +36,7 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
             'comments',
             'target_content_type',
             'target_id',
+            'amount'
         ]
 
         model = Submission

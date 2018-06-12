@@ -69,3 +69,12 @@ class Submission(BaseSubmission):
         Approved class property for submission
         """
         return self.get_approved(self.status)
+
+    @property
+    def amount(self):
+        """
+        Get the bounty amount
+        """
+        if self.bounty:
+            return self.bounty.amount  # pylint: disable=no-member
+        return None
