@@ -7,6 +7,8 @@ from rest_framework_json_api import serializers
 
 from kaznet.apps.users.models import UserProfile
 
+from kaznet.apps.main.serializers.bounty import SerializableAmountField
+
 
 # pylint: disable=too-many-ancestors
 class UserSerializer(serializers.ModelSerializer):
@@ -30,6 +32,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
     submission_count = serializers.SerializerMethodField()
+    amount_earned = SerializableAmountField(read_only=True)
 
     class Meta(object):  # pylint:  disable=too-few-public-methods
         """
