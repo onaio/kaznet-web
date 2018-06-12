@@ -32,6 +32,9 @@ CSRF_TRUSTED_ORIGINS = CORS_ORIGIN_WHITELIST
 
 
 def show_toolbar(request):
+    """
+    Force show toolbar
+    """
     return True
 
 
