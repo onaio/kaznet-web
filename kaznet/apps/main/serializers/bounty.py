@@ -19,7 +19,7 @@ class SerializableAmountField(serializers.Field):
         """
         Custom to representation for Serializable amount field
         """
-        return value
+        return f'{value.amount} {value.currency}'
 
     def to_internal_value(self, data):
         """
