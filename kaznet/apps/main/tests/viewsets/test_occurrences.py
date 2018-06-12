@@ -29,7 +29,10 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         task = mommy.make('main.Task', name='d12')
 
         data = {
-            'task': task.id,
+            'task': {
+                'type': 'Task',
+                'id': task.id
+            },
             'date': '2018-05-12',
             'start_time': '07:00',
             'end_time': '19:30',
