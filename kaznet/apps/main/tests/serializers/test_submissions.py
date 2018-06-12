@@ -98,6 +98,7 @@ class TestKaznetSubmissionSerializer(MainTestBase):
             'valid',
             'approved',
             'bounty',
+            'amount',
             'target_content_type',
             'target_id',
             'id',
