@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
+    'allauth_onadata',
     # custom apps
     'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
@@ -71,7 +73,7 @@ ROOT_URLCONF = 'kaznet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,15 +150,19 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Onadata
+ONA_BASE_URL = 'https://stage-api.ona.io'
+ONA_USERNAME = 'kaznettest'
+ONA_PASSWORD = 'Password was here'
+
 # Allauth
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_ADAPTER = "kaznet.apps.users.adapter.AccountAdapter"
 ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_UNIQUE_EMAIL = True
-ONA_BASE_URL = 'https://stage-api.ona.io'
-ONA_USERNAME = 'kaznettest'
-ONA_PASSWORD = 'Password was here'
+ALLAUTH_ONA_SCOPE = ['read', 'write']
+ALLAUTH_ONA_BASE_URL = ONA_BASE_URL
 
 # CELERY
 CELERY_BROKER_URL = 'redis://localhost:6379/1'
