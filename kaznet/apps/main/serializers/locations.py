@@ -1,12 +1,14 @@
 """
 Main Location serializer module
 """
+from rest_framework_json_api import serializers
 from tasking.serializers import LocationSerializer
 
 from kaznet.apps.main.models import Location
 
 
-class KaznetLocationSerializer(LocationSerializer):
+class KaznetLocationSerializer(
+        serializers.ModelSerializer, LocationSerializer):
     """
     Main Location Serializer
     """

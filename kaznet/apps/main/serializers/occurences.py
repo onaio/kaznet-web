@@ -1,12 +1,14 @@
 """
 Main Occurrences Serializer module
 """
+from rest_framework_json_api import serializers
 from tasking.serializers import TaskOccurrenceSerializer
 
 from kaznet.apps.main.models import TaskOccurrence
 
 
-class KaznetTaskOccurrenceSerializer(TaskOccurrenceSerializer):
+class KaznetTaskOccurrenceSerializer(
+        serializers.ModelSerializer, TaskOccurrenceSerializer):
     """
     Main Occurence Serializer
     """

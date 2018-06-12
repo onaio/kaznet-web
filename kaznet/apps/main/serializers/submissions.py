@@ -1,13 +1,15 @@
 """
 Main Submission Serializers
 """
+from rest_framework_json_api import serializers
 from tasking.serializers import SubmissionSerializer
 
 from kaznet.apps.main.models import Submission
 
 
 # pylint: disable=too-many-ancestors
-class KaznetSubmissionSerializer(SubmissionSerializer):
+class KaznetSubmissionSerializer(
+        serializers.ModelSerializer, SubmissionSerializer):
     """
     Main Submission serializer class
     """
