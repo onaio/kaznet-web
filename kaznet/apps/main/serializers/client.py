@@ -2,7 +2,7 @@
 Client Serializer Module
 """
 
-from rest_framework import serializers
+from rest_framework_json_api import serializers
 
 from kaznet.apps.main.models import Client
 

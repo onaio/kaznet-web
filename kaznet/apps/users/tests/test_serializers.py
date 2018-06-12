@@ -176,10 +176,10 @@ class TestUserProfileSerializer(TestCase):
         self.assertFalse(serializer_instance.is_valid())
         self.assertEqual(
             str(serializer_instance.errors['national_id'][0]),
-            'user profile with this National ID Number already exists.')
+            'Profile with this National ID Number already exists.')
         self.assertEqual(
             str(serializer_instance.errors['ona_pk'][0]),
-            'user profile with this Ona Primary key already exists.')
+            'Profile with this Ona Primary key already exists.')
         self.assertEqual(
             str(serializer_instance.errors['ona_username'][0]),
-            'user profile with this Ona Username already exists.')
+            'Profile with this Ona Username already exists.')

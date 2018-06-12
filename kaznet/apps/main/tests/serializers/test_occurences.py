@@ -21,7 +21,10 @@ class TestTaskOccurrenceSerializer(MainTestBase):
         task = mommy.make('main.Task')
 
         data = {
-            'task': task.id,
+            'task': {
+                "type": "Task",
+                "id": task.id
+            },
             'date': '2018-05-24',
             'start_time': '07:00:00',
             'end_time': '19:00:00'
@@ -31,9 +34,15 @@ class TestTaskOccurrenceSerializer(MainTestBase):
         self.assertTrue(serializer_instance.is_valid())
         occurrence = serializer_instance.save()
 
-        self.assertDictContainsSubset(data, serializer_instance.data)
+        # we get back an OrderedDict so we convert it to a dict for comparison
+        # also, the task id gets back as a string
+        data['task']['id'] = str(data['task']['id'])
+        instance_dict = serializer_instance.data.copy()
+        instance_dict['task'] = dict(instance_dict['task'])
+
+        self.assertDictContainsSubset(data, instance_dict)
         self.assertEqual(
-            occurrence.task.id, serializer_instance.data['task'])
+            str(occurrence.task.id), serializer_instance.data['task']['id'])
         self.assertEqual(
             '24th May 2018, 7 a.m. to 7 p.m.',
             serializer_instance.data['time_string'])

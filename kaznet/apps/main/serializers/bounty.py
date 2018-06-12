@@ -5,7 +5,7 @@ Bounty Serializer Module
 from django.conf import settings
 
 from django_prices.models import Money
-from rest_framework import serializers
+from rest_framework_json_api import serializers
 
 from kaznet.apps.main.models import Bounty
 
@@ -28,6 +28,7 @@ class SerializableAmountField(serializers.Field):
         return Money(data, settings.KAZNET_DEFAULT_CURRENCY)
 
 
+# pylint: disable=too-many-ancestors
 class BountySerializer(serializers.ModelSerializer):
     """
     Client Serializer class

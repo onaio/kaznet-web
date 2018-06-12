@@ -17,6 +17,15 @@ Kaznet is primarily a tasking application built on top of [Ona](http://ona.io).
 * [ILRI Kaznet Project](https://github.com/onaio/kaznet-web/blob/master/docs/project.md)
 * [Testing](https://github.com/onaio/kaznet-web#testing)
 
+## Contributing
+
+Contributions are welcome.
+
+1. Clone the repo
+2. ```pipenv install --dev```
+3. ```cp kaznet.settings.local_settings.example.py kaznet.settings.local_settings.py```
+4. Modify `kaznet.settings.local_settings.py` to match your local environment
+
 ## Testing
 
 ```sh

@@ -33,7 +33,7 @@ class TestXFormViewSet(TestCase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(4, len(response.data))
+        self.assertEqual(4, len(response.data['results']))
 
     def test_retrieve_xfrom(self):
         """
@@ -59,7 +59,7 @@ class TestXFormViewSet(TestCase):
         make requests
         """
         # Requires Authentication to List
-        mommy.make('ona.XForm', _quantity=4)
+        mommy.make('ona.XForm', ona_pk=7)
         view = XFormViewSet.as_view({'get': 'list'})
 
         request = self.factory.get('/xforms')
@@ -68,12 +68,12 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            response.data['detail']
+            response.data[0]['detail']
         )
 
         # Requires Authentication to Retrieve
         form = mommy.make('ona.XForm', title="Form A")
-        mommy.make('ona.XForm', _quantity=4)
+        mommy.make('ona.XForm', ona_pk=77)
         view = XFormViewSet.as_view({'get': 'retrieve'})
 
         request = self.factory.get('/xforms/{id}'.format(id=form.id))
@@ -82,7 +82,7 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            response.data['detail']
+            response.data[0]['detail']
         )
 
     def test_permission_required(self):
@@ -91,7 +91,7 @@ class TestXFormViewSet(TestCase):
         """
         # Requires permission to List
         user = mommy.make('auth.User')
-        mommy.make('ona.XForm', _quantity=4)
+        mommy.make('ona.XForm', ona_pk=777)
         view = XFormViewSet.as_view({'get': 'list'})
 
         request = self.factory.get('/xforms')
@@ -101,12 +101,12 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            response.data['detail']
+            response.data[0]['detail']
         )
 
         # Requires permission to Retrieve
         form = mommy.make('ona.XForm', title="Form A")
-        mommy.make('ona.XForm', _quantity=4)
+        mommy.make('ona.XForm', ona_pk=7999)
         view = XFormViewSet.as_view({'get': 'retrieve'})
 
         request = self.factory.get('/xforms/{id}'.format(id=form.id))
@@ -116,5 +116,5 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            response.data['detail']
+            response.data[0]['detail']
         )

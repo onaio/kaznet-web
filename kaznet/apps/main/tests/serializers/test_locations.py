@@ -63,7 +63,10 @@ class TestLocationSerializer(TestCase):
         mocked_location_parent = mommy.make('main.Location', name='Nairobi')
         data = {
             'name': 'Nairobi',
-            'parent': mocked_location_parent.id
+            'parent': {
+                "type": "Location",
+                "id": mocked_location_parent.id
+            }
         }
 
         serializer_instance = KaznetLocationSerializer(data=data)

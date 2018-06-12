@@ -36,7 +36,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
 
     def test_retrieve_submissions(self):
         """
@@ -79,25 +79,27 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
-        self.assertEqual(response.data[0]['user'], dave.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
+        self.assertEqual(
+            int(response.data['results'][0]['user']['id']), dave.id)
 
         # test dave can filter for his own submissions
         request = self.factory.get('/submissions', {'user': dave.id})
         force_authenticate(request, user=dave)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
-        self.assertEqual(response.data[0]['user'], dave.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
+        self.assertEqual(
+            int(response.data['results'][0]['user']['id']), dave.id)
 
         # test random users can't filter for daves submissions
         request = self.factory.get('/submissions', {'user': dave.id})
         force_authenticate(request, user=random)
         response = view(request=request)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(str(response.data['detail']),
+        self.assertEqual(str(response.data[0]['detail']),
                          'You shall not pass.')
 
     def test_status_filter(self):
@@ -125,8 +127,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
 
         # test that we get pending submissions
         request = self.factory.get(
@@ -134,7 +136,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
 
     def test_valid_filter(self):
         """
@@ -159,15 +161,15 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
 
         # test that we get not valid submissions
         request = self.factory.get('/submissions', {'valid': 0})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
 
     def test_location_filter(self):
         """
@@ -193,8 +195,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
 
     def test_task_filter(self):
         """
@@ -220,8 +222,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], submission.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
 
     def test_submission_time_sorting(self):
         """
@@ -243,23 +245,23 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
         # we have the expected number of records
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         # the first record is what we expect
         # pylint: disable=no-member
         self.assertEqual(
-            response.data[0]['id'],
+            response.data['results'][0]['id'],
             Submission.objects.order_by('-submission_time').first().id)
         self.assertEqual(
-            response.data[0]['submission_time'],
+            response.data['results'][0]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').first().submission_time.astimezone(
                     pytz.timezone('Africa/Nairobi')).isoformat())
         # the last record is what we epxect
         self.assertEqual(
-            response.data[-1]['id'],
+            response.data['results'][-1]['id'],
             Submission.objects.order_by('-submission_time').last().id)
         self.assertEqual(
-            response.data[-1]['submission_time'],
+            response.data['results'][-1]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').last().submission_time.astimezone(
                     pytz.timezone('Africa/Nairobi')).isoformat())
@@ -287,12 +289,12 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 8)
+        self.assertEqual(len(response.data['results']), 8)
         self.assertEqual(
-            response.data[0]['id'],
+            response.data['results'][0]['id'],
             Submission.objects.order_by('valid').first().id)
-        self.assertEqual(len(response.data), 8)
-        self.assertEqual(response.data[-1]['id'], submission.id)
+        self.assertEqual(len(response.data['results']), 8)
+        self.assertEqual(response.data['results'][-1]['id'], submission.id)
 
     def test_bounty_amount_sorting(self):
         """
@@ -321,11 +323,11 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 9)
+        self.assertEqual(len(response.data['results']), 9)
         self.assertEqual(
-            response.data[0]['id'],
+            response.data['results'][0]['id'],
             submission.id)
-        self.assertEqual(response.data[-1]['id'], submission1.id)
+        self.assertEqual(response.data['results'][-1]['id'], submission1.id)
 
     def test_authentication_required(self):
         """
@@ -341,7 +343,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response2.data['detail']))
+            str(response2.data[0]['detail']))
 
         # test that you need authentication for listing submissions
         view3 = KaznetSubmissionsViewSet.as_view({'get': 'list'})
@@ -350,7 +352,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            str(response3.data['detail']))
+            str(response3.data[0]['detail']))
 
     def test_permissions_required(self):
         """
@@ -368,7 +370,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
 
         response = view(request=request, pk=submission.id)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(str(response.data['detail']),
+        self.assertEqual(str(response.data[0]['detail']),
                          'You shall not pass.')
 
         # Can't list all submissions
@@ -378,7 +380,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(str(response.data['detail']),
+        self.assertEqual(str(response.data[0]['detail']),
                          'You shall not pass.')
 
         # User can retrieve their own submission
@@ -394,4 +396,4 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         response = view(request=request, pk=submission.id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['id'], submission.id)
-        self.assertEqual(response.data['user'], user.id)
+        self.assertEqual(int(response.data['user']['id']), user.id)

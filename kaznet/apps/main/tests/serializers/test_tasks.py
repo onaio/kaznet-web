@@ -30,6 +30,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         mocked_target_object = mommy.make('ona.XForm')
 
         bad_target_id = OrderedDict(
+            type="Task",
             name='Cow price',
             description='Some description',
             start=timezone.now(),
@@ -42,6 +43,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertFalse(KaznetTaskSerializer(data=bad_target_id).is_valid())
 
         bad_content_type = OrderedDict(
+            type="Task",
             name='Cow price',
             description='Some description',
             start=timezone.now(),
@@ -66,6 +68,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         rrule = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'
 
         data = {
+            "type": "Task",
             'name': 'Cow price',
             'description': 'Some description',
             'total_submission_target': 10,
@@ -76,10 +79,21 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
 
         data_with_segment_rules = data.copy()
-        data_with_segment_rules['segment_rules'] = [rule1.id, rule2.id]
+        segment_rules = [
+            {
+                "type": "SegmentRule",
+                "id": rule1.id
+            },
+            {
+                "type": "SegmentRule",
+                "id": rule2.id
+            }
+        ]
+        data_with_segment_rules['segment_rules'] = segment_rules
 
         serializer_instance = KaznetTaskSerializer(
             data=data_with_segment_rules)
+
         self.assertTrue(serializer_instance.is_valid())
 
         task = serializer_instance.save()
@@ -92,13 +106,15 @@ class TestKaznetTaskSerializer(MainTestBase):
         # Changes it to such
         data['estimated_time'] = '4 01:15:20'
 
+        # 'type' is not returns
+        data.pop('type')
+
         # the order of segment_rules may have changed so a dict comparison
         # may fail, we use `data` that does not include segment rules
         self.assertDictContainsSubset(data, serializer_instance.data)
 
         # we test that we do have our segment rules
-        self.assertEqual(set([rule1.id, rule2.id]),
-                         set(serializer_instance.data['segment_rules']))
+        self.assertEqual(2, len(serializer_instance.data['segment_rules']))
 
         # we test that submissions are equal to 0
         self.assertEqual(serializer_instance.data['submission_count'], 0)
@@ -119,9 +135,9 @@ class TestKaznetTaskSerializer(MainTestBase):
             serializer_instance.data['approved_submissions_count'], 0)
         self.assertEqual(task.approved_submissions_count, 0)
 
-        # we test that total_bounty_payout is None
+        # we test that total_bounty_payout is 0
         self.assertEqual(
-            serializer_instance.data['total_bounty_payout'], Money(0, 'KES'))
+            serializer_instance.data['total_bounty_payout'], '0 KES')
         self.assertEqual(task.total_bounty_payout, Money(0, 'KES'))
 
         # Add a submission to task and assert it changes.
@@ -157,6 +173,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'pending_submissions_count',
             'rejected_submissions_count',
             'total_bounty_payout',
+            'current_bounty_amount',
             'bounty',
             'start',
             'client',
@@ -185,6 +202,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         rrule = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'
 
         initial_data = {
+            "type": "Task",
             'name': 'Cow price',
             'description': 'Some description',
             'total_submission_target': 10,
@@ -213,6 +231,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(task, bounty.task)
 
         updated_data = {
+            "type": "Task",
             'name': 'Spaceship Price',
             'description': 'To the moon and back',
             'timing_rule': rrule,
@@ -233,6 +252,9 @@ class TestKaznetTaskSerializer(MainTestBase):
 
         self.assertEqual(bounty2.task, task)
         self.assertEqual(task.bounty, bounty2)
+        self.assertEqual(
+            '10000000.00 KES',
+            serializer_instance.data['current_bounty_amount'])
         # Keeps track of previous bounties
         self.assertEqual(bounty.task, task)
         self.assertEqual(Bounty.objects.all().count(), 2)
@@ -240,6 +262,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         # Test doesn't create a new Bounty if Amount hasnt changed
 
         updated_data = {
+            "type": "Task",
             'name': 'Space Price',
             'description': 'To the Infinity',
             'timing_rule': rrule,
@@ -263,6 +286,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         mocked_target_object = mommy.make('ona.XForm')
 
         data = {
+            "type": "Task",
             'name': 'Cow price',
             'description': 'Some description',
             'start': timezone.now(),
@@ -285,6 +309,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         now = timezone.now()
 
         data = {
+            "type": "Task",
             'name': 'Cow price',
             'description': 'Some description',
             'start': now,
@@ -295,7 +320,12 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
 
         data_with_location = data.copy()
-        data_with_location['locations'] = [location.id]
+        data_with_location['locations'] = [
+            {
+                "type": "Location",
+                "id": location.id
+            }
+        ]
 
         serializer_instance = KaznetTaskSerializer(data=data_with_location)
 
@@ -314,6 +344,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         now = timezone.now()
 
         data = {
+            "type": "Task",
             'name': 'Milk Production',
             'description': 'Some description',
             'start': now,
@@ -321,7 +352,10 @@ class TestKaznetTaskSerializer(MainTestBase):
             'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
             'target_content_type': self.xform_type.id,
             'target_id': mocked_target_object.id,
-            'parent': mocked_parent_task.id
+            'parent':  {
+                "type": "Task",
+                "id": mocked_parent_task.id
+            }
         }
 
         serializer_instance = KaznetTaskSerializer(data=data)
@@ -341,6 +375,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         now = timezone.now()
 
         data = {
+            "type": "Task",
             'name': 'Milk Production',
             'description': 'Some description',
             'start': now,
@@ -348,7 +383,10 @@ class TestKaznetTaskSerializer(MainTestBase):
             'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
             'target_content_type': self.xform_type.id,
             'target_id': mocked_target_object.id,
-            'client': mocked_client.id
+            'client': {
+                "type": "Client",
+                "id": mocked_client.id
+            }
         }
 
         serializer_instance = KaznetTaskSerializer(data=data)

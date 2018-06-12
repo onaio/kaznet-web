@@ -98,9 +98,8 @@ class TestKaznetLocationViewSet(MainTestBase):
         response = view(request=request)
 
         self.assertEqual(response.status_code, 400)
-        self.assertIn('radius', response.data.keys())
         self.assertEqual(RADIUS_MISSING,
-                         six.text_type(response.data['radius'][0]))
+                         six.text_type(response.data[0]['detail']))
 
         data_missing_geopoint = {
             'name': 'Montreal',
@@ -114,9 +113,8 @@ class TestKaznetLocationViewSet(MainTestBase):
         response1 = view1(request=request1)
 
         self.assertEqual(response1.status_code, 400)
-        self.assertIn('geopoint', response1.data.keys())
         self.assertEqual(GEOPOINT_MISSING,
-                         six.text_type(response1.data['geopoint'][0]))
+                         six.text_type(response1.data[0]['detail']))
 
         path = os.path.join(
             BASE_DIR, 'fixtures', 'test_shapefile.zip')
@@ -136,9 +134,8 @@ class TestKaznetLocationViewSet(MainTestBase):
             response2 = view2(request=request2)
 
             self.assertEqual(response2.status_code, 400)
-            self.assertIn('shapefile', response2.data.keys())
             self.assertEqual(GEODETAILS_ONLY,
-                             six.text_type(response2.data['shapefile'][0]))
+                             six.text_type(response2.data[0]['detail']))
 
     def test_delete_location(self):
         """
@@ -187,7 +184,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        resp = response.data.pop()
+        resp = response.data['results'].pop()
         self.assertDictEqual(resp, location_data)
 
     def test_update_location(self):
@@ -231,7 +228,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(
             Location.objects.filter(parent=location1).count(), 0)
 
@@ -240,7 +237,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(
             Location.objects.filter(parent=location2).count(), 7)
 
@@ -252,7 +249,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             Location.objects.filter(parent=location1).count(), 1)
 
@@ -273,7 +270,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data['results']), 0)
         self.assertEqual(
             Location.objects.filter(country='KE').count(), 0)
 
@@ -282,7 +279,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 7)
+        self.assertEqual(len(response.data['results']), 7)
         self.assertEqual(
             Location.objects.filter(country='US').count(), 7)
 
@@ -293,7 +290,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             Location.objects.filter(country='KE').count(), 1)
 
@@ -310,7 +307,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             Location.objects.filter(name='Eldorado').count(), 1)
 
@@ -329,26 +326,26 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['name'], project1.name)
-        self.assertEqual(response.data[0]['id'], project1.id)
+            response.data['results'][0]['name'], project1.name)
+        self.assertEqual(response.data['results'][0]['id'], project1.id)
         self.assertEqual(
-            response.data[-1]['name'], project2.name)
-        self.assertEqual(response.data[-1]['id'], project2.id)
+            response.data['results'][-1]['name'], project2.name)
+        self.assertEqual(response.data['results'][-1]['id'], project2.id)
 
         # order by created ascending
         request = self.factory.get('/locations', {'ordering': 'created'})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            response.data[0]['created'],
+            response.data['results'][0]['created'],
             project1.created.astimezone(
                 pytz.timezone('Africa/Nairobi')).isoformat())
-        self.assertEqual(response.data[0]['id'], project1.id)
+        self.assertEqual(response.data['results'][0]['id'], project1.id)
         self.assertEqual(
-            response.data[-1]['created'],
+            response.data['results'][-1]['created'],
             project2.created.astimezone(
                 pytz.timezone('Africa/Nairobi')).isoformat())
-        self.assertEqual(response.data[-1]['id'], project2.id)
+        self.assertEqual(response.data['results'][-1]['id'], project2.id)
 
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
@@ -372,7 +369,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response.data['detail']))
+            six.text_type(response.data[0]['detail']))
 
         # test that you need authentication for retrieving a location
         view1 = KaznetLocationViewSet.as_view({'get': 'retrieve'})
@@ -383,7 +380,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response1.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response1.data['detail']))
+            six.text_type(response1.data[0]['detail']))
 
         # test that you need authentication for listing a task
         view2 = KaznetLocationViewSet.as_view({'get': 'list'})
@@ -393,7 +390,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data['detail']))
+            six.text_type(response2.data[0]['detail']))
 
         # test that you need authentication for deleting a task
         # assert that location exists
@@ -407,7 +404,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data['detail']))
+            six.text_type(response3.data[0]['detail']))
 
         # test that you need authentication for updating a task
         data2 = {
@@ -423,7 +420,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response4.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response4.data['detail']))
+            six.text_type(response4.data[0]['detail']))
 
     def test_permission_required(self):
         """
@@ -444,7 +441,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Update
 
@@ -461,7 +458,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Create
 
@@ -477,7 +474,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant List
 
@@ -492,7 +489,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))
 
         # Cant Retrieve
 
@@ -506,4 +503,4 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            str(response.data['detail']))
+            str(response.data[0]['detail']))

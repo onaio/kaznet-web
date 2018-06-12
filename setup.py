@@ -20,7 +20,10 @@ setup(
         'django-phonenumber-field',
         'django-allauth',
         'requests',
-        'celery'
+        'celery',
+        'django-cors-headers',
+        'whitenoise',
+        'djangorestframework-jsonapi'
     ],
     classifiers=[
         'Programming Language :: Python',

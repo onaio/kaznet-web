@@ -48,3 +48,5 @@ class Bounty(TimeStampedModel):
         ordering = ['created', 'id']
         abstract = False
         app_label = 'main'
+        verbose_name = _("Bounty")
+        verbose_name_plural = _("Bounties")

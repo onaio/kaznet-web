@@ -29,7 +29,10 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         task = mommy.make('main.Task', name='d12')
 
         data = {
-            'task': task.id,
+            'task': {
+                'type': 'Task',
+                'id': task.id
+            },
             'date': '2018-05-12',
             'start_time': '07:00',
             'end_time': '19:30',
@@ -67,7 +70,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(response.data.pop(), occurrence_data)
+        self.assertDictEqual(response.data['results'].pop(), occurrence_data)
 
     def test_authentication_required(self):
         """
@@ -83,7 +86,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data['detail']))
+            six.text_type(response2.data[0]['detail']))
 
         # test that you need authentication for listing a occurrence
         view3 = KaznetTaskOccurrenceViewSet.as_view({'get': 'list'})
@@ -92,7 +95,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data['detail']))
+            six.text_type(response3.data[0]['detail']))
 
     def test_task_filter(self):
         """
@@ -118,8 +121,8 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], occurrence.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], occurrence.id)
 
     def test_date_filter(self):
         """
@@ -146,8 +149,8 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], occurrence.id)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], occurrence.id)
 
         # make some occurrences that happen after 2018-07-12
         mommy.make('main.TaskOccurrence', _quantity=5, date='2018-11-11')
@@ -157,13 +160,13 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 5)
+        self.assertEqual(len(response2.data['results']), 5)
 
         request3 = self.factory.get('/occurrences', {'date__lt': '2018-07-13'})
         force_authenticate(request3, user=user)
         response3 = view(request=request3)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(len(response3.data), 8)
+        self.assertEqual(len(response3.data['results']), 8)
 
     def test_start_time_filter(self):
         """
@@ -185,14 +188,14 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 6)
+        self.assertEqual(len(response2.data['results']), 6)
 
         request3 = self.factory.get(
             '/occurrences', {'start_time__lt': '09:15'})
         force_authenticate(request3, user=user)
         response3 = view(request=request3)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(len(response3.data), 5)
+        self.assertEqual(len(response3.data['results']), 5)
 
     def test_end_time_filter(self):
         """
@@ -214,14 +217,14 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(len(response2.data), 6)
+        self.assertEqual(len(response2.data['results']), 6)
 
         request3 = self.factory.get(
             '/occurrences', {'end_time__lt': '21:15'})
         force_authenticate(request3, user=user)
         response3 = view(request=request3)
         self.assertEqual(response3.status_code, 200)
-        self.assertEqual(len(response3.data), 5)
+        self.assertEqual(len(response3.data['results']), 5)
 
     def test_occurrence_sorting(self):
         """
@@ -247,9 +250,10 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
         # pylint: disable=no-member
-        self.assertEqual(len(response.data), TaskOccurrence.objects.count())
-        self.assertEqual('2018-05-01', response.data[0]['date'])
-        self.assertEqual('2018-05-06', response.data[-1]['date'])
+        self.assertEqual(
+            len(response.data['results']), TaskOccurrence.objects.count())
+        self.assertEqual('2018-05-01', response.data['results'][0]['date'])
+        self.assertEqual('2018-05-06', response.data['results'][-1]['date'])
 
         # test sorting by start_time descending
         request = self.factory.get(
@@ -257,9 +261,12 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), TaskOccurrence.objects.count())
-        self.assertEqual('06:00:00', response.data[0]['start_time'])
-        self.assertEqual('01:00:00', response.data[-1]['start_time'])
+        self.assertEqual(
+            len(response.data['results']), TaskOccurrence.objects.count())
+        self.assertEqual(
+            '06:00:00', response.data['results'][0]['start_time'])
+        self.assertEqual(
+            '01:00:00', response.data['results'][-1]['start_time'])
 
         # test sorting by end_time descending
         request = self.factory.get(
@@ -267,9 +274,12 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), TaskOccurrence.objects.count())
-        self.assertEqual('16:00:00', response.data[0]['end_time'])
-        self.assertEqual('11:00:00', response.data[-1]['end_time'])
+        self.assertEqual(
+            len(response.data['results']), TaskOccurrence.objects.count())
+        self.assertEqual(
+            '16:00:00', response.data['results'][0]['end_time'])
+        self.assertEqual(
+            '11:00:00', response.data['results'][-1]['end_time'])
 
     def test_permissions_required(self):
         """
@@ -287,7 +297,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            six.text_type(response.data['detail']))
+            six.text_type(response.data[0]['detail']))
 
         # test that you need permission for listing a occurrence
         view = KaznetTaskOccurrenceViewSet.as_view({'get': 'list'})
@@ -297,4 +307,4 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            six.text_type(response.data['detail']))
+            six.text_type(response.data[0]['detail']))
