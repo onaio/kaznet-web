@@ -253,7 +253,8 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(bounty2.task, task)
         self.assertEqual(task.bounty, bounty2)
         self.assertEqual(
-            '10000000.00 KES', serializer_instance.data['current_bounty_amount'])
+            '10000000.00 KES',
+            serializer_instance.data['current_bounty_amount'])
         # Keeps track of previous bounties
         self.assertEqual(bounty.task, task)
         self.assertEqual(Bounty.objects.all().count(), 2)
