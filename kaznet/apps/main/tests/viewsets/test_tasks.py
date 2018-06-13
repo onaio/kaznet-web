@@ -215,6 +215,41 @@ class TestKaznetTaskViewSet(MainTestBase):
             'Hello there!',
             response2.data['description'])
 
+    def test_clone_task(self):
+        """
+        Test UPDATE task
+        """
+        user = create_admin_user()
+        task_data = self._create_task()
+
+        data = {
+            'id': 1
+        }
+
+        view = KaznetTaskViewSet.as_view({'post': 'clone_task'})
+        request = self.factory.post(
+            '/tasks/{id}/clone_task'.format(id=task_data['id']), data=data)
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task_data['id'])
+
+        old_name = task_data['name']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            f'{old_name} - Copy', response.data['name'])
+        self.assertEqual(None, response.data['target_content_type'])
+        self.assertEqual(
+            task_data['timing_rule'], response.data['timing_rule'])
+        self.assertEqual(
+            task_data['locations'], response.data['locations'])
+        self.assertEqual(
+            task_data['segment_rules'], response.data['segment_rules'])
+        self.assertEqual(
+            task_data['bounty'], response.data['bounty'])
+        self.assertEqual(
+            'd', response.data['status']
+        )
+
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
         """
