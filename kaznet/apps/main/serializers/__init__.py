@@ -7,3 +7,4 @@ from kaznet.apps.main.serializers.locations import KaznetLocationSerializer  # n
 from kaznet.apps.main.serializers.occurences import KaznetTaskOccurrenceSerializer  # noqa
 from kaznet.apps.main.serializers.bounty import BountySerializer  # noqa
 from kaznet.apps.main.serializers.submissions import KaznetSubmissionSerializer  # noqa
+from kaznet.apps.main.serializers.contenttype import KaznetContentTypeSerializer  # noqa

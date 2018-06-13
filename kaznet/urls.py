@@ -8,6 +8,7 @@ from django.urls import include, path
 from rest_framework import routers
 
 from kaznet.apps.main.viewsets import (BountyViewSet, ClientViewSet,
+                                       ContentTypeViewSet,
                                        KaznetLocationViewSet,
                                        KaznetSubmissionsViewSet,
                                        KaznetTaskOccurrenceViewSet,
@@ -30,6 +31,7 @@ ROUTER.register(r'locations', KaznetLocationViewSet)
 ROUTER.register(r'submissions', KaznetSubmissionsViewSet)
 ROUTER.register(r'occurrences', KaznetTaskOccurrenceViewSet)
 ROUTER.register(r'tasks', KaznetTaskViewSet)
+ROUTER.register(r'contenttypes', ContentTypeViewSet)
 
 # pylint: disable=invalid-name
 urlpatterns = [
