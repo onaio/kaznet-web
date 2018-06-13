@@ -49,8 +49,8 @@ class Task(BaseTask):
         default=None,
         help_text=_('This represents the client.')
     )
-    required_user_experience = models.CharField(
-        _('Recommended User Experience'),
+    required_expertise = models.CharField(
+        _('Recommended Expertise'),
         choices=EXPERTISE_CHOICES,
         null=True,
         default=None,
