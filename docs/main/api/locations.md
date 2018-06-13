@@ -8,7 +8,7 @@ Once a Location is created it's stored in the database and can be retrieved from
 
 ## API Endpoints
 
-### POST /api/v1/locations
+### POST /api/v1/locations/
 
 Creates a new location, requires a `name`.
 
@@ -24,44 +24,44 @@ The `name` is a *string*. It can take additional inputs in the content such as:
 - `radius`: *decimal*. **If radius is specified, geopoint should be inputted and shapefile shouldn't be uploaded.**
 - `shapefile`: *shapefile*, is a *.zip* file containing strictly three files, the *.shp*, *.shx* and *.dbf* files. **If shapefile is uploaded, geopoint and radius shouldn't be inputted.**
 
-### GET /api/v1/locations
+### GET /api/v1/locations/
 
 Returns a list of all locations
 
 ```console
-curl -X GET https://example.com/api/v1/locations
+curl -X GET https://example.com/api/v1/locations/
 ```
 
 Returns a list of all locations with a specific parent location if given a `parent` query parameter. The `parent` query parameter takes an *integer* which is the unique identifier for the parent location.
 
 ```console
-curl -X GET https://example.com/api/v1/locations?parent=2
+curl -X GET https://example.com/api/v1/locations/?parent=2
 ```
 
 Returns a list of all locations in a specific country if given a `country` query parameter. The `country` query parameter takes a *string* which is the country code.
 
 ```console
-curl -X GET https://example.com/api/v1/locations?country=KE
+curl -X GET https://example.com/api/v1/locations/?country=KE
 ```
 
 Returns a list of all locations with a specific name if given `search` query parameter. The `search` query parameter takes a *string* which is the name of the location.
 
 ```console
-curl -X GET https://example.com/api/v1/locations?search=eldorado
+curl -X GET https://example.com/api/v1/locations/?search=eldorado
 ```
 
 Returns a list of locations ordered by name or creation date if given `ordering` query parameter. The `ordering` can be done in ascending order using either `name` or `created` and can be done in descending order using either `-name` or `-created`.
 
 ```console
-curl -X GET https://example.com/api/v1/locations?ordering=name,created
+curl -X GET https://example.com/api/v1/locations/?ordering=name,created
 ```
 
-### GET /api/v1/locations/[pk]
+### GET /api/v1/locations/[pk]/
 
 Returns a specific location with matching pk.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/24
+curl -X GET https://example.com/api/v1/locations/24/
 ```
 
 This request will return a response containing the specific location.
@@ -90,18 +90,18 @@ This request will return a response containing the specific location.
 }
 ```
 
-### DELETE /api/v1/locations/pk
+### DELETE /api/v1/locations/pk/
 
 Deletes a specific location with matching pk.
 
 ```console
-curl -X DELETE https://example.com/api/v1/locations/23
+curl -X DELETE https://example.com/api/v1/locations/23/
 ```
 
-### PATCH /api/v1/locations/[pk]
+### PATCH /api/v1/locations/[pk]/
 
 Partially Updates a specific location with matching pk. Takes the same inputs as the POST create location request but with an additional location `id` in the url.
 
 ```console
-curl -X PATCH -H "Content-Type:application/json" -d '{"name": "Hyperion"}' https://example.com/api/v1/locations/24
+curl -X PATCH -H "Content-Type:application/json" -d '{"name": "Hyperion"}' https://example.com/api/v1/locations/24/
 ```
