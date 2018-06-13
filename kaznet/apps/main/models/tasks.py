@@ -16,6 +16,18 @@ class Task(BaseTask):
     """
     Task model class
     """
+
+    BEGINNER = '1'
+    INTERMEDIATE = '2'
+    ADVANCED = '3'
+    EXPERT = '4'
+    EXPERTISE_CHOICES = (
+        (BEGINNER, _('Beginner')),
+        (INTERMEDIATE, _('Intermediate')),
+        (ADVANCED, _('Advanced')),
+        (EXPERT, _('Expert'))
+    )
+
     segment_rules = models.ManyToManyField(
         'main.SegmentRule',
         verbose_name=_('Segment Rules'),
@@ -37,6 +49,13 @@ class Task(BaseTask):
         default=None,
         help_text=_('This represents the client.')
     )
+    required_user_experience = models.CharField(
+        _('Recommended User Experience'),
+        choices=EXPERTISE_CHOICES,
+        null=True,
+        default=None,
+        max_length=1,
+        blank=True)
 
     # Custom Manager that has submission_count field
     with_submission_count = TaskManager()

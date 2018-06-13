@@ -44,6 +44,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             'rejected_submissions_count',
             'total_bounty_payout',
             'current_bounty_amount',
+            'required_user_experience',
             'description',
             'xform_title',
             'status_display',
