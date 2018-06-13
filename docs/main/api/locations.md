@@ -1,5 +1,7 @@
 # Locations
 
+This API endpoint follows the [JSON API](http://jsonapi.org/) structure.
+
 Adds ability to create, list, update, delete and retrieve Locations.
 
 Once a Location is created it's stored in the database and can be retrieved from the API as shown below. Only Admins Can interact with this API Endpoint
@@ -11,7 +13,7 @@ Once a Location is created it's stored in the database and can be retrieved from
 Creates a new location, requires a `name`.
 
 ```console
-curl -x POST -H "Content-Type:application/json" -d '{"name": "HappyLand"}' https://example.com/api/v1/locations
+curl -X POST -H "Content-type:application/vnd.api+json" -d '{"data": {"type": "Location","id": "1","attributes": {"name":"Sol Point","country":"CK","description":"Something"}}}' https://example.com/api/v1/locations/
 ```
 
 The `name` is a *string*. It can take additional inputs in the content such as:
@@ -66,15 +68,25 @@ This request will return a response containing the specific location.
 
 ```json
 {
-    "id": 24,
-    "name": "Nairobi",
-    "country": "KE",
-    "geopoint": null,
-    "radius": null,
-    "shapefile": null,
-    "parent": null,
-    "created": "2018-05-23T14:48:42.169129+03:00",
-    "modified": "2018-05-23T14:48:42.169151+03:00"
+    "data": {
+        "type": "Location",
+        "id": "24",
+        "attributes": {
+            "name": "Sol Point",
+            "country": "CK",
+            "description": "Something",
+            "geopoint": null,
+            "radius": null,
+            "shapefile": null,
+            "created": "2018-06-13T08:56:51.371899+03:00",
+            "modified": "2018-06-13T08:56:51.371932+03:00"
+        },
+        "relationships": {
+            "parent": {
+                "data": null
+            }
+        }
+    }
 }
 ```
 
