@@ -46,7 +46,7 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
-    tasks = GenericRelation(
+    task = GenericRelation(
         'main.Task',
         content_type_field='target_content_type',
         object_id_field='target_object_id'
