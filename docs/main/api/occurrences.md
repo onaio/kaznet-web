@@ -4,7 +4,7 @@ Adds ability to List and Retrieve Occurences. **Requires User to be an Admin to 
 
 ## API Endpoints
 
-### GET /api/v1/occurrences
+### GET /api/v1/occurrences/
 
 Returns a list of all occurrences.
 
@@ -66,4 +66,45 @@ Returns a list of all occurrences for a specific `date` if given the `date` quer
 
 ```console
 curl -X https://example.com/api/v1/occurrences?date__year__gte=2017
+```
+
+Returns a list of occurences ordered by either `created`, `date`, `start_time` or `end_time` in ascending order or `-created`, `-date`, `-start_time` or `end_time` in descending order if passed into the `ordering` query parameter.
+
+```console
+curl -X https://example.com/api/v1/occurrences/?ordering=created,-date,start_time,end_time
+```
+
+## GET /api/v1/occurrences/[pk]/
+
+Returns a specific Occurrence.
+
+```console
+curl -X https://example.com/api/v1/occurrences/1/
+```
+
+This request returns a response containing the specific Occurence.
+
+```json
+{
+    "data": {
+        "type": "TaskOccurrence",
+        "id": "1",
+        "attributes": {
+            "created": "2018-06-13T09:05:38.009325+03:00",
+            "modified": "2018-06-13T09:05:38.009343+03:00",
+            "date": "2018-06-13",
+            "start_time": "09:05:38",
+            "end_time": "23:59:59.999999",
+            "time_string": "13th June 2018, 9:05 a.m. to 11:59 p.m."
+        },
+        "relationships": {
+            "task": {
+                "data": {
+                    "type": "Task",
+                    "id": "1"
+                }
+            }
+        }
+    }
+}
 ```
