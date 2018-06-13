@@ -217,13 +217,13 @@ class TestKaznetTaskViewSet(MainTestBase):
 
     def test_clone_task(self):
         """
-        Test UPDATE task
+        Test Clone task
         """
         user = create_admin_user()
         task_data = self._create_task()
 
         data = {
-            'id': 1
+            'id': task_data['id']
         }
 
         view = KaznetTaskViewSet.as_view({'post': 'clone_task'})
