@@ -3,6 +3,8 @@ Client viewset module
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
 from kaznet.apps.main.models import Client
@@ -17,6 +19,7 @@ class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     Client ViewSet
     """
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [

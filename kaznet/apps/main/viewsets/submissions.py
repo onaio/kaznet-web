@@ -3,6 +3,8 @@ Main Submissions ViewSet Module
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
 from kaznet.apps.main.models import Submission
@@ -15,6 +17,7 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Viewset for Submissions
     """
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
     serializer_class = KaznetSubmissionSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]

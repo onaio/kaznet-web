@@ -2,13 +2,14 @@
 Main Occurence ViewSet Module
 """
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
+from rest_framework import filters, viewsets
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.filters import KaznetTaskOccurrenceFilterSet
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.serializers import KaznetTaskOccurrenceSerializer
-from kaznet.apps.main.filters import KaznetTaskOccurrenceFilterSet
-
 from kaznet.apps.users.permissions import IsAdmin
 
 
@@ -17,6 +18,7 @@ class KaznetTaskOccurrenceViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Viewset for occurrence
     """
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
     serializer_class = KaznetTaskOccurrenceSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
