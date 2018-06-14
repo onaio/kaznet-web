@@ -15,7 +15,7 @@ def create_submission(ona_instance: object):
     Validates Submission Data and Creates a Submission
     """
     data = ona_instance.json
-    task = ona_instance.xform.task
+    task = ona_instance.get_task()
     user = ona_instance.user
 
     data = validate_user(data, task, user)
