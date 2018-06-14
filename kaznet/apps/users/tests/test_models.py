@@ -4,6 +4,7 @@ Test for UserProfile model
 from django.test import TestCase
 
 from model_mommy import mommy
+from rest_framework.authtoken.models import Token
 
 from kaznet.apps.users.models import UserProfile
 
@@ -24,6 +25,13 @@ class TestUserModels(TestCase):
         self.assertEqual('mosh', user.userprofile.user.username)
         # check the __str__ method on UserProfile
         self.assertEqual("mosh's profile", user.userprofile.__str__())
+
+    def test_create_auth_token(self):
+        """
+        Test that auth token is created when user is created
+        """
+        user = mommy.make('auth.User', username='mosh')
+        self.assertTrue(Token.objects.filter(user=user).exists())
 
     def test_submission_count(self):
         """
