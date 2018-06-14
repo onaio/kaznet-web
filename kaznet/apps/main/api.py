@@ -6,6 +6,9 @@ from django.contrib.gis.geos import Point
 from geopy.distance import distance
 from tasking.utils import get_allowed_contenttypes
 
+from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
+                                          INVALID_SUBMISSION_TIME,
+                                          INVALID_TASK, LACKING_EXPERTISE)
 from kaznet.apps.main.models import Location, Submission, TaskOccurrence
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 
@@ -96,7 +99,7 @@ def validate_location(data: dict, task: object):
             if location.geopoint is None:
                 # If by any chance a location has no geopoint or shapefile
                 data['status'] = 'b'
-                data['comments'] = 'Can not submit data to invalid task'
+                data['comments'] = INVALID_TASK
                 return data
 
             dist = distance(location.geopoint, submission_point)
@@ -107,7 +110,7 @@ def validate_location(data: dict, task: object):
                 return data
 
             data['status'] = 'b'
-            data['comments'] = 'Submitted from wrong location'
+            data['comments'] = INCORRECT_LOCATION
             return data
 
 
@@ -123,7 +126,7 @@ def validate_user(data: dict, task: object, user: object):
         return data
 
     data['status'] = 'b'
-    data['comments'] = 'User Expertise level does not meet Requirement'
+    data['comments'] = LACKING_EXPERTISE
     return data
 
 
@@ -142,5 +145,5 @@ def validate_submission_time(task: object, data: dict):
         return data
 
     data['status'] = 'b'
-    data['comments'] = 'Data Submitted at wrong time.'
+    data['comments'] = INVALID_SUBMISSION_TIME
     return data
