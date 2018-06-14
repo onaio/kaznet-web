@@ -95,7 +95,6 @@ def validate_location(data: dict, task: object):
     except Location.DoesNotExist:  # pylint: disable=no-member
         locations = task.locations.all()
         for location in locations:
-
             if location.geopoint is None:
                 # If by any chance a location has no geopoint or shapefile
                 data['status'] = 'b'
@@ -104,10 +103,11 @@ def validate_location(data: dict, task: object):
 
             dist = distance(location.geopoint, submission_point)
 
-            if dist <= location.radius:
-                data['location'] = location
-                data['status'] = 'd'
-                return data
+            if location.radius is not None:
+                if dist <= location.radius:
+                    data['location'] = location
+                    data['status'] = 'd'
+                    return data
 
             data['status'] = 'b'
             data['comments'] = INCORRECT_LOCATION
