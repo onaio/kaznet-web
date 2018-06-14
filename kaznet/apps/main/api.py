@@ -2,63 +2,145 @@
 API Methods For Kaznet Main App
 """
 from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import Distance
+
+from geopy.distance import distance
+from tasking.utils import get_allowed_contenttypes
+
+from kaznet.apps.main.models import Location, Submission, TaskOccurrence
+from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 
 
-def validate_instance_location(ona_instance: object):
+def create_submission(ona_instance: object):
     """
-    Validates Instances Location
-    for task
+    Validates Submission Data and Creates a Submission
     """
     data = ona_instance.json
     task = ona_instance.xform.task
-    coords = ona_instance['_geolocation']
-    location = None
+    user = ona_instance.user
+
+    data = validate_user(data, task, user)
+    if data['status'] != 'b':
+        data = validate_location(data, task)
+        if data['status'] != 'b':
+            data = validate_submission_time(task, data)
+
+    if data['status'] == 'b':
+        data = {
+            'task': {
+                'type': 'Task',
+                'id': task.id
+            },
+            'user': {
+                'type': 'User',
+                'id': user.id
+            },
+            'comments': data['comments'],
+            'status': Submission.REJECTED,
+            'valid': False,
+            'target_content_type': get_allowed_contenttypes().filter(
+                model='instance').first().id,
+            'target_id': ona_instance.id
+        }
+
+        serializer_instance = KaznetSubmissionSerializer(data=data)
+        serializer_instance.is_valid()
+        serializer_instance.save()
+
+    data = {
+        'task': {
+            'type': 'Task',
+            'id': task.id
+        },
+        'user': {
+            'type': 'User',
+            'id': user.id
+        },
+        'location': {
+            'type': 'Location',
+            'id': data['location'].id
+        },
+        'bounty': {
+            'type': 'Bounty',
+            'id': task.bounty.id
+        },
+        'comments': data['comments'],
+        'status': Submission.PENDING,
+        'valid': True,
+        'target_content_type': get_allowed_contenttypes().filter(
+            model='instance').first().id,
+        'target_id': ona_instance.id
+    }
+
+    serializer_instance = KaznetSubmissionSerializer(data=data)
+    serializer_instance.is_valid()
+    serializer_instance.save()
+
+
+def validate_location(data: dict, task: object):
+    """
+    Validates Submission Location
+    """
+    coords = data['_geolocation']
     submission_point = Point(coords[0], coords[1])
 
-    if task.locations is not None:
-        # Search for a location within the task possible locations
-        # Where the submission_point is within
-        # TODO Only checks geopoint, ADD a check for shapefile
+    try:
+        location = Location.objects.get(
+            task=task, shapefile__contains=submission_point)
+        data['location'] = location
+        data['status'] = 'd'
+        return data
+    except Location.DoesNotExist:  # pylint: disable=no-member
+        locations = task.locations.all()
+        for location in locations:
 
-        # TODO is radius in metres or Kilometres
-        # How to get all valid radius for the location ???
-        radius_list = get_task_location_radius(task)
+            if location.geopoint is None:
+                # If by any chance a location has no geopoint or shapefile
+                data['status'] = 'b'
+                data['comments'] = 'Can not submit data to invalid task'
+                return data
 
-        for radius in radius_list:
-            # Chance of getting two locations ??? Maybe ?
-            location = task.locations.filter(
-                geopoint__distance_lte=(
-                    submission_point, Distance(m=radius)))
+            dist = distance(location.geopoint, submission_point)
 
-        if location is not None:
-            validated_data = data.copy()
-            validated_data['location'] = location
-            validated_data['valid'] = True
+            if dist <= location.radius:
+                data['location'] = location
+                data['status'] = 'd'
+                return data
 
-            return validated_data
-
-        validated_data = data.copy()
-        validated_data['valid'] = False
-        validated_data['comments'] = 'Submitted at wrong location.'
-
-        return validated_data
-
-    # No Locations on Task..
-    # Assume Task doesn't care about location and validate Submission
-    # After this method is called data will probably go through some other kind
-    # of validation
-    validated_data = data.copy()
-    validated_data['valid'] = True
-    return validated_data
+            data['status'] = 'b'
+            data['comments'] = 'Submitted from wrong location'
+            return data
 
 
-def get_task_location_radius(task: object):
+def validate_user(data: dict, task: object, user: object):
     """
-    Yields the radiuses for all locations of a particular
+    Validates that the user can submit to this
     task
     """
-    locations = task.locations.all()
+    user_expertise = user.userprofile.expertise
 
-    for location in locations:
-        yield location.radius
+    if task.required_expertise < user_expertise:
+        data['status'] = 'd'
+        return data
+
+    data['status'] = 'b'
+    data['comments'] = 'User Expertise level does not meet Requirement'
+    return data
+
+
+def validate_submission_time(task: object, data: dict):
+    """
+    Validates that the user submitted at right
+    time
+    """
+    submission_time = data['_submission_time']
+
+    if TaskOccurrence.objects.filter(  # pylint: disable=no-member
+            task=task).filter(
+                start_time__gte=submission_time).filter(
+                    end_time__lte=submission_time).exists():
+        data['status'] = 'd'
+        return data
+
+    data['status'] = 'b'
+    data['comments'] = 'Data Submitted at wrong time.'
+    return data
