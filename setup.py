@@ -23,7 +23,8 @@ setup(
         'celery',
         'django-cors-headers',
         'whitenoise',
-        'djangorestframework-jsonapi'
+        'djangorestframework-jsonapi',
+        'geopy',
     ],
     classifiers=[
         'Programming Language :: Python',
