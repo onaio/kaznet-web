@@ -109,8 +109,7 @@ class Instance(TimeStampedModel, models.Model):
         Get the task for this submission
         This might return None or might return a task
         """
-        xform = self.xform
-        return xform.tasks.first()  # pylint: disable=no-member
+        return self.xform.task  # pylint: disable=no-member
 
 
 class Project(TimeStampedModel, models.Model):
