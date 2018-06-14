@@ -1,53 +1,64 @@
 """
 API Methods For Kaznet Main App
 """
-from kaznet.apps.main.models import Location, Submission
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import Distance
 
 
-def validate_task(instance: object):
+def validate_instance_location(ona_instance: object):
     """
-    Validates Instance Data From Ona
+    Validates Instances Location
+    for task
     """
-    submission_data = instance.json
-    task = instance.xform.task
-    user = instance.user
-    user_profile = user.userprofile
-    # pylint: disable=no-member
-    user_submission_count = Submission.objects.filter(
-        task=task, user=user).count()
-    max_submission = task.user_submission_target
-    expertise_requirement = task.required_expertise
-    submission_data['bounty'] = task.bounty
-    # Submission Review not yet implemented in Ona
-    # This might change
-    # TODO Update
-    if submission_data['_status'] != 'REJECTED':
-        # How to validate the coords with the Location
-        # ?
-        geopoint = submission_data['_geolocation']
+    data = ona_instance.json
+    task = ona_instance.xform.task
+    coords = ona_instance['_geolocation']
+    location = None
+    submission_point = Point(coords[0], coords[1])
 
-        # If Geopoint
-        # TODO Figure out how to match geolocation
-        # With an actual Location that the task has
-        location = Location.objects.get(
-            geopoint=geopoint, task=task)
-        submission_data['location'] = location
+    if task.locations is not None:
+        # Search for a location within the task possible locations
+        # Where the submission_point is within
+        # TODO Only checks geopoint, ADD a check for shapefile
 
-        if location is not None and (
-                expertise_requirement is None or
-                user_profile.expertise == expertise_requirement):
-            if user_submission_count >= max_submission:
-                comment = 'Daily Submission Cap for this task has been reached'
-                bounty = 0
-                submission_data['comments'] = comment
-                submission_data['bounty'] = bounty
+        # TODO is radius in metres or Kilometres
+        # How to get all valid radius for the location ???
+        radius_list = get_task_location_radius(task)
 
-            submission_data['valid'] = True
-            submission_data['status'] = 'a'
-    else:
-        submission_data['status'] = 'b'
-        submission_data['valid'] = True
+        for radius in radius_list:
+            # Chance of getting two locations ??? Maybe ?
+            location = task.locations.filter(
+                geopoint__distance_lte=(
+                    submission_point, Distance(m=radius)))
 
-    # This method will return validated data where by now the data
-    # can be processed into a Submission Object
-    return submission_data
+        if location is not None:
+            validated_data = data.copy()
+            validated_data['location'] = location
+            validated_data['valid'] = True
+
+            return validated_data
+
+        validated_data = data.copy()
+        validated_data['valid'] = False
+        validated_data['comments'] = 'Submitted at wrong location.'
+
+        return validated_data
+
+    # No Locations on Task..
+    # Assume Task doesn't care about location and validate Submission
+    # After this method is called data will probably go through some other kind
+    # of validation
+    validated_data = data.copy()
+    validated_data['valid'] = True
+    return validated_data
+
+
+def get_task_location_radius(task: object):
+    """
+    Yields the radiuses for all locations of a particular
+    task
+    """
+    locations = task.locations.all()
+
+    for location in locations:
+        yield location.radius
