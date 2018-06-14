@@ -21,13 +21,12 @@ class Task(BaseTask):
     INTERMEDIATE = '2'
     ADVANCED = '3'
     EXPERT = '4'
-    OPEN = '5'
+
     EXPERTISE_CHOICES = (
         (BEGINNER, _('Beginner')),
         (INTERMEDIATE, _('Intermediate')),
         (ADVANCED, _('Advanced')),
         (EXPERT, _('Expert')),
-        (OPEN, _('Open'))
     )
 
     segment_rules = models.ManyToManyField(
