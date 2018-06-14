@@ -176,6 +176,19 @@
             "editable": true,
             "path": "."
         },
+        "geographiclib": {
+            "hashes": [
+                "sha256:635da648fce80a57b81b28875d103dacf7deb12a3f5f7387ba7d39c51e096533"
+            ],
+            "version": "==1.49"
+        },
+        "geopy": {
+            "hashes": [
+                "sha256:2947f914c89d665e86b19466cce3600f0d0574a54a17c7ba609058a0ef0b5f24",
+                "sha256:9df0d61b431c51bcc47e64d16f9517dacfed10875f0dfc36cd8cb87c52fa9547"
+            ],
+            "version": "==1.14.0"
+        },
         "idna": {
             "hashes": [
                 "sha256:156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e",
