@@ -4,13 +4,14 @@ Main Tasks viewset module
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
+from kaznet.apps.main.common_tags import INCORRECT_CLONE_DATA
 from kaznet.apps.main.filters import KaznetTaskFilterSet
 from kaznet.apps.main.models import Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
-from kaznet.apps.users.permissions import IsAdminOrReadOnly, IsAdmin
+from kaznet.apps.users.permissions import IsAdmin, IsAdminOrReadOnly
 
 
 # pylint: disable=too-many-ancestors
@@ -57,22 +58,22 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             segmentrules = task.segment_rules.all()
             # Get Bounty of Task
             bounty = task.bounty
-            task.id = None
-            task.pk = None
-            task.target_content_type = None
-            task.target_id = None
-            task.name = f'{task.name} - Copy'
-            task.save()
-            task.locations.set(locations)
-            task.segment_rules.set(segmentrules)
+            cloned_task = task
+            cloned_task.pk = None
+            cloned_task.target_content_type = None
+            cloned_task.target_id = None
+            cloned_task.name = f'{task.name} - Copy'
+            cloned_task.save()
+            cloned_task.locations.set(locations)
+            cloned_task.segment_rules.set(segmentrules)
 
             if bounty is not None:
                 bounty.id = None
-                bounty.task = task
+                bounty.task = cloned_task
                 bounty.save()
 
-            task.status = 'd'
-            task.save()
-            task_data = KaznetTaskSerializer(task).data
-            return Response(task_data)
-        return Response({'status': 'Incorrect Data'})
+            cloned_task.status = Task.DRAFT
+            cloned_task.save()
+            cloned_task_data = KaznetTaskSerializer(cloned_task).data
+            return Response(cloned_task_data)
+        return Response({'status': INCORRECT_CLONE_DATA})
