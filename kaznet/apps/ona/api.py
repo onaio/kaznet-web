@@ -13,7 +13,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.settings.common import ONA_BASE_URL, ONA_PASSWORD, ONA_USERNAME
+from django.conf import settings
 
 
 def request_session(
@@ -44,12 +44,14 @@ def request_session(
 
     if method == 'GET':
         response = session.get(
-            url, auth=(ONA_USERNAME, ONA_PASSWORD), params=payload
+            url, auth=(
+                settings.ONA_USERNAME, settings.ONA_PASSWORD), params=payload
             )
         return response
     elif method == 'POST':
         response = session.post(
-            url, auth=(ONA_USERNAME, ONA_PASSWORD), data=payload
+            url, auth=(
+                settings.ONA_USERNAME, settings.ONA_PASSWORD), data=payload
             )
         return response
     else:
@@ -77,13 +79,13 @@ def request(
         return None
 
 
-def get_projects(username: str = ONA_USERNAME):
+def get_projects(username: str = settings.ONA_USERNAME):
     """
     Custom Method that returns all Projects owned
     by the User from the OnaData API
     """
     args = {'owner': username}
-    url = urljoin(ONA_BASE_URL, 'api/v1/projects')
+    url = urljoin(settings.ONA_BASE_URL, 'api/v1/projects')
     projects_data = request(url, args)
 
     return projects_data
@@ -145,7 +147,8 @@ def get_xform(xform_id: int):
     """
     Custom Method that return a specific Form
     """
-    return request(urljoin(ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
+    return request(urljoin(
+        settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
 
 
 def process_xforms(forms_data: dict, project_id: int):
@@ -209,7 +212,10 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
             return Project.objects.get(ona_pk=ona_project_id)
         except Project.DoesNotExist:  # pylint: disable=no-member
             project_data = get_project(
-                urljoin(ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'))
+                urljoin(
+                    settings.ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'
+                )
+            )
             process_project(project_data)
             return Project.objects.get(ona_pk=ona_project_id)
     else:
@@ -228,7 +234,8 @@ def get_instances(xform_id: int):
     start = 0
 
     while end_page is None:
-        url = urljoin(ONA_BASE_URL, f'api/v1/data/{xform_id}')
+        url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
@@ -244,7 +251,8 @@ def get_instance(xform_id: int, instance_id: int):
     and retrieves instance date
     """
     return request(
-        urljoin(ONA_BASE_URL, f'api/v1/data/{xform_id}/{instance_id}'))
+        urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform_id}/{instance_id}'))
 
 
 def process_instances(instances_data: iter, xform: object = None):

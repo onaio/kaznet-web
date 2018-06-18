@@ -11,7 +11,9 @@ class TestBounty(TestCase):
     """
 
     def test_bounty_str(self):
-
+        """
+        Test Bounty String Representation
+        """
         amount = 5000
         kitten_prices = mommy.make('main.Task', name="kitten prices")
         bounty = mommy.make('main.Bounty', task=kitten_prices, amount=amount)
