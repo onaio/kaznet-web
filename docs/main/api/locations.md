@@ -29,31 +29,31 @@ The `name` is a *string*. It can take additional inputs in the content such as:
 Returns a list of all locations
 
 ```console
-curl -X GET https://example.com/api/v1/locations/
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/
 ```
 
 Returns a list of all locations with a specific parent location if given a `parent` query parameter. The `parent` query parameter takes an *integer* which is the unique identifier for the parent location.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/?parent=2
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/?parent=2
 ```
 
 Returns a list of all locations in a specific country if given a `country` query parameter. The `country` query parameter takes a *string* which is the country code.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/?country=KE
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/?country=KE
 ```
 
 Returns a list of all locations with a specific name if given `search` query parameter. The `search` query parameter takes a *string* which is the name of the location.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/?search=eldorado
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/?search=eldorado
 ```
 
 Returns a list of locations ordered by name or creation date if given `ordering` query parameter. The `ordering` can be done in ascending order using either `name` or `created` and can be done in descending order using either `-name` or `-created`.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/?ordering=name,created
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/?ordering=name,created
 ```
 
 ### GET /api/v1/locations/[pk]/
@@ -61,7 +61,7 @@ curl -X GET https://example.com/api/v1/locations/?ordering=name,created
 Returns a specific location with matching pk.
 
 ```console
-curl -X GET https://example.com/api/v1/locations/24/
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/24/
 ```
 
 This request will return a response containing the specific location.
@@ -95,7 +95,7 @@ This request will return a response containing the specific location.
 Deletes a specific location with matching pk.
 
 ```console
-curl -X DELETE https://example.com/api/v1/locations/23/
+curl -X DELETE -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/23/
 ```
 
 ### PATCH /api/v1/locations/[pk]/

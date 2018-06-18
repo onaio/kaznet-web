@@ -9,7 +9,7 @@ Adds ability to list supported content types and their primary keys.
 Returns a list of all allowed content types and their identifiers.
 
 ```console
-curl -X GET https://example.com/api/v1/contenttypes/
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/contenttypes/
 ```
 
 This request will return a response containing the list of allowed content types.

@@ -26,31 +26,31 @@ Optionally it can also take:
 Returns a list of all user profiles.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/
 ```
 
 Returns a list of User Profiles with a specific First Name, Last Name, Ona Username, Email or National Id if given a `search` query parameter.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/?search=David
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?search=David
 ```
 
 Returns a list of User Profiles with specific role if given a `role` query parameter. The `role` takes an *Integer* which has to be either 1 for ADMIN or 2 for CONTRIBUTOR.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/?role=1
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?role=1
 ```
 
 Returns a list of User Profiles with specific expertise if given a `expertise` query parameter. The `expertise` takes an *Integer* which has to be either  1 for BEGINNER, 2 for INTERMEDIATE, 3 for ADVANCED or 4 for EXPERT.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/?expertise=1
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?expertise=1
 ```
 
 Returns a list of User Profiles either ordered by `user__first_name`, `user__last_name`, `created`, `submission_count` or `national_id` if given a `ordering` query parameter. The `ordering` can be done in ascending order using either `user__first_name`, `user__last_name`, `created`, `submission_count` or `national_id`. It can also be done in descending order using `-user__first_name`, `-user__last_name`, `-created`, `-submission_count` or `-national_id`.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/?ordering=user__first_name,-national_id
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?ordering=user__first_name,-national_id
 ```
 
 ### GET /api/v1/userprofiles/[pk]/
@@ -58,7 +58,7 @@ curl -X GET https://example.com/api/v1/userprofiles/?ordering=user__first_name,-
 Returns a specific user profile with matching pk. **Requires User to either be linked to the UserProfile or be an Admin to request**.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/12/
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/12/
 ```
 
 This request will return a response containing the specific User Profile.
@@ -102,7 +102,7 @@ This request will return a response containing the specific User Profile.
 Deletes a specific User Profile with matching pk.
 
 ```console
-curl -X DELETE https://example.com/api/v1/userprofiles/54/
+curl -X DELETE -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/54/
 ```
 
 ### PATCH /api/v1/userprofiles/[pk]/
