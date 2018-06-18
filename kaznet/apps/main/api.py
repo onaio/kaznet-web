@@ -86,34 +86,40 @@ def validate_location(data: dict, task: object):
     Validates Submission Location
     """
     coords = data.get('_geolocation')
-    submission_point = Point(coords[0], coords[1])
 
-    try:
-        location = Location.objects.get(
-            task=task, shapefile__contains=submission_point)
-        data['location'] = location
-        data['status'] = Submission.PENDING
-        return data
-    except Location.DoesNotExist:  # pylint: disable=no-member
-        locations = task.locations.all()
-        for location in locations:
-            if location.geopoint is None:
-                # If by any chance a location has no geopoint or shapefile
-                data['status'] = Submission.REJECTED
-                data['comments'] = INVALID_TASK
-                return data
+    if coords is not None:
+        submission_point = Point(coords[0], coords[1])
 
-            dist = distance(location.geopoint, submission_point)
-
-            if location.radius is not None:
-                if dist <= location.radius:
-                    data['location'] = location
-                    data['status'] = Submission.PENDING
+        try:
+            location = Location.objects.get(
+                task=task, shapefile__contains=submission_point)
+            data['location'] = location
+            data['status'] = Submission.PENDING
+            return data
+        except Location.DoesNotExist:  # pylint: disable=no-member
+            locations = task.locations.all()
+            for location in locations:
+                if location.geopoint is None:
+                    # If by any chance a location has no geopoint or shapefile
+                    data['status'] = Submission.REJECTED
+                    data['comments'] = INVALID_TASK
                     return data
 
-        data['status'] = Submission.REJECTED
-        data['comments'] = INCORRECT_LOCATION
-        return data
+                dist = distance(location.geopoint, submission_point)
+
+                if location.radius is not None:
+                    if dist <= location.radius:
+                        data['location'] = location
+                        data['status'] = Submission.PENDING
+                        return data
+
+            data['status'] = Submission.REJECTED
+            data['comments'] = INCORRECT_LOCATION
+            return data
+
+    data['status'] = Submission.REJECTED
+    data['comments'] = INCORRECT_LOCATION
+    return data
 
 
 def validate_user(data: dict, task: object, user: object):
