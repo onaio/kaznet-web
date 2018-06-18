@@ -163,6 +163,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 ONA_BASE_URL = 'https://stage-api.ona.io'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
+ONA_STATUS_FIELD = 'status'
+ONA_COMMENTS_FIELD = 'comments'
 
 # Allauth
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
