@@ -21,81 +21,94 @@ Optionally it can also take:
 - `expertise`: *Integer*, can either be 1 for BEGINNER, 2 for INTERMEDIATE, 3 for ADVANCED or 4 for EXPERT.
 - `gender`: *Integer*, can either be 0 for OTHER, 1 for MALE or 2 for FEMALE
 
-### GET /api/v1/userprofiles :: **User must be Admin to perform this request**
+### GET /api/v1/userprofiles/ :: **User must be Admin to perform this request**
 
 Returns a list of all user profiles.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/
 ```
 
 Returns a list of User Profiles with a specific First Name, Last Name, Ona Username, Email or National Id if given a `search` query parameter.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles?search=David
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?search=David
 ```
 
 Returns a list of User Profiles with specific role if given a `role` query parameter. The `role` takes an *Integer* which has to be either 1 for ADMIN or 2 for CONTRIBUTOR.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles?role=1
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?role=1
 ```
 
 Returns a list of User Profiles with specific expertise if given a `expertise` query parameter. The `expertise` takes an *Integer* which has to be either  1 for BEGINNER, 2 for INTERMEDIATE, 3 for ADVANCED or 4 for EXPERT.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles?expertise=1
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?expertise=1
 ```
 
 Returns a list of User Profiles either ordered by `user__first_name`, `user__last_name`, `created`, `submission_count` or `national_id` if given a `ordering` query parameter. The `ordering` can be done in ascending order using either `user__first_name`, `user__last_name`, `created`, `submission_count` or `national_id`. It can also be done in descending order using `-user__first_name`, `-user__last_name`, `-created`, `-submission_count` or `-national_id`.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles?ordering=user__first_name,-national_id
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?ordering=user__first_name,-national_id
 ```
 
-### GET /api/v1/userprofiles/[pk]
+### GET /api/v1/userprofiles/[pk]/
 
 Returns a specific user profile with matching pk. **Requires User to either be linked to the UserProfile or be an Admin to request**.
 
 ```console
-curl -X GET https://example.com/api/v1/userprofiles/12
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/12/
 ```
 
 This request will return a response containing the specific User Profile.
 
 ```json
 {
-    "id": 40,
-    "created": "2018-06-06T12:40:19.844313+03:00",
-    "modified": "2018-06-06T12:40:19.844335+03:00",
-    "first_name": "bob",
-    "last_name": "",
-    "email": "",
-    "ona_pk": null,
-    "ona_username": null,
-    "payment_number": "",
-    "phone_number": "",
-    "role": "2",
-    "expertise": "1",
-    "gender": "0",
-    "national_id": null,
-    "submission_count": 0
+    "data": {
+        "type": "UserProfile",
+        "id": "1",
+        "attributes": {
+            "created": "2018-06-13T08:47:16.184274+03:00",
+            "modified": "2018-06-13T08:52:45.134074+03:00",
+            "first_name": "Soll",
+            "last_name": "Spriggan",
+            "email": "soll@email.com",
+            "ona_pk": null,
+            "ona_username": null,
+            "payment_number": "",
+            "approved_submissions": 1,
+            "rejected_submissions": 0,
+            "approval_rate": 1.0,
+            "amount_earned": "5000.00 KES",
+            "avg_submissions": 1.0,
+            "avg_approved_submissions": 1.0,
+            "avg_rejected_submissions": 0.0,
+            "avg_approval_rate": 1.0,
+            "avg_amount_earned": 5000.0,
+            "phone_number": "",
+            "role": "1",
+            "expertise": "1",
+            "gender": "0",
+            "national_id": null,
+            "submission_count": 1
+        }
+    }
 }
-
 ```
 
-### DELETE /api/v1/userprofiles/[pk] : **User must be Admin to perform this request**
+### DELETE /api/v1/userprofiles/[pk]/ : **User must be Admin to perform this request**
 
 Deletes a specific User Profile with matching pk.
 
 ```console
-curl -X DELETE https://example.com/api/v1/userprofiles/54
+curl -X DELETE -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/54/
 ```
 
-### PATCH /api/v1/userprofiles/[pk]
+### PATCH /api/v1/userprofiles/[pk]/
 
 Updates a specific user profile with matching pk. **Requires User to either be linked to the UserProfile or be an Admin to request**.
 
 ```console
-curl -X PATCH https://example.com/api/v1/userprofiles/12
+curl -X PATCH -H "Content-Type:application/vnd.api+json" -d '{"data": {"type": "UserProfile","id": "1","attributes": {"first_name": "Leo","last_name": "Sol","role": "1","expertise": "3","gender": "1"}}}' "https://example.com/api/v1/userprofiles/1/"
 ```
