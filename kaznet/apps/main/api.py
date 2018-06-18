@@ -85,7 +85,7 @@ def validate_location(data: dict, task: object):
     """
     Validates Submission Location
     """
-    coords = data['_geolocation']
+    coords = data.get('_geolocation')
     submission_point = Point(coords[0], coords[1])
 
     try:
