@@ -1,6 +1,7 @@
 """
 API Methods For Kaznet Main App
 """
+from django.conf import settings
 from django.contrib.gis.geos import Point
 
 import dateutil.parser
@@ -23,12 +24,12 @@ def create_submission(ona_instance: object):
     user = ona_instance.user
 
     data = validate_user(data, task, user)
-    if data['status'] != Submission.REJECTED:
+    if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
         data = validate_location(data, task)
-        if data['status'] != Submission.REJECTED:
+        if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
             data = validate_submission_time(task, data)
 
-    if data['status'] == Submission.REJECTED:
+    if data[settings.ONA_STATUS_FIELD] == Submission.REJECTED:
         validated_data = {
             'task': {
                 'type': 'Task',
@@ -38,7 +39,7 @@ def create_submission(ona_instance: object):
                 'type': 'User',
                 'id': user.id
             },
-            'comments': str(data['comments']),
+            'comments': str(data[settings.ONA_COMMENTS_FIELD]),
             'status': Submission.REJECTED,
             'submission_time': data['_submission_time'],
             'valid': False,
@@ -94,15 +95,15 @@ def validate_location(data: dict, task: object):
             location = Location.objects.get(
                 task=task, shapefile__contains=submission_point)
             data['location'] = location
-            data['status'] = Submission.PENDING
+            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
             return data
         except Location.DoesNotExist:  # pylint: disable=no-member
             locations = task.locations.all()
             for location in locations:
                 if location.geopoint is None:
                     # If by any chance a location has no geopoint or shapefile
-                    data['status'] = Submission.REJECTED
-                    data['comments'] = INVALID_TASK
+                    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+                    data[settings.ONA_COMMENTS_FIELD] = INVALID_TASK
                     return data
 
                 dist = distance(location.geopoint, submission_point)
@@ -110,15 +111,15 @@ def validate_location(data: dict, task: object):
                 if location.radius is not None:
                     if dist <= location.radius:
                         data['location'] = location
-                        data['status'] = Submission.PENDING
+                        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
                         return data
 
-            data['status'] = Submission.REJECTED
-            data['comments'] = INCORRECT_LOCATION
+            data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+            data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
             return data
 
-    data['status'] = Submission.REJECTED
-    data['comments'] = INCORRECT_LOCATION
+    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+    data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
     return data
 
 
@@ -130,11 +131,11 @@ def validate_user(data: dict, task: object, user: object):
     user_expertise = user.userprofile.expertise
 
     if task.required_expertise < user_expertise:
-        data['status'] = Submission.PENDING
+        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
         return data
 
-    data['status'] = Submission.REJECTED
-    data['comments'] = LACKING_EXPERTISE
+    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+    data[settings.ONA_COMMENTS_FIELD] = LACKING_EXPERTISE
     return data
 
 
@@ -150,9 +151,9 @@ def validate_submission_time(task: object, data: dict):
                 date__exact=submission_time.date()).filter(
                     start_time__lte=submission_time.time()).filter(
                         end_time__gte=submission_time.time()).exists():
-        data['status'] = Submission.PENDING
+        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
         return data
 
-    data['status'] = Submission.REJECTED
-    data['comments'] = INVALID_SUBMISSION_TIME
+    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+    data[settings.ONA_COMMENTS_FIELD] = INVALID_SUBMISSION_TIME
     return data

@@ -4,6 +4,7 @@ Test Module for Main API Methods
 import os
 from collections import OrderedDict
 
+from django.conf import settings
 from django.contrib.gis.geos import Point
 
 from model_mommy import mommy
@@ -87,7 +88,8 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(data, task)
 
         self.assertEqual(location, validated_data['location'])
-        self.assertEqual(Submission.PENDING, validated_data['status'])
+        self.assertEqual(
+            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_location_with_invalid_data(self):
         """
@@ -110,7 +112,7 @@ class TestAPIMethods(MainTestBase):
 
         self.assertEqual(Submission.REJECTED, validated_data['status'])
         self.assertEqual(
-            INCORRECT_LOCATION, validated_data['comments'])
+            INCORRECT_LOCATION, validated_data[settings.ONA_COMMENTS_FIELD])
 
     def test_validate_user(self):
         """
@@ -130,7 +132,8 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_user(data, task, user)
 
-        self.assertEqual(Submission.PENDING, validated_data['status'])
+        self.assertEqual(
+            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_user_with_invalid_data(self):
         """
@@ -150,9 +153,10 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_user(data, task, user)
 
-        self.assertEqual(Submission.REJECTED, validated_data['status'])
         self.assertEqual(
-            LACKING_EXPERTISE, validated_data['comments'])
+            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(
+            LACKING_EXPERTISE, validated_data[settings.ONA_COMMENTS_FIELD])
 
     def test_validate_submission_time(self):
         """
@@ -172,7 +176,8 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_submission_time(task, data)
 
-        self.assertEqual(Submission.PENDING, validated_data['status'])
+        self.assertEqual(
+            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_submission_time_with_invalid_data(self):
         """
@@ -192,9 +197,11 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_submission_time(task, data)
 
-        self.assertEqual(Submission.REJECTED, validated_data['status'])
         self.assertEqual(
-            INVALID_SUBMISSION_TIME, validated_data['comments'])
+            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(
+            INVALID_SUBMISSION_TIME,
+            validated_data[settings.ONA_COMMENTS_FIELD])
 
     def test_create_submission(self):
         """
