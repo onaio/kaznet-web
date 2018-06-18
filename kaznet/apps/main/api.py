@@ -23,13 +23,13 @@ def create_submission(ona_instance: object):
     user = ona_instance.user
 
     data = validate_user(data, task, user)
-    if data['status'] != 'b':
+    if data['status'] != Submission.REJECTED:
         data = validate_location(data, task)
-        if data['status'] != 'b':
+        if data['status'] != Submission.REJECTED:
             data = validate_submission_time(task, data)
 
-    if data['status'] == 'b':
-        data = {
+    if data['status'] == Submission.REJECTED:
+        validated_data = {
             'task': {
                 'type': 'Task',
                 'id': task.id
@@ -38,17 +38,18 @@ def create_submission(ona_instance: object):
                 'type': 'User',
                 'id': user.id
             },
-            'comments': data['comments'],
+            'comments': str(data['comments']),
             'status': Submission.REJECTED,
+            'submission_time': data['_submission_time'],
             'valid': False,
             'target_content_type': get_allowed_contenttypes().filter(
                 model='instance').first().id,
             'target_id': ona_instance.id
         }
 
-        serializer_instance = KaznetSubmissionSerializer(data=data)
+        serializer_instance = KaznetSubmissionSerializer(data=validated_data)
         serializer_instance.is_valid()
-        serializer_instance.save()
+        return serializer_instance.save()
 
     data = {
         'task': {
@@ -67,8 +68,8 @@ def create_submission(ona_instance: object):
             'type': 'Bounty',
             'id': task.bounty.id
         },
-        'comments': data['comments'],
         'status': Submission.PENDING,
+        'submission_time': data['_submission_time'],
         'valid': True,
         'target_content_type': get_allowed_contenttypes().filter(
             model='instance').first().id,
@@ -77,7 +78,7 @@ def create_submission(ona_instance: object):
 
     serializer_instance = KaznetSubmissionSerializer(data=data)
     serializer_instance.is_valid()
-    serializer_instance.save()
+    return serializer_instance.save()
 
 
 def validate_location(data: dict, task: object):
@@ -91,14 +92,14 @@ def validate_location(data: dict, task: object):
         location = Location.objects.get(
             task=task, shapefile__contains=submission_point)
         data['location'] = location
-        data['status'] = 'd'
+        data['status'] = Submission.PENDING
         return data
     except Location.DoesNotExist:  # pylint: disable=no-member
         locations = task.locations.all()
         for location in locations:
             if location.geopoint is None:
                 # If by any chance a location has no geopoint or shapefile
-                data['status'] = 'b'
+                data['status'] = Submission.REJECTED
                 data['comments'] = INVALID_TASK
                 return data
 
@@ -107,12 +108,12 @@ def validate_location(data: dict, task: object):
             if location.radius is not None:
                 if dist <= location.radius:
                     data['location'] = location
-                    data['status'] = 'd'
+                    data['status'] = Submission.PENDING
                     return data
 
-            data['status'] = 'b'
-            data['comments'] = INCORRECT_LOCATION
-            return data
+        data['status'] = Submission.REJECTED
+        data['comments'] = INCORRECT_LOCATION
+        return data
 
 
 def validate_user(data: dict, task: object, user: object):
@@ -123,10 +124,10 @@ def validate_user(data: dict, task: object, user: object):
     user_expertise = user.userprofile.expertise
 
     if task.required_expertise < user_expertise:
-        data['status'] = 'd'
+        data['status'] = Submission.PENDING
         return data
 
-    data['status'] = 'b'
+    data['status'] = Submission.REJECTED
     data['comments'] = LACKING_EXPERTISE
     return data
 
@@ -143,9 +144,9 @@ def validate_submission_time(task: object, data: dict):
                 date__exact=submission_time.date()).filter(
                     start_time__lte=submission_time.time()).filter(
                         end_time__gte=submission_time.time()).exists():
-        data['status'] = 'd'
+        data['status'] = Submission.PENDING
         return data
 
-    data['status'] = 'b'
+    data['status'] = Submission.REJECTED
     data['comments'] = INVALID_SUBMISSION_TIME
     return data
