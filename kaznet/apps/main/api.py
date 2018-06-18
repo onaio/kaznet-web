@@ -3,6 +3,7 @@ API Methods For Kaznet Main App
 """
 from django.contrib.gis.geos import Point
 
+import dateutil.parser
 from geopy.distance import distance
 from tasking.utils import get_allowed_contenttypes
 
@@ -135,12 +136,13 @@ def validate_submission_time(task: object, data: dict):
     Validates that the user submitted at right
     time
     """
-    submission_time = data['_submission_time']
+    submission_time = dateutil.parser.parse(data['_submission_time'])
 
     if TaskOccurrence.objects.filter(  # pylint: disable=no-member
             task=task).filter(
-                start_time__gte=submission_time).filter(
-                    end_time__lte=submission_time).exists():
+                date__exact=submission_time.date()).filter(
+                    start_time__lte=submission_time.time()).filter(
+                        end_time__gte=submission_time.time()).exists():
         data['status'] = 'd'
         return data
 
