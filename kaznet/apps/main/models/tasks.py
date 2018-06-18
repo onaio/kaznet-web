@@ -53,8 +53,7 @@ class Task(BaseTask):
     required_expertise = models.CharField(
         _('Recommended Expertise'),
         choices=EXPERTISE_CHOICES,
-        null=True,
-        default=None,
+        default=BEGINNER,
         max_length=1,
         blank=True)
 
