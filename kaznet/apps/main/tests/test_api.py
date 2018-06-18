@@ -8,16 +8,17 @@ from django.contrib.gis.geos import Point
 
 from model_mommy import mommy
 
-from kaznet.apps.main.api import (validate_location, validate_submission_time,
-                                  validate_user)
+from kaznet.apps.main.api import (create_submission, validate_location,
+                                  validate_submission_time, validate_user)
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
                                           LACKING_EXPERTISE)
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Submission, Task
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import process_instance
 from kaznet.apps.ona.models import Instance
+from kaznet.apps.users.models import UserProfile
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -86,7 +87,7 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(data, task)
 
         self.assertEqual(location, validated_data['location'])
-        self.assertEqual('d', validated_data['status'])
+        self.assertEqual(Submission.PENDING, validated_data['status'])
 
     def test_validate_location_with_invalid_data(self):
         """
@@ -107,7 +108,7 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(
             data, task)
 
-        self.assertEqual('b', validated_data['status'])
+        self.assertEqual(Submission.REJECTED, validated_data['status'])
         self.assertEqual(
             INCORRECT_LOCATION, validated_data['comments'])
 
@@ -119,27 +120,7 @@ class TestAPIMethods(MainTestBase):
         instance = self._create_instance()
         user = instance.user
         data = instance.json
-        user.userprofile.expertise = '4'
-
-        task = mommy.make(
-            'main.Task',
-            required_expertise=Task.BEGINNER,
-            target_content_type=self.xform_type,
-            target_object_id=instance.xform.id)
-
-        validated_data = validate_user(data, task, user)
-
-        self.assertEqual('d', validated_data['status'])
-
-    def test_validate_user_with_invalid_data(self):
-        """
-        Test that validate user works the way it should for
-        invalid data
-        """
-        instance = self._create_instance()
-        user = instance.user
-        data = instance.json
-        user.userprofile.expertise = '1'
+        user.userprofile.expertise = UserProfile.ADVANCED
 
         task = mommy.make(
             'main.Task',
@@ -149,8 +130,29 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_user(data, task, user)
 
-        self.assertEqual('b', validated_data['status'])
-        self.assertEqual(LACKING_EXPERTISE, validated_data['comments'])
+        self.assertEqual(Submission.PENDING, validated_data['status'])
+
+    def test_validate_user_with_invalid_data(self):
+        """
+        Test that validate user works the way it should for
+        invalid data
+        """
+        instance = self._create_instance()
+        user = instance.user
+        data = instance.json
+        user.userprofile.expertise = UserProfile.BEGINNER
+
+        task = mommy.make(
+            'main.Task',
+            required_expertise=Task.INTERMEDIATE,
+            target_content_type=self.xform_type,
+            target_object_id=instance.xform.id)
+
+        validated_data = validate_user(data, task, user)
+
+        self.assertEqual(Submission.REJECTED, validated_data['status'])
+        self.assertEqual(
+            LACKING_EXPERTISE, validated_data['comments'])
 
     def test_validate_submission_time(self):
         """
@@ -160,7 +162,7 @@ class TestAPIMethods(MainTestBase):
         instance = self._create_instance()
         data = instance.json
 
-        data['_submission_time'] = "2018-06-18T07:42:07"
+        data['_submission_time'] = "2018-06-18T21:00:00"
 
         task = mommy.make(
             'main.Task',
@@ -170,7 +172,7 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_submission_time(task, data)
 
-        self.assertEqual('d', validated_data['status'])
+        self.assertEqual(Submission.PENDING, validated_data['status'])
 
     def test_validate_submission_time_with_invalid_data(self):
         """
@@ -190,8 +192,9 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_submission_time(task, data)
 
-        self.assertEqual('b', validated_data['status'])
-        self.assertEqual(INVALID_SUBMISSION_TIME, validated_data['comments'])
+        self.assertEqual(Submission.REJECTED, validated_data['status'])
+        self.assertEqual(
+            INVALID_SUBMISSION_TIME, validated_data['comments'])
 
     def test_create_submission(self):
         """
@@ -200,14 +203,33 @@ class TestAPIMethods(MainTestBase):
         """
 
         # Test it creates a Submission Object If Data is Valid
+        instance = self._create_instance()
+        userprofile = instance.user.userprofile
+        data = instance.json
 
-        # Test it calls validate_user
+        userprofile.expertise = '4'
+        data['_submission_time'] = "2018-06-18T21:00:00"
 
-        # Test it calls validate_location if validate_user passes
+        task = mommy.make(
+            'main.Task',
+            timing_rule='FREQ=DAILY;INTERVAL=1;UNTIL=20180618T210000Z',
+            target_content_type=self.xform_type,
+            target_object_id=instance.xform.id)
 
-        # Test it calls validate_submission_time if validate_user
-        # and validate_location passes
-        pass
+        mocked_bounty = mommy.make('main.Bounty', task=task, amount=4000)
+
+        mocked_location = mommy.make(
+            'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
+        task.locations.add(mocked_location)
+
+        submission = create_submission(instance)
+
+        self.assertEqual(Submission.PENDING, submission.status)
+        self.assertEqual(mocked_location, submission.location)
+        self.assertEqual(mocked_bounty, submission.bounty)
+        self.assertEqual(task, submission.task)
+        self.assertEqual(instance.user, submission.user)
+        self.assertTrue(submission.valid)
 
     def test_create_submission_with_invalid_data(self):
         """
@@ -217,4 +239,28 @@ class TestAPIMethods(MainTestBase):
 
         # Test it creates a Submission Object with Rejected as status if
         # Data Fails a validation
-        pass
+
+        instance = self._create_instance()
+        userprofile = instance.user.userprofile
+        data = instance.json
+
+        userprofile.expertise = UserProfile.BEGINNER
+        data['_submission_time'] = "2018-07-18T21:00:00"
+
+        task = mommy.make(
+            'main.Task',
+            timing_rule='FREQ=DAILY;INTERVAL=1;UNTIL=20180618T210000Z',
+            required_expertise=Task.ADVANCED,
+            target_content_type=self.xform_type,
+            target_object_id=instance.xform.id)
+
+        mommy.make('main.Bounty', task=task, amount=4000)
+
+        mocked_location = mommy.make(
+            'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
+        task.locations.add(mocked_location)
+
+        submission = create_submission(instance)
+
+        self.assertEqual(Submission.REJECTED, submission.status)
+        self.assertEqual(LACKING_EXPERTISE, submission.comments)
