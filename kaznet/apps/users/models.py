@@ -18,6 +18,7 @@ from kaznet.apps.users.managers import UserProfileManager
 USER = settings.AUTH_USER_MODEL
 
 
+# pylint: disable=too-many-public-methods
 class UserProfile(TimeStampedModel, models.Model):
     """
     UserProfile model class
