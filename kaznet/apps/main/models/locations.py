@@ -2,6 +2,7 @@
 Module for the Location model(s)
 """
 from django.utils.translation import ugettext as _
+from django.db import models
 
 from tasking.models import BaseLocation
 
@@ -10,6 +11,17 @@ class Location(BaseLocation):
     """
     Location model class
     """
+
+    location_type = models.ForeignKey(
+        'main.LocationType',
+        verbose_name=_('Location Type'),
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        help_text=_('This represents the Location Type')
+    )
+
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods
     class Meta(object):
