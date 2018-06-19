@@ -184,6 +184,13 @@ class UserProfile(TimeStampedModel, models.Model):
             status=Submission.APPROVED).aggregate(amount=Coalesce(
                 Sum('bounty__amount'), V(0)))
 
+    def get_role_display(self):
+        """
+        Custom Method that gets the role in a human-readable format
+        """
+        index = int(self.role) - 1
+        return f'{self.ROLE_CHOICES[index][1]}'
+
     def get_avg_amount_earned(self):
         """
         Returns Average Amount Earned Per Month
@@ -209,6 +216,13 @@ class UserProfile(TimeStampedModel, models.Model):
         Returns the number of rejected submissions for user
         """
         return self.get_rejected_submissions()
+
+    @property
+    def role_display(self):
+        """
+        Returns Role in a Human Readable Format
+        """
+        return self.get_role_display()
 
     @property
     def approval_rate(self):
