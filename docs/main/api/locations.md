@@ -70,18 +70,22 @@ This request will return a response containing the specific location.
 {
     "data": {
         "type": "Location",
-        "id": "24",
+        "id": "1",
         "attributes": {
-            "name": "Sol Point",
-            "country": "CK",
-            "description": "Something",
+            "name": "Here",
+            "country": "KE",
+            "parent_name": "None",
+            "description": "",
             "geopoint": null,
             "radius": null,
             "shapefile": null,
-            "created": "2018-06-13T08:56:51.371899+03:00",
-            "modified": "2018-06-13T08:56:51.371932+03:00"
+            "created": "2018-06-19T16:03:47.411387+03:00",
+            "modified": "2018-06-19T16:03:47.411411+03:00"
         },
         "relationships": {
+            "location_type": {
+                "data": null
+            },
             "parent": {
                 "data": null
             }
