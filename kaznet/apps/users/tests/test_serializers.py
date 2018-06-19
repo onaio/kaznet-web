@@ -125,7 +125,8 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual('Mosh', userprofile.user.first_name)
         self.assertEqual('Pitt', userprofile.user.last_name)
         self.assertEqual('mosh@example.com', userprofile.user.email)
-        self.assertEqual(UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
+        self.assertEqual(
+            UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
         self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
         self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
         self.assertEqual('1337', userprofile.national_id)
