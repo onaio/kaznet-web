@@ -163,15 +163,15 @@ class TestAPIMethods(MainTestBase):
         Test that validate_submission_time works the way
         it should for valid data
         """
-        # TODO Fix test only passes specific times of the day
         instance = self._create_instance()
         data = instance.json
 
-        data['_submission_time'] = "2018-06-18T21:00:00"
+        data['_submission_time'] = "2018-09-01T20:00:00"
+        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
 
         task = mommy.make(
             'main.Task',
-            timing_rule='FREQ=DAILY;INTERVAL=1;UNTIL=20180618T210000Z',
+            timing_rule=rrule,
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
@@ -216,11 +216,13 @@ class TestAPIMethods(MainTestBase):
         data = instance.json
 
         userprofile.expertise = '4'
-        data['_submission_time'] = "2018-06-18T21:00:00"
+        data['_submission_time'] = "2018-09-01T20:00:00"
+
+        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
 
         task = mommy.make(
             'main.Task',
-            timing_rule='FREQ=DAILY;INTERVAL=1;UNTIL=20180618T210000Z',
+            timing_rule=rrule,
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
