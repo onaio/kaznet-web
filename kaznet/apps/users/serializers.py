@@ -21,7 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
         meta options
         """
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = (
+            'username', 'first_name', 'last_name', 'email', 'last_login')
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -31,6 +32,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
+    last_login = serializers.DateTimeField(
+        source='user.last_login', read_only=True)
     submission_count = serializers.SerializerMethodField()
     amount_earned = SerializableAmountField(read_only=True)
 
@@ -53,6 +56,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'rejected_submissions',
             'approval_rate',
             'amount_earned',
+            'last_login',
             'avg_submissions',
             'avg_approved_submissions',
             'avg_rejected_submissions',

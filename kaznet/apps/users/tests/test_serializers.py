@@ -60,6 +60,7 @@ class TestUserProfileSerializer(TestCase):
             'payment_number',
             'phone_number',
             'approval_rate',
+            'last_login',
             'avg_submissions',
             'avg_rejected_submissions',
             'avg_amount_earned',
