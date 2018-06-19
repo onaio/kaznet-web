@@ -31,3 +31,19 @@ class Location(BaseLocation):
             return _(f"{self.country.name} - {self.name}")
         else:
             return _(f"{self.name}")
+
+    def get_parent_name(self):
+        """
+        Custom method to get parent name
+        """
+        try:
+            return self.parent.name
+        except AttributeError:
+            return 'None'
+
+    @property
+    def parent_name(self):
+        """
+        Returns the parent locations name
+        """
+        return self.get_parent_name()
