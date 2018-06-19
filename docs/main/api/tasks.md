@@ -53,68 +53,60 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
         "next": null,
         "prev": null
     },
-    "data": [{
-        "type": "Task",
-        "id": "1",
-        "attributes": {
-            "created": "2018-06-12T17:49:47.212435+03:00",
-            "modified": "2018-06-12T18:04:49.862558+03:00",
-            "name": "Kaznet",
-            "estimated_time": "4 01:15:20",
-            "approved_submissions_count": 0,
-            "pending_submissions_count": 0,
-            "rejected_submissions_count": 0,
-            "total_bounty_payout": "0 KES",
-            "current_bounty_amount": null,
-            "description": "This is it",
-            "start": "2018-06-12T17:48:34+03:00",
-            "end": null,
-            "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
-            "total_submission_target": 100,
-            "user_submission_target": 100,
-            "status": "d",
-            "submission_count": 0,
-            "target_id": 1
-        },
-        "relationships": {
-            "parent": {
-                "data": null
+    "data": [
+        {
+            "type": "Task",
+            "id": "1",
+            "attributes": {
+                "created": "2018-06-19T16:31:14.774639+03:00",
+                "modified": "2018-06-19T16:31:14.774662+03:00",
+                "name": "Here",
+                "estimated_time": null,
+                "approved_submissions_count": 0,
+                "pending_submissions_count": 0,
+                "rejected_submissions_count": 0,
+                "total_bounty_payout": "0 KES",
+                "current_bounty_amount": null,
+                "description": "",
+                "xform_title": "N/A",
+                "status_display": "Draft",
+                "start": "2018-06-19T16:31:01+03:00",
+                "end": null,
+                "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+                "total_submission_target": null,
+                "user_submission_target": null,
+                "status": "d",
+                "submission_count": 0,
+                "target_id": null
             },
-            "client": {
-                "data": {
-                    "type": "Client",
-                    "id": "1"
-                }
-            },
-            "bounty": {
-                "data": null
-            },
-            "target_content_type": {
-                "data": {
-                    "type": "ContentType",
-                    "id": "4"
-                }
-            },
-            "segment_rules": {
-                "data": [{
-                    "type": "SegmentRule",
-                    "id": "1"
-                }],
-                "meta": {
-                    "count": 1
-                }
-            },
-            "locations": {
-                "data": [{
-                    "type": "Location",
-                    "id": "1"
-                }],
-                "meta": {
-                    "count": 1
+            "relationships": {
+                "parent": {
+                    "data": null
+                },
+                "client": {
+                    "data": null
+                },
+                "bounty": {
+                    "data": null
+                },
+                "target_content_type": {
+                    "data": null
+                },
+                "segment_rules": {
+                    "data": [],
+                    "meta": {
+                        "count": 0
+                    }
+                },
+                "locations": {
+                    "data": [],
+                    "meta": {
+                        "count": 0
+                    }
                 }
             }
         }
-    }],
+    ],
     "meta": {
         "pagination": {
             "page": 1,
@@ -197,60 +189,50 @@ This request returns a response containing the specific task.
         "type": "Task",
         "id": "1",
         "attributes": {
-            "created": "2018-06-12T17:49:47.212435+03:00",
-            "modified": "2018-06-12T18:04:49.862558+03:00",
-            "name": "Kaznet",
-            "estimated_time": "4 01:15:20",
+            "created": "2018-06-19T16:31:14.774639+03:00",
+            "modified": "2018-06-19T16:31:14.774662+03:00",
+            "name": "Here",
+            "estimated_time": null,
             "approved_submissions_count": 0,
             "pending_submissions_count": 0,
             "rejected_submissions_count": 0,
             "total_bounty_payout": "0 KES",
             "current_bounty_amount": null,
-            "description": "This is it",
-            "start": "2018-06-12T17:48:34+03:00",
+            "description": "",
+            "xform_title": "N/A",
+            "status_display": "Draft",
+            "start": "2018-06-19T16:31:01+03:00",
             "end": null,
             "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
-            "total_submission_target": 100,
-            "user_submission_target": 100,
+            "total_submission_target": null,
+            "user_submission_target": null,
             "status": "d",
             "submission_count": 0,
-            "target_id": 1
+            "target_id": null
         },
         "relationships": {
             "parent": {
                 "data": null
             },
             "client": {
-                "data": {
-                    "type": "Client",
-                    "id": "1"
-                }
+                "data": null
             },
             "bounty": {
                 "data": null
             },
             "target_content_type": {
-                "data": {
-                    "type": "ContentType",
-                    "id": "4"
-                }
+                "data": null
             },
             "segment_rules": {
-                "data": [{
-                    "type": "SegmentRule",
-                    "id": "1"
-                }],
+                "data": [],
                 "meta": {
-                    "count": 1
+                    "count": 0
                 }
             },
             "locations": {
-                "data": [{
-                    "type": "Location",
-                    "id": "1"
-                }],
+                "data": [],
                 "meta": {
-                    "count": 1
+                    "count": 0
                 }
             }
         }
