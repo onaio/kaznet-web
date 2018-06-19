@@ -15,7 +15,7 @@ class LocationType(BaseLocationType):
         Meta options for LocationType
         """
         abstract = False
-        ordering = ['name']
+        ordering = ['name', 'id']
         app_label = 'main'
 
     def __str__(self):
