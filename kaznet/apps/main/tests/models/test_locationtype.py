@@ -16,7 +16,7 @@ class TestLocationTypes(TestCase):
         Test the str method on LocationType model
         """
         waterfront = mommy.make(
-            'tasking.LocationType',
+            'main.LocationType',
             name="Waterfront")
         expected = 'Waterfront'
         self.assertEqual(expected, waterfront.__str__())
