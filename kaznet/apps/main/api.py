@@ -94,9 +94,6 @@ def validate_location(data: dict, task: object):
         try:
             location = Location.objects.get(
                 task=task, shapefile__contains=submission_point)
-            data['location'] = location
-            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
-            return data
         except Location.DoesNotExist:  # pylint: disable=no-member
             locations = task.locations.all()
             for location in locations:
@@ -116,6 +113,10 @@ def validate_location(data: dict, task: object):
 
             data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
             data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
+            return data
+        else:
+            data['location'] = location
+            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
             return data
 
     data[settings.ONA_STATUS_FIELD] = Submission.REJECTED

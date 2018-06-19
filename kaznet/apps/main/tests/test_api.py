@@ -163,6 +163,7 @@ class TestAPIMethods(MainTestBase):
         Test that validate_submission_time works the way
         it should for valid data
         """
+        # TODO Fix test only passes specific times of the day
         instance = self._create_instance()
         data = instance.json
 
