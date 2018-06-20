@@ -1,13 +1,31 @@
 """
 Serializers for users app
 """
+from django.conf import settings
 from django.contrib.auth.models import User
 
 from rest_framework_json_api import serializers
 
+from kaznet.apps.main.serializers.bounty import SerializableAmountField
 from kaznet.apps.users.models import UserProfile
 
-from kaznet.apps.main.serializers.bounty import SerializableAmountField
+
+class SerializableAvgAmountEarnedField(serializers.Field):
+    """
+    Custom Field for Avg Amount Earned
+    """
+
+    def to_representation(self, value):
+        """
+        Custom to representation for SerializableAvgAmountEarned Field
+        """
+        return f'{value} {settings.KAZNET_DEFAULT_CURRENCY}'
+
+    def to_internal_value(self, data):
+        """
+        Custom to_internal_value for SerializableAvgAmountEarned Field
+        """
+        return data
 
 
 # pylint: disable=too-many-ancestors
@@ -36,6 +54,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         source='user.last_login', read_only=True)
     submission_count = serializers.SerializerMethodField()
     amount_earned = SerializableAmountField(read_only=True)
+    avg_amount_earned = SerializableAvgAmountEarnedField(read_only=True)
 
     class Meta(object):  # pylint:  disable=too-few-public-methods
         """
