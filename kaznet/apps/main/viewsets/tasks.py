@@ -4,6 +4,8 @@ Main Tasks viewset module
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -21,6 +23,7 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     Main Task Viewset class
     """
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
     serializer_class = KaznetTaskSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [

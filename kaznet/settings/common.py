@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     # third party
     'rest_framework',
+    'rest_framework.authtoken',
     'django_prices',
     'django_filters',
     'rest_framework_gis',  # Required for CountryField in Location Model
