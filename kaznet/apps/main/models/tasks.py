@@ -99,6 +99,29 @@ class Task(BaseTask):
         """
         return self.bounty_set.all().order_by('-created').first()
 
+    def get_xform_title(self):
+        """
+        Custom Method to get xform title
+        """
+        try:
+            return self.target_content_object.title
+        except AttributeError:
+            return ''
+
+    @property
+    def status_display(self):
+        """
+        Human Readable Status
+        """
+        return self.get_status_display()
+
+    @property
+    def xform_title(self):
+        """
+        Title of Xform
+        """
+        return self.get_xform_title()
+
     @property
     def submissions(self):
         """
