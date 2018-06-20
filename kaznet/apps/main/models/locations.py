@@ -53,9 +53,25 @@ class Location(BaseLocation):
         except AttributeError:
             return 'None'
 
+    def get_location_type_name(self):
+        """
+        Custom method to get location_type name
+        """
+        try:
+            return self.location_type.name
+        except AttributeError:
+            return 'None'
+
     @property
     def parent_name(self):
         """
         Returns the parent locations name
         """
         return self.get_parent_name()
+
+    @property
+    def location_type_name(self):
+        """
+        Returns the location types name
+        """
+        return self.get_location_type_name()
