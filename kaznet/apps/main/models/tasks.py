@@ -106,14 +106,7 @@ class Task(BaseTask):
         try:
             return self.target_content_object.title
         except AttributeError:
-            return 'N/A'
-
-    def get_status_display(self):
-        """
-        Custom Method to get status_display
-        """
-        index = int(self.status) - 1
-        return self.STATUS_CHOICES[index]
+            return ''
 
     @property
     def status_display(self):
