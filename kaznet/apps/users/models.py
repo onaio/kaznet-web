@@ -185,13 +185,6 @@ class UserProfile(TimeStampedModel, models.Model):
             status=Submission.APPROVED).aggregate(amount=Coalesce(
                 Sum('bounty__amount'), V(0)))
 
-    def get_role_display(self):
-        """
-        Custom Method that gets the role in a human-readable format
-        """
-        index = int(self.role) - 1
-        return f'{self.ROLE_CHOICES[index][1]}'
-
     def get_avg_amount_earned(self):
         """
         Returns Average Amount Earned Per Month
