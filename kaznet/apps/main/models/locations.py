@@ -72,6 +72,6 @@ class Location(BaseLocation):
     @property
     def location_type_name(self):
         """
-        Returns the location types name
+        Returns the location_types name
         """
         return self.get_location_type_name()
