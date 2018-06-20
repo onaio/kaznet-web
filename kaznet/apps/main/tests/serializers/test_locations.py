@@ -49,6 +49,7 @@ class TestLocationSerializer(TestCase):
             'country',
             'description',
             'parent_name',
+            'location_type_name',
             'location_type',
             'created',
             'geopoint',

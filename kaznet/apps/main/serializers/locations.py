@@ -64,6 +64,7 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
             'country',
             'parent_name',
             'location_type',
+            'location_type_name',
             'description',
             'geopoint',
             'radius',
