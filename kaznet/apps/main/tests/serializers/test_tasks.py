@@ -177,6 +177,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'current_bounty_amount',
             'bounty',
             'start',
+            'required_expertise',
             'client',
             'end',
             'status_display',

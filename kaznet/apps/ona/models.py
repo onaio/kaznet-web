@@ -46,7 +46,7 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
-    tasks = GenericRelation(
+    task = GenericRelation(
         'main.Task',
         content_type_field='target_content_type',
         object_id_field='target_object_id'
@@ -109,8 +109,7 @@ class Instance(TimeStampedModel, models.Model):
         Get the task for this submission
         This might return None or might return a task
         """
-        xform = self.xform
-        return xform.tasks.first()  # pylint: disable=no-member
+        return self.xform.task.first()  # pylint: disable=no-member
 
 
 class Project(TimeStampedModel, models.Model):
