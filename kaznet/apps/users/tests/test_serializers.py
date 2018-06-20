@@ -54,12 +54,14 @@ class TestUserProfileSerializer(TestCase):
             'modified',
             'first_name',
             'last_name',
+            'role_display',
             'email',
             'ona_pk',
             'ona_username',
             'payment_number',
             'phone_number',
             'approval_rate',
+            'last_login',
             'avg_submissions',
             'avg_rejected_submissions',
             'avg_amount_earned',
@@ -108,6 +110,7 @@ class TestUserProfileSerializer(TestCase):
         expected_data['last_name'] = 'Pitt'
         expected_data['email'] = 'mosh@example.com'
         expected_data['role'] = UserProfile.CONTRIBUTOR
+        expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
         expected_data['expertise'] = UserProfile.INTERMEDIATE
         expected_data['national_id'] = '1337'
         expected_data['payment_number'] = '+254722111111'
@@ -122,6 +125,8 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual('Mosh', userprofile.user.first_name)
         self.assertEqual('Pitt', userprofile.user.last_name)
         self.assertEqual('mosh@example.com', userprofile.user.email)
+        self.assertEqual(
+            UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
         self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
         self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
         self.assertEqual('1337', userprofile.national_id)

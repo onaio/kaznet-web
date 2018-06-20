@@ -18,6 +18,7 @@ from kaznet.apps.users.managers import UserProfileManager
 USER = settings.AUTH_USER_MODEL
 
 
+# pylint: disable=too-many-public-methods
 class UserProfile(TimeStampedModel, models.Model):
     """
     UserProfile model class
@@ -209,6 +210,13 @@ class UserProfile(TimeStampedModel, models.Model):
         Returns the number of rejected submissions for user
         """
         return self.get_rejected_submissions()
+
+    @property
+    def role_display(self):
+        """
+        Returns Role in a Human Readable Format
+        """
+        return self.get_role_display()
 
     @property
     def approval_rate(self):
