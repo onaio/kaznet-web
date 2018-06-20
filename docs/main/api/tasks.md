@@ -58,25 +58,25 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
             "type": "Task",
             "id": "1",
             "attributes": {
-                "created": "2018-06-19T16:31:14.774639+03:00",
-                "modified": "2018-06-19T16:31:14.774662+03:00",
-                "name": "Here",
+                "created": "2018-06-20T14:51:34.857279+03:00",
+                "modified": "2018-06-20T14:51:34.857305+03:00",
+                "name": "Numbero Uno",
                 "estimated_time": null,
-                "approved_submissions_count": 0,
+                "approved_submissions_count": 1,
                 "pending_submissions_count": 0,
                 "rejected_submissions_count": 0,
-                "total_bounty_payout": "0 KES",
-                "current_bounty_amount": null,
+                "total_bounty_payout": "40000.00 KES",
+                "current_bounty_amount": "40000.00 KES",
                 "description": "",
-                "xform_title": "N/A",
-                "status_display": "Draft",
-                "start": "2018-06-19T16:31:01+03:00",
+                "xform_title": "",
+                "status_display": "Active",
+                "start": "2018-06-20T14:51:21+03:00",
                 "end": null,
-                "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+                "timing_rule": "FREQ=HOURLY;INTERVAL=1;UNTIL=20180620T210000Z",
                 "total_submission_target": null,
                 "user_submission_target": null,
-                "status": "d",
-                "submission_count": 0,
+                "status": "a",
+                "submission_count": 1,
                 "target_id": null
             },
             "relationships": {
@@ -87,7 +87,10 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
                     "data": null
                 },
                 "bounty": {
-                    "data": null
+                    "data": {
+                        "type": "Bounty",
+                        "id": "1"
+                    }
                 },
                 "target_content_type": {
                     "data": null
@@ -115,6 +118,11 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
         }
     }
 }
+
+    HTML form
+    Raw data
+
+
 ```
 
 Returns a list of all tasks with specific locations if given `locations` query parameter. The `locations` query parameter takes an *integer* which is the unique identifier for a location object.
@@ -189,25 +197,25 @@ This request returns a response containing the specific task.
         "type": "Task",
         "id": "1",
         "attributes": {
-            "created": "2018-06-19T16:31:14.774639+03:00",
-            "modified": "2018-06-19T16:31:14.774662+03:00",
-            "name": "Here",
+            "created": "2018-06-20T14:51:34.857279+03:00",
+            "modified": "2018-06-20T14:51:34.857305+03:00",
+            "name": "Numbero Uno",
             "estimated_time": null,
-            "approved_submissions_count": 0,
+            "approved_submissions_count": 1,
             "pending_submissions_count": 0,
             "rejected_submissions_count": 0,
-            "total_bounty_payout": "0 KES",
-            "current_bounty_amount": null,
+            "total_bounty_payout": "40000.00 KES",
+            "current_bounty_amount": "40000.00 KES",
             "description": "",
-            "xform_title": "N/A",
-            "status_display": "Draft",
-            "start": "2018-06-19T16:31:01+03:00",
+            "xform_title": "",
+            "status_display": "Active",
+            "start": "2018-06-20T14:51:21+03:00",
             "end": null,
-            "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+            "timing_rule": "FREQ=HOURLY;INTERVAL=1;UNTIL=20180620T210000Z",
             "total_submission_target": null,
             "user_submission_target": null,
-            "status": "d",
-            "submission_count": 0,
+            "status": "a",
+            "submission_count": 1,
             "target_id": null
         },
         "relationships": {
@@ -218,7 +226,10 @@ This request returns a response containing the specific task.
                 "data": null
             },
             "bounty": {
-                "data": null
+                "data": {
+                    "type": "Bounty",
+                    "id": "1"
+                }
             },
             "target_content_type": {
                 "data": null
