@@ -75,6 +75,7 @@ This request will return a response containing the specific location.
             "name": "Here",
             "country": "KE",
             "parent_name": "None",
+            "location_type_name": "None",
             "description": "",
             "geopoint": null,
             "radius": null,
