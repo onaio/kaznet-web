@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
+"""
+Ona admin module
+"""
 from django.contrib import admin
 
-from .models import XForm, Instance, Project
+from kaznet.apps.ona.models import Instance, Project, XForm
 
 
 @admin.register(XForm)
