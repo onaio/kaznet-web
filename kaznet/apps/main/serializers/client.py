@@ -19,5 +19,5 @@ class ClientSerializer(serializers.ModelSerializer):
         Meta options for ClientSerializer
         """
 
-        fields = ['name', 'id']
+        fields = ['name', 'id', 'created']
         model = Client
