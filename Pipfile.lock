@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1bab609025bd9cae7e3a080a50751190624ff814cf1713e5abde97cc80e7ed1a"
+            "sha256": "0bc2f46fc12038d13150ed29e43697a649c6d16fbdbfc493a285646ca97301e3"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -227,6 +227,13 @@
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
             "ref": "v0.0.9"
+        },
+        "phonenumberslite": {
+            "hashes": [
+                "sha256:0054c94d53e7b12cfb95290118cb5108b04270d8fd62851a06a474aad7b1b8d0",
+                "sha256:76d44fd38ec9aec918f65d02b0f18ca4d429f2771d4d3ab8405537b4b35a1005"
+            ],
+            "version": "==8.9.8"
         },
         "prices": {
             "hashes": [
@@ -731,6 +738,14 @@
                 "sha256:f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"
             ],
             "version": "==0.1.7"
+        },
+        "werkzeug": {
+            "hashes": [
+                "sha256:c3fd7a7d41976d9f44db327260e263132466836cef6f91512889ed60ad26557c",
+                "sha256:d5da73735293558eb1651ee2fddc4d0dedcfa06538b8813a2e20011583c9e49b"
+            ],
+            "index": "pypi",
+            "version": "==0.14.1"
         },
         "wrapt": {
             "hashes": [

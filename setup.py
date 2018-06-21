@@ -18,6 +18,7 @@ setup(
         'psycopg2-binary',
         'django-prices',
         'django-phonenumber-field',
+        'phonenumberslite',
         'django-allauth',
         'requests',
         'celery',
