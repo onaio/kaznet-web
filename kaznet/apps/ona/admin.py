@@ -1,5 +1,5 @@
 """
-Ona admin module
+Ona Admin module
 """
 from django.contrib import admin
 
