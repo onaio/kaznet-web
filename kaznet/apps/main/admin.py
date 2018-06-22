@@ -4,9 +4,8 @@ URLs module for main Kaznet app
 """
 from django.contrib import admin
 
-from kaznet.apps.main.models import (Bounty, Client, Location, Project,
-                                     Submission, Task,
-                                     TaskOccurrence)
+from kaznet.apps.main.models import (Bounty, Client, Location, LocationType,
+                                     Project, Submission, Task, TaskOccurrence)
 
 
 @admin.register(Location)
@@ -124,6 +123,16 @@ class BountyAdmin(admin.ModelAdmin):
 class ClientAdmin(admin.ModelAdmin):
     """
     Admin Definition for Client Model
+    """
+    list_display = ('id', 'name')
+    list_filter = ('created', 'modified')
+    search_fields = ('name',)
+
+
+@admin.register(LocationType)
+class LocationTypeAdmin(admin.ModelAdmin):
+    """
+    Admin definition for LocationType
     """
     list_display = ('id', 'name')
     list_filter = ('created', 'modified')
