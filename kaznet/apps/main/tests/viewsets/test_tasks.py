@@ -24,7 +24,7 @@ class TestKaznetTaskViewSet(MainTestBase):
     """
 
     def setUp(self):
-        super(TestKaznetTaskViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def _create_task(self):

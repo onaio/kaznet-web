@@ -3,7 +3,8 @@ Model Serializers for Ona app
 """
 
 from rest_framework_json_api import serializers
-from kaznet.apps.ona.models import XForm, Instance, Project
+
+from kaznet.apps.ona.models import Instance, Project, XForm
 
 
 # pylint: disable=too-many-ancestors
@@ -11,9 +12,9 @@ class XFormSerializer(serializers.ModelSerializer):
     """
     Serializer for XForm Model
     """
+    has_task = serializers.SerializerMethodField()
 
-    # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta(object):  # pylint: disable=too-few-public-methods
         """
         Meta Options for XForm Serializer
         """
@@ -27,8 +28,15 @@ class XFormSerializer(serializers.ModelSerializer):
             'id_string',
             'created',
             'modified',
-            'deleted_at'
+            'deleted_at',
+            'has_task'
         ]
+
+    def get_has_task(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the form's task
+        """
+        return obj.task.exists()
 
 
 class InstanceSerializer(serializers.ModelSerializer):

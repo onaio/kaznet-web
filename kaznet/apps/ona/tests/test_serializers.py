@@ -2,35 +2,39 @@
 Module containing Tests for Ona Apps
 serializers.py
 """
-
 from django.test import TestCase
 from django.utils.text import slugify
 
 from model_mommy import mommy
-
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.serializers import (InstanceSerializer, ProjectSerializer,
                                          XFormSerializer)
 
 
-class TestXFormSerializer(TestCase):
+class TestXFormSerializer(MainTestBase):
     """
     Tests for XFromSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_serializer_output(self):
         """
         Test that we get fields we are exprecting
         """
         mocked_idstring = slugify('Solar Flare')
-        mocked_data = {
-            'id': 45,
-            'ona_pk': 596,
-            'project_id': 54,
-            'title': 'Solar Flare',
-            'id_string': mocked_idstring
-        }
+        xform = mommy.make(
+            'ona.XForm',
+            id=45,
+            ona_pk=596,
+            project_id=54,
+            title='Solar Flare',
+            id_string=mocked_idstring
+        )
 
-        serializer_data = XFormSerializer(mocked_data).data
+        serializer_instance = XFormSerializer(xform)
+        serializer_data = serializer_instance.data
         expected_fields = {
             'id',
             'ona_pk',
@@ -39,15 +43,37 @@ class TestXFormSerializer(TestCase):
             'id_string',
             'deleted_at',
             'title',
+            'has_task',
+            'created',
+            'modified'
         }
 
         self.assertEqual(set(expected_fields),
                          set(list(serializer_data.keys())))
 
         self.assertEqual(596, serializer_data['ona_pk'])
+        self.assertEqual(False, serializer_data['has_task'])
         self.assertEqual(54, serializer_data['project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
+
+    def test_has_task(self):
+        """
+        Test XFormSerializer has_task
+        """
+        xform = mommy.make(
+            'ona.XForm',
+            id=45,
+            ona_pk=596,
+            project_id=54,
+            title='Coconut',
+            id_string='coconut'
+        )
+        serializer_instance1 = XFormSerializer(xform)
+        self.assertEqual(False, serializer_instance1.data['has_task'])
+        mommy.make('main.Task', target_content_object=xform)
+        serializer_instance2 = XFormSerializer(xform)
+        self.assertEqual(True, serializer_instance2.data['has_task'])
 
 
 class TestInstanceSerializer(TestCase):
