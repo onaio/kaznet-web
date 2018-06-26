@@ -118,3 +118,45 @@ class TestXFormViewSet(TestCase):
             'You shall not pass.',
             response.data[0]['detail']
         )
+
+    def test_has_task_filter(self):
+        """
+        Test that we can filter XForms by has_task
+        """
+        user = create_admin_user()
+        mommy.make('ona.XForm', _quantity=5)
+        xform = mommy.make(
+            'ona.XForm',
+            ona_pk=596,
+            project_id=54,
+            title='Coconut',
+            id_string='coconut'
+        )
+
+        view = XFormViewSet.as_view({'get': 'list'})
+
+        # assert that there are no XForms which have a task
+        request = self.factory.get('/xforms', {'has_task': 1})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+        # assert that there are 6 XForms which dont have a task
+        request = self.factory.get('/xforms', {'has_task': 0})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 6)
+
+        # Add a task to mocked_xform and assert when we filter we get it back
+        mommy.make('main.Task', target_content_object=xform)
+        request = self.factory.get('/xforms', {'has_task': 1})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], xform.id)

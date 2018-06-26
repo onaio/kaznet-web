@@ -12,7 +12,6 @@ class XFormSerializer(serializers.ModelSerializer):
     """
     Serializer for XForm Model
     """
-    has_task = serializers.SerializerMethodField()
 
     class Meta(object):  # pylint: disable=too-few-public-methods
         """
@@ -31,12 +30,6 @@ class XFormSerializer(serializers.ModelSerializer):
             'deleted_at',
             'has_task'
         ]
-
-    def get_has_task(self, obj):  # pylint: disable=no-self-use
-        """
-        Get the form's task
-        """
-        return obj.task.exists()
 
 
 class InstanceSerializer(serializers.ModelSerializer):
