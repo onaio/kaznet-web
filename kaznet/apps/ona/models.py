@@ -69,7 +69,7 @@ class XForm(TimeStampedModel, models.Model):
         """
         Custom method that returns whether task has_task or not
         """
-        return self.task.exists()
+        return self.task.exists()  # pylint: disable=no-member
 
     @property
     def has_task(self):
@@ -77,7 +77,6 @@ class XForm(TimeStampedModel, models.Model):
         Returns the has_task property for XForm
         """
         return self.get_has_task()
-
 
 
 class Instance(TimeStampedModel, models.Model):

@@ -25,6 +25,8 @@ class XFormFilterSet(filters.FilterSet):
         model = XForm
         fields = ['has_task']
 
+    # pylint: disable=unused-argument
+    # pylint: disable=no-self-use
     def filter_has_task(self, queryset, name, value):
         """
         Method to filter has_task
