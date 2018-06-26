@@ -86,19 +86,22 @@ class TestInstanceSerializer(TestCase):
         Test that we get the fields we are expecting
         """
         mocked_xform = mommy.make('ona.XForm')
-        mocked_data = {
-            'id': 34,
-            'ona_pk': 596,
-            'xform': mocked_xform,
-            'json': dict
-        }
+        mocked_instance = mommy.make(
+            'ona.Instance',
+            id=34,
+            ona_pk=596,
+            xform=mocked_xform,
+            json={}
+            )
 
-        serializer_data = InstanceSerializer(mocked_data).data
+        serializer_data = InstanceSerializer(mocked_instance).data
 
         expected_fields = {
             'id',
             'ona_pk',
             'xform',
+            'modified',
+            'created',
             'last_updated',
             'json',
             'deleted_at'
@@ -108,7 +111,7 @@ class TestInstanceSerializer(TestCase):
                          set(list(serializer_data.keys())))
         self.assertEqual(596, serializer_data['ona_pk'])
         self.assertEqual(str(mocked_xform.id), serializer_data['xform']['id'])
-        self.assertEqual(dict, serializer_data['json'])
+        self.assertEqual({}, serializer_data['json'])
 
 
 class TestProjectSerializer(TestCase):
@@ -120,14 +123,15 @@ class TestProjectSerializer(TestCase):
         """
         Test that we get the fields we are expecting
         """
-        mocked_data = {
-            'id': 1,
-            'ona_pk': 59,
-            'organization': 12,
-            'name': 'Project Zero'
-        }
+        mocked_project = mommy.make(
+            'ona.Project',
+            id=1,
+            ona_pk=59,
+            organization=12,
+            name='Project Zero'
+        )
 
-        serializer_data = ProjectSerializer(mocked_data).data
+        serializer_data = ProjectSerializer(mocked_project).data
 
         expected_fields = {
             'id',
@@ -135,6 +139,8 @@ class TestProjectSerializer(TestCase):
             'organization',
             'last_updated',
             'name',
+            'created',
+            'modified',
             'deleted_at'
         }
 
