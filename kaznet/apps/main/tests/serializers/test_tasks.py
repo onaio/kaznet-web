@@ -172,6 +172,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'xform_title',
             'approved_submissions_count',
             'pending_submissions_count',
+            'required_expertise_display',
             'rejected_submissions_count',
             'total_bounty_payout',
             'current_bounty_amount',
