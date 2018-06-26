@@ -12,10 +12,10 @@ Returns a list of all XForms.
 curl -X GET https://example.com/api/v1/xforms/
 ```
 
-Returns a list of all XForms filtered by `has_task` if given `has_task` query parameter. The `has_task` query parameter takes either *1* for *True* or *0* for *False*.
+Returns a list of all XForms filtered by `has_task` if given `has_task` query parameter. The `has_task` query parameter takes either *true* or *false*.
 
 ```console
-curl -X GET https://example.com/api/v1/xforms/?has_task=0
+curl -X GET https://example.com/api/v1/xforms/?has_task=false
 ```
 
 ### GET /api/v1/xforms/[pk]/
