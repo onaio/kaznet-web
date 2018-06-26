@@ -1,7 +1,7 @@
 """
 Filters module for ona Kaznet app
 """
-from django.db.models import Case, IntegerField, Value, When
+from django.db.models import Case, BooleanField, When
 
 from django_filters import rest_framework as filters
 
@@ -32,6 +32,6 @@ class XFormFilterSet(filters.FilterSet):
         Method to filter has_task
         """
         return queryset.annotate(task_present=Case(
-            When(task=None, then=Value(0)), default=Value(1),
-            output_field=IntegerField()
+            When(task=None, then=False), default=True,
+            output_field=BooleanField()
             )).filter(task_present=value)
