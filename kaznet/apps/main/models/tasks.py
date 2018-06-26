@@ -142,6 +142,13 @@ class Task(BaseTask):
         return self.get_xform_title()
 
     @property
+    def required_expertise_display(self):
+        """
+        Human Readable Required Expertise
+        """
+        return self.get_required_expertise_display()
+
+    @property
     def submissions(self):
         """
         Number of Submissions made for this task
