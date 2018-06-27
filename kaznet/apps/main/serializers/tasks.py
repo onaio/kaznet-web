@@ -80,11 +80,13 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         """
         Validate timing rule
         """
-        if validate_rrule(value) is True:
-            return value
-        raise serializers.ValidationError(
-            {'timing_rule': INVALID_TIMING_RULE}
-        )
+        if value is not None:
+            if validate_rrule(value) is True:
+                return value
+            raise serializers.ValidationError(
+                {'timing_rule': INVALID_TIMING_RULE}
+            )
+        return None;
 
     def validate(self, attrs):
         """
