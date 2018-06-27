@@ -1,9 +1,12 @@
 """
 Main Tasks serializer module
 """
+from django.utils import timezone
+
 from dateutil.rrule import rrulestr
 from rest_framework_json_api import serializers
-from tasking.common_tags import INVALID_TIMING_RULE
+from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
+                                 INVALID_TIMING_RULE)
 from tasking.utils import get_rrule_end, get_rrule_start
 from tasking.validators import validate_rrule
 
@@ -109,6 +112,24 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             # We try to set the end_date to the timing rules end
             if end_time is None:
                 attrs['end'] = get_rrule_end(rrulestr(timing_rule))
+
+        target_id = attrs.get('target_object_id')
+        end_date = attrs.get('end')
+        start_date = attrs.get('start')
+
+        # If end date is present we validate that it is greater than start_date
+        if end_date is not None:
+            # If end date is lesser than the start date raise an error
+            if end_date < start_date:
+                raise serializers.ValidationError(
+                    {'end': INVALID_END_DATE, 'start': INVALID_START_DATE}
+                )
+
+        if start_date > timezone.now():
+            attrs['status'] = Task.SCHEDULED
+
+        if target_id is None:
+            attrs['status'] = Task.DRAFT
 
         return super().validate(attrs)
 

@@ -67,7 +67,6 @@ class Task(BaseTask):
         This is the meta options class for the Task model
         """
         abstract = False
-        unique_together = ('target_content_type', 'target_object_id')
         ordering = ['start', 'name', 'id']
         app_label = 'main'
 
