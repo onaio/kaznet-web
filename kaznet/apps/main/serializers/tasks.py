@@ -103,8 +103,12 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
         if timing_rule is not None:
             # get start and end values from timing_rule
+            end_time = attrs.get('end')
             attrs['start'] = get_rrule_start(rrulestr(timing_rule))
-            attrs['end'] = get_rrule_end(rrulestr(timing_rule))
+            # If the user did not set the end_time and passed the timing_rule
+            # We try to set the end_date to the timing rules end
+            if end_time is None:
+                attrs['end'] = get_rrule_end(rrulestr(timing_rule))
 
         return super().validate(attrs)
 
