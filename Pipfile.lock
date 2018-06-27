@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dd1be2956850d06edb93368afe740d8e2448ecca82fc4c9fd68666608d6ba6f3"
+            "sha256": "aed70ee64407ac700c9cbe6e656492f1d9990d4b3f85ca423df429dae16ee2a1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -106,10 +106,10 @@
         },
         "django-cors-headers": {
             "hashes": [
-                "sha256:0e9532628b3aa8806442d4d0b15e56112e6cfbef3735e13401935c98b842a2b4",
-                "sha256:c7ec4816ec49416517b84f317499d1519db62125471922ab78d670474ed9b987"
+                "sha256:0598467ca54baf7be4aec7927d5657e4d9e173d9709cd9fb105b32aea9b80ecf",
+                "sha256:82e584102859b62d74d73095e8ab9f787bdd0dcb0ce92437118b975fc28ec3c1"
             ],
-            "version": "==2.2.0"
+            "version": "==2.2.1"
         },
         "django-countries": {
             "hashes": [
@@ -226,7 +226,7 @@
         "ona-tasking": {
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
-            "ref": "v0.1.0"
+            "ref": "v0.1.1"
         },
         "phonenumberslite": {
             "hashes": [
