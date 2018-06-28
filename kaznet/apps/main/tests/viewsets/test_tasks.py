@@ -1,8 +1,6 @@
 """
 Tests module for main Task viewsets.
 """
-
-import time
 from datetime import timedelta
 
 from django.utils import six, timezone
