@@ -36,6 +36,7 @@ It can take additional optional inputs in the content such as:
 - `estimated_time`: *string*, is a [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) *string*.
 - `client`: *integer*, is the unique identifier for a client object.
 - `amount`: *integer*, is the bounty of the task.
+- `required_expertise`: *string*, can be either '1' for BEGINNER, '2' for INTERMEDIATE, '3' for ADVANCED or '4' for EXPERT.
 
 ### GET /api/v1/tasks/
 
