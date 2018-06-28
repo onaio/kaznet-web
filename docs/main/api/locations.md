@@ -70,25 +70,73 @@ This request will return a response containing the specific location.
 {
     "data": {
         "type": "Location",
-        "id": "1",
+        "id": "3",
         "attributes": {
-            "name": "Here",
+            "name": "Super Location",
             "country": "KE",
-            "parent_name": "None",
-            "location_type_name": "None",
-            "description": "",
-            "geopoint": null,
-            "radius": null,
-            "shapefile": null,
-            "created": "2018-06-19T16:03:47.411387+03:00",
-            "modified": "2018-06-19T16:03:47.411411+03:00"
+            "parent_name": "Nairobi",
+            "location_type_name": "Area",
+            "description": "SUPER LOCATION!!!",
+            "geopoint": {
+                "type": "Point",
+                "coordinates": [
+                    -0.039825439453125,
+                    0.002403259276627
+                ]
+            },
+            "radius": "45.0000",
+            "shapefile": {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [
+                        [
+                            [
+                                -0.055961608886719,
+                                -0.005836486806321
+                            ],
+                            [
+                                -0.036735534667969,
+                                0.024032592068727
+                            ],
+                            [
+                                0.023345947265625,
+                                0.007209777813
+                            ],
+                            [
+                                0.019569396972656,
+                                -0.015792846479719
+                            ],
+                            [
+                                -0.033645629882812,
+                                -0.033988950643219
+                            ],
+                            [
+                                -0.072441101074219,
+                                -0.032615659859611
+                            ],
+                            [
+                                -0.055961608886719,
+                                -0.005836486806321
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "created": "2018-06-28T11:47:39.559380+03:00",
+            "modified": "2018-06-28T11:47:39.559403+03:00"
         },
         "relationships": {
             "location_type": {
-                "data": null
+                "data": {
+                    "type": "LocationType",
+                    "id": "2"
+                }
             },
             "parent": {
-                "data": null
+                "data": {
+                    "type": "Location",
+                    "id": "1"
+                }
             }
         }
     }

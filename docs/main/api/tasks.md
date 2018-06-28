@@ -36,6 +36,7 @@ It can take additional optional inputs in the content such as:
 - `estimated_time`: *string*, is a [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) *string*.
 - `client`: *integer*, is the unique identifier for a client object.
 - `amount`: *integer*, is the bounty of the task.
+- `required_expertise`: *string*, can be either '1' for BEGINNER, '2' for INTERMEDIATE, '3' for ADVANCED or '4' for EXPERT.
 
 ### GET /api/v1/tasks/
 
@@ -58,26 +59,28 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
             "type": "Task",
             "id": "1",
             "attributes": {
-                "created": "2018-06-20T14:51:34.857279+03:00",
-                "modified": "2018-06-20T14:51:34.857305+03:00",
-                "name": "Numbero Uno",
-                "estimated_time": null,
-                "approved_submissions_count": 1,
+                "created": "2018-06-27T15:14:42.953615+03:00",
+                "modified": "2018-06-27T15:14:42.953642+03:00",
+                "name": "Awesome Task",
+                "estimated_time": "00:10:00",
+                "approved_submissions_count": 0,
                 "pending_submissions_count": 0,
                 "rejected_submissions_count": 0,
-                "total_bounty_payout": "40000.00 KES",
-                "current_bounty_amount": "40000.00 KES",
-                "description": "",
-                "xform_title": "",
+                "total_bounty_payout": "0 KES",
+                "current_bounty_amount": null,
+                "required_expertise": "3",
+                "description": "Super Awesome Task!!!!!!!!!!!!!",
+                "xform_title": "Form2",
                 "status_display": "Active",
-                "start": "2018-06-20T14:51:21+03:00",
-                "end": null,
-                "timing_rule": "FREQ=HOURLY;INTERVAL=1;UNTIL=20180620T210000Z",
+                "required_expertise_display": "Advanced",
+                "start": "2018-06-27T12:00:00+03:00",
+                "end": "2018-06-27T12:00:00+03:00",
+                "timing_rule": null,
                 "total_submission_target": null,
-                "user_submission_target": null,
+                "user_submission_target": 100,
                 "status": "a",
-                "submission_count": 1,
-                "target_id": null
+                "submission_count": 0,
+                "target_id": 2
             },
             "relationships": {
                 "parent": {
@@ -87,13 +90,13 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
                     "data": null
                 },
                 "bounty": {
-                    "data": {
-                        "type": "Bounty",
-                        "id": "1"
-                    }
+                    "data": null
                 },
                 "target_content_type": {
-                    "data": null
+                    "data": {
+                        "type": "ContentType",
+                        "id": "16"
+                    }
                 },
                 "segment_rules": {
                     "data": [],
@@ -108,21 +111,91 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
                     }
                 }
             }
+        },
+        {
+            "type": "Task",
+            "id": "8",
+            "attributes": {
+                "created": "2018-06-28T11:37:55.256867+03:00",
+                "modified": "2018-06-28T11:40:16.021400+03:00",
+                "name": "Sample Task",
+                "estimated_time": "00:15:00",
+                "approved_submissions_count": 0,
+                "pending_submissions_count": 0,
+                "rejected_submissions_count": 0,
+                "total_bounty_payout": "0 KES",
+                "current_bounty_amount": "400000.00 KES",
+                "required_expertise": "3",
+                "description": "Hey there, I'm sample task! What's your name ?",
+                "xform_title": "Form4",
+                "status_display": "Active",
+                "required_expertise_display": "Advanced",
+                "start": "2018-06-28T11:36:49+03:00",
+                "end": "2018-07-15T11:36:50+03:00",
+                "timing_rule": "FREQ=DAILY;INTERVAL=1",
+                "total_submission_target": 40000,
+                "user_submission_target": 1000,
+                "status": "a",
+                "submission_count": 0,
+                "target_id": 4
+            },
+            "relationships": {
+                "parent": {
+                    "data": {
+                        "type": "Task",
+                        "id": "1"
+                    }
+                },
+                "client": {
+                    "data": {
+                        "type": "Client",
+                        "id": "18"
+                    }
+                },
+                "bounty": {
+                    "data": {
+                        "type": "Bounty",
+                        "id": "1"
+                    }
+                },
+                "target_content_type": {
+                    "data": {
+                        "type": "ContentType",
+                        "id": "16"
+                    }
+                },
+                "segment_rules": {
+                    "data": [],
+                    "meta": {
+                        "count": 0
+                    }
+                },
+                "locations": {
+                    "data": [
+                        {
+                            "type": "Location",
+                            "id": "1"
+                        },
+                        {
+                            "type": "Location",
+                            "id": "2"
+                        }
+                    ],
+                    "meta": {
+                        "count": 2
+                    }
+                }
+            }
         }
     ],
     "meta": {
         "pagination": {
             "page": 1,
             "pages": 1,
-            "count": 1
+            "count": 2
         }
     }
 }
-
-    HTML form
-    Raw data
-
-
 ```
 
 Returns a list of all tasks with specific locations if given `locations` query parameter. The `locations` query parameter takes an *integer* which is the unique identifier for a location object.
@@ -195,35 +268,43 @@ This request returns a response containing the specific task.
 {
     "data": {
         "type": "Task",
-        "id": "1",
+        "id": "8",
         "attributes": {
-            "created": "2018-06-20T14:51:34.857279+03:00",
-            "modified": "2018-06-20T14:51:34.857305+03:00",
-            "name": "Numbero Uno",
-            "estimated_time": null,
-            "approved_submissions_count": 1,
+            "created": "2018-06-28T11:37:55.256867+03:00",
+            "modified": "2018-06-28T11:40:16.021400+03:00",
+            "name": "Sample Task",
+            "estimated_time": "00:15:00",
+            "approved_submissions_count": 0,
             "pending_submissions_count": 0,
             "rejected_submissions_count": 0,
-            "total_bounty_payout": "40000.00 KES",
-            "current_bounty_amount": "40000.00 KES",
-            "description": "",
-            "xform_title": "",
+            "total_bounty_payout": "0 KES",
+            "current_bounty_amount": "400000.00 KES",
+            "required_expertise": "3",
+            "description": "Hey there, I'm sample task! What's your name ?",
+            "xform_title": "Form4",
             "status_display": "Active",
-            "start": "2018-06-20T14:51:21+03:00",
-            "end": null,
-            "timing_rule": "FREQ=HOURLY;INTERVAL=1;UNTIL=20180620T210000Z",
-            "total_submission_target": null,
-            "user_submission_target": null,
+            "required_expertise_display": "Advanced",
+            "start": "2018-06-28T11:36:49+03:00",
+            "end": "2018-07-15T11:36:50+03:00",
+            "timing_rule": "FREQ=DAILY;INTERVAL=1",
+            "total_submission_target": 40000,
+            "user_submission_target": 1000,
             "status": "a",
-            "submission_count": 1,
-            "target_id": null
+            "submission_count": 0,
+            "target_id": 4
         },
         "relationships": {
             "parent": {
-                "data": null
+                "data": {
+                    "type": "Task",
+                    "id": "1"
+                }
             },
             "client": {
-                "data": null
+                "data": {
+                    "type": "Client",
+                    "id": "18"
+                }
             },
             "bounty": {
                 "data": {
@@ -232,7 +313,10 @@ This request returns a response containing the specific task.
                 }
             },
             "target_content_type": {
-                "data": null
+                "data": {
+                    "type": "ContentType",
+                    "id": "16"
+                }
             },
             "segment_rules": {
                 "data": [],
@@ -241,9 +325,18 @@ This request returns a response containing the specific task.
                 }
             },
             "locations": {
-                "data": [],
+                "data": [
+                    {
+                        "type": "Location",
+                        "id": "1"
+                    },
+                    {
+                        "type": "Location",
+                        "id": "2"
+                    }
+                ],
                 "meta": {
-                    "count": 0
+                    "count": 2
                 }
             }
         }
