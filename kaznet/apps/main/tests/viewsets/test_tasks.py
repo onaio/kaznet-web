@@ -2,6 +2,7 @@
 Tests module for main Task viewsets.
 """
 
+import time
 from datetime import timedelta
 
 from django.utils import six, timezone
@@ -741,6 +742,33 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(len(response2.data['results']), 1)
         self.assertEqual(response2.data['results'][0]['id'], task.id)
+
+    def test_modified_filter(self):
+        """
+        Test that you can filter by modified
+        """
+        user = mommy.make('auth.User')
+        task = mommy.make('main.Task')
+        mommy.make('main.Task', _quantity=10)
+
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+
+        # test that we get the task with our unique modified datetime
+        request = self.factory.get('/tasks',
+                                   {'modified': task.modified})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
+
+        # test we can get tasks modified after a certain time
+        request = self.factory.get('/tasks',
+                                   {'modified__gt': task.modified})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 10)
 
     def test_start_time_filter(self):
         """
