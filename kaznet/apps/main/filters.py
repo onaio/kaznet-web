@@ -60,6 +60,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
         model = Task
         fields = [
             'locations',
+            'modified',
             'status',
             'project',
             'parent',
