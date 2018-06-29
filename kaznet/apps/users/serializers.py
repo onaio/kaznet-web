@@ -66,6 +66,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'created',
             'modified',
             'role_display',
+            'gender_display',
+            'expertise_display',
             'first_name',
             'last_name',
             'email',
