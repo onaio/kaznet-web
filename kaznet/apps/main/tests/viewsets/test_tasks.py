@@ -753,7 +753,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # test that we get the task with our unique modified datetime
         request = self.factory.get('/tasks',
-                                   {'modified': task.modified})
+                                   {'modified': str(task.modified)})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
@@ -762,7 +762,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # test we can get tasks modified after a certain time
         request = self.factory.get('/tasks',
-                                   {'modified__gt': task.modified})
+                                   {'modified__gt': str(task.modified)})
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
