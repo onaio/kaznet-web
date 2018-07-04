@@ -219,6 +219,20 @@ class UserProfile(TimeStampedModel, models.Model):
         return self.get_role_display()
 
     @property
+    def expertise_display(self):
+        """
+        Returns the Expertise Level in a Human Readable Format
+        """
+        return self.get_expertise_display()
+
+    @property
+    def gender_display(self):
+        """
+        Returns Gender in a Human Readable Format
+        """
+        return self.get_gender_display()
+
+    @property
     def approval_rate(self):
         """
         Returns the users approval rate

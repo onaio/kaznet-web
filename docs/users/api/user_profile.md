@@ -67,11 +67,13 @@ This request will return a response containing the specific User Profile.
 {
     "data": {
         "type": "UserProfile",
-        "id": "4",
+        "id": "1",
         "attributes": {
             "created": "2018-06-27T15:08:09.531149+03:00",
             "modified": "2018-06-28T11:50:11.727434+03:00",
             "role_display": "Admin",
+            "gender_display": "Other",
+            "expertise_display": "Expert",
             "first_name": "Sample",
             "last_name": "User",
             "email": "sample@admin.me",
