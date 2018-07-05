@@ -142,11 +142,15 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         Custom Create method for Task
         """
         # get current user and set that as created_by
-        request = getattr(self.context, 'request', None)
-        if request is not None:
-            user = getattr(request, 'user', None)
-            if user.is_authenticated():
-                validated_data['created_by'] = user
+        try:
+            request = self.context['request']
+        except KeyError:
+            pass
+        else:
+            if request is not None:
+                user = getattr(request, 'user', None)
+                if user.is_authenticated:
+                    validated_data['created_by'] = user
 
         # get the supplied amount
         try:
