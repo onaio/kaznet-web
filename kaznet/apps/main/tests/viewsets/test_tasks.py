@@ -66,6 +66,11 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(utc_start, the_task.start)
         self.assertEqual(utc_end, the_task.end)
 
+        # the created_by field should have been auto-filled to the logged in
+        # user
+        self.assertEqual(user, the_task.created_by)
+        self.assertEqual('Ona Kenya', response.data['created_by_name'])
+
         return response.data
 
     def test_create_task(self):
