@@ -52,6 +52,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             'required_expertise',
             'description',
             'xform_title',
+            'xform_id_string',
             'status_display',
             'required_expertise_display',
             'client',

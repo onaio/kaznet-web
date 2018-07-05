@@ -158,6 +158,14 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(rule1, task.segment_rules.get(id=rule1.id))
         self.assertEqual(rule2, task.segment_rules.get(id=rule2.id))
 
+        # check that you get XForm stuff
+        self.assertEqual(
+            serializer_instance.data['xform_title'],
+            mocked_target_object.title)
+        self.assertEqual(
+            serializer_instance.data['xform_id_string'],
+            mocked_target_object.id_string)
+
         # test no bounty was created since amount wasn't passed
         # pylint: disable=no-member
         self.assertEqual(Bounty.objects.all().count(), 0)
@@ -172,6 +180,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'parent',
             'description',
             'xform_title',
+            'xform_id_string',
             'approved_submissions_count',
             'pending_submissions_count',
             'required_expertise_display',
