@@ -11,3 +11,4 @@ from kaznet.apps.main.models.tasks import Task  # noqa
 from kaznet.apps.main.models.bounty import Bounty  # noqa
 from kaznet.apps.main.models.client import Client  # noqa
 from kaznet.apps.main.models.locationtype import LocationType  # noqa
+from kaznet.apps.main.models.task_locations import TaskLocation  # noqa

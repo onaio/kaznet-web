@@ -43,11 +43,11 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
     )
     locations = models.ManyToManyField(
         'main.Location',
-        verbose_name=_('Location'),
+        through='main.TaskLocation',
+        verbose_name=_('Locations'),
         blank=True,
         default=None,
-        help_text=_('This represents the location.')
-    )
+        help_text=_('This represents the locations.'))
     client = models.ForeignKey(
         'main.Client',
         verbose_name=_('Client'),
