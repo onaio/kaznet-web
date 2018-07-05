@@ -15,7 +15,7 @@ from kaznet.apps.main.models.managers import TaskManager
 USER = settings.AUTH_USER_MODEL
 
 
-class Task(BaseTask):
+class Task(BaseTask):  # pylint: disable=too-many-public-methods
     """
     Task model class
     """
