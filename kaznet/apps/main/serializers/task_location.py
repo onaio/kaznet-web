@@ -7,6 +7,7 @@ from tasking.serializers.task import check_timing_rule
 from kaznet.apps.main.models import TaskLocation
 
 
+# pylint: disable=too-many-ancestors
 class TaskLocationSerializer(serializers.ModelSerializer):
     """
     TaskLocation serialzier class
@@ -36,6 +37,7 @@ class TaskLocationSerializer(serializers.ModelSerializer):
         return check_timing_rule(value)
 
 
+# pylint: disable=too-many-ancestors
 class TaskLocationCreateSerializer(TaskLocationSerializer):
     """
     Serializer model class used when creating a TaskLocation object

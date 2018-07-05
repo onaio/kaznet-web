@@ -10,12 +10,12 @@ from tasking.validators import validate_rrule
 
 from kaznet.apps.main.common_tags import MISSING_START_DATE
 from kaznet.apps.main.models import Task, TaskLocation
-from kaznet.apps.main.serializers import (TaskLocationCreateSerializer,
-                                          TaskLocationSerializer)
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField,
                                                  create_bounty)
+from kaznet.apps.main.serializers.task_location import\
+    (TaskLocationCreateSerializer, TaskLocationSerializer)
 from kaznet.apps.main.utils import get_start_end_from_timing_rules
 
 

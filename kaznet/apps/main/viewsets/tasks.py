@@ -58,6 +58,7 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             # Get old Segment rules from Task
             segmentrules = task.segment_rules.all()
             # get task locations
+            # pylint: disable=no-member
             task_locations = TaskLocation.objects.filter(task=task)
 
             # Get Bounty of Task
