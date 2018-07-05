@@ -10,6 +10,23 @@ from rest_framework_json_api import serializers
 from kaznet.apps.main.models import Bounty
 
 
+def create_bounty(task, amount):
+    """
+    Create a bounty object
+    """
+    # then create the bounty object
+    if amount is not None:
+        bounty_data = {
+            'task': task,
+            'amount': amount
+        }
+
+        return BountySerializer.create(
+            BountySerializer(), validated_data=bounty_data)
+
+    return None
+
+
 class SerializableAmountField(serializers.Field):
     """
     Custom Field for Amount
