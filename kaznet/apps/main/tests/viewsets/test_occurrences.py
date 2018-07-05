@@ -1,14 +1,12 @@
 """
 Tests TaskOccurrence viewsets.
 """
-from django.utils import six
-
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
-from kaznet.apps.main.tests.base import MainTestBase
 
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.serializers import KaznetTaskOccurrenceSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import KaznetTaskOccurrenceViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
@@ -86,7 +84,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data[0]['detail']))
+            str(response2.data[0]['detail']))
 
         # test that you need authentication for listing a occurrence
         view3 = KaznetTaskOccurrenceViewSet.as_view({'get': 'list'})
@@ -95,7 +93,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data[0]['detail']))
+            str(response3.data[0]['detail']))
 
     def test_task_filter(self):
         """
@@ -297,7 +295,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            six.text_type(response.data[0]['detail']))
+            str(response.data[0]['detail']))
 
         # test that you need permission for listing a occurrence
         view = KaznetTaskOccurrenceViewSet.as_view({'get': 'list'})
@@ -307,4 +305,4 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'You shall not pass.',
-            six.text_type(response.data[0]['detail']))
+            str(response.data[0]['detail']))

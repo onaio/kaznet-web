@@ -5,7 +5,6 @@ Test for Task model
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from django.utils import six
 
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
@@ -26,7 +25,7 @@ class TestTasks(TestCase):
         """
         cow_price = mommy.make('main.Task', name="Cow prices")
         expected = 'Cow prices - {}'.format(cow_price.pk)
-        self.assertEqual(expected, six.text_type(cow_price))
+        self.assertEqual(expected, str(cow_price))
 
     def test_create_task_from_xform(self):
         """

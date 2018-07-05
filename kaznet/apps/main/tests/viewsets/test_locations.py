@@ -3,17 +3,15 @@ Tests Main Location viewsets.
 """
 import os
 
-from django.utils import six
-
 import pytz
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework_gis.fields import GeoJsonDict
 from tasking.common_tags import (GEODETAILS_ONLY, GEOPOINT_MISSING,
                                  RADIUS_MISSING)
-from kaznet.apps.main.tests.base import MainTestBase
 
 from kaznet.apps.main.models import Location
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import KaznetLocationViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
@@ -99,7 +97,7 @@ class TestKaznetLocationViewSet(MainTestBase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(RADIUS_MISSING,
-                         six.text_type(response.data[0]['detail']))
+                         str(response.data[0]['detail']))
 
         data_missing_geopoint = {
             'name': 'Montreal',
@@ -114,7 +112,7 @@ class TestKaznetLocationViewSet(MainTestBase):
 
         self.assertEqual(response1.status_code, 400)
         self.assertEqual(GEOPOINT_MISSING,
-                         six.text_type(response1.data[0]['detail']))
+                         str(response1.data[0]['detail']))
 
         path = os.path.join(
             BASE_DIR, 'fixtures', 'test_shapefile.zip')
@@ -135,7 +133,7 @@ class TestKaznetLocationViewSet(MainTestBase):
 
             self.assertEqual(response2.status_code, 400)
             self.assertEqual(GEODETAILS_ONLY,
-                             six.text_type(response2.data[0]['detail']))
+                             str(response2.data[0]['detail']))
 
     def test_delete_location(self):
         """
@@ -369,7 +367,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response.data[0]['detail']))
+            str(response.data[0]['detail']))
 
         # test that you need authentication for retrieving a location
         view1 = KaznetLocationViewSet.as_view({'get': 'retrieve'})
@@ -380,7 +378,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response1.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response1.data[0]['detail']))
+            str(response1.data[0]['detail']))
 
         # test that you need authentication for listing a task
         view2 = KaznetLocationViewSet.as_view({'get': 'list'})
@@ -390,7 +388,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data[0]['detail']))
+            str(response2.data[0]['detail']))
 
         # test that you need authentication for deleting a task
         # assert that location exists
@@ -404,7 +402,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data[0]['detail']))
+            str(response3.data[0]['detail']))
 
         # test that you need authentication for updating a task
         data2 = {
@@ -420,7 +418,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response4.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response4.data[0]['detail']))
+            str(response4.data[0]['detail']))
 
     def test_permission_required(self):
         """
