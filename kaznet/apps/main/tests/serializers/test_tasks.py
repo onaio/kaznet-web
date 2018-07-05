@@ -356,6 +356,69 @@ class TestKaznetTaskSerializer(MainTestBase):
 
         self.assertEqual(location, task.locations.get(id=location.id))
 
+    def test_validate_locations_input(self):
+        """
+        Test that locations_input is validated correctly
+        """
+        mocked_target_object = mommy.make('ona.XForm')
+
+        now = timezone.now()
+
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'start': now,
+            'total_submission_target': 10,
+            'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+        }
+
+        data_with_location = data.copy()
+        locations_input = [
+            {
+                "location": {
+                    "type": "Location",
+                    "id": '0'  # invalid
+                },
+                "timing_rule": 'invalid',  # invalid
+                "start": '99:00:00',  # invalid
+                "end": 'kesho'  # invalid
+            }
+        ]
+        data_with_location['locations_input'] = locations_input
+
+        serializer_instance = KaznetTaskSerializer(data=data_with_location)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            'Invalid pk "0" - object does not exist.',
+            str(
+                serializer_instance.errors['locations_input'][0]['location'][0]
+            )
+        )
+        self.assertEqual(
+            'Time has wrong format. Use one of these formats instead: '
+            'hh:mm[:ss[.uuuuuu]].',
+            str(
+                serializer_instance.errors['locations_input'][0]['start'][0]
+            )
+        )
+        self.assertEqual(
+            'Time has wrong format. Use one of these formats instead: '
+            'hh:mm[:ss[.uuuuuu]].',
+            str(
+                serializer_instance.errors['locations_input'][0]['end'][0]
+            )
+        )
+        self.assertEqual(
+            'Invalid Timing Rule.',
+            str(
+                serializer_instance.errors[
+                    'locations_input'][0]['timing_rule']['timing_rule']
+            )
+        )
+
     def test_task_parent_link(self):
         """
         Test the connection between a parent and child task
