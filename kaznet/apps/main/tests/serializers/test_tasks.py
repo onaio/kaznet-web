@@ -203,6 +203,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'target_id',
             'segment_rules',
             'locations',
+            'task_locations'
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
@@ -331,18 +332,27 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
 
         data_with_location = data.copy()
-        data_with_location['locations'] = [
+        locations_input = [
             {
-                "type": "Location",
-                "id": location.id
+                "location": {
+                    "type": "Location",
+                    "id": str(location.id)
+                },
+                "timing_rule": 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+                "start": '09:00:00',
+                "end": '15:00:00'
             }
         ]
+        data_with_location['locations_input'] = locations_input
 
         serializer_instance = KaznetTaskSerializer(data=data_with_location)
 
         self.assertTrue(serializer_instance.is_valid())
 
         task = serializer_instance.save()
+
+        self.assertDictContainsSubset(
+            locations_input[0], serializer_instance.data['task_locations'][0])
 
         self.assertEqual(location, task.locations.get(id=location.id))
 

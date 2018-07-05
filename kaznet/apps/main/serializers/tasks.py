@@ -10,7 +10,7 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
 from tasking.utils import get_rrule_end, get_rrule_start
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.models import Bounty, Task, TaskLocation
+from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers import (TaskLocationCreateSerializer,
                                           TaskLocationSerializer)
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
@@ -73,7 +73,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             'target_id',
             'segment_rules',
             'locations',
-            'created_by_name'
+            'created_by_name',
             'locations_input',
             'task_locations',
         ]
@@ -173,11 +173,20 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         except KeyError:
             amount = None
 
+        # get the input locations
+        locations_data = validated_data.pop('locations_input', [])
+
         # create the task
         task = super().create(validated_data)
 
         # create the bounty object
         create_bounty(task, amount)
+
+        # create the TaskLocations
+        for location_data in locations_data:
+            location_data['task'] = task
+            TaskLocationSerializer.create(
+                TaskLocationSerializer(), validated_data=location_data)
 
         return task
 
@@ -191,10 +200,27 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         except KeyError:
             amount = None
 
+        # get the input locations
+        locations_data = validated_data.pop('locations_input', [])
+
         # update the task
         task = super().update(instance, validated_data)
 
         # create the bounty object
         create_bounty(task, amount)
+
+        # update the TaskLocations
+        # we assume that this (locations_data) is the one final list of
+        # locations to be linked to this task and that other relationships
+        # should be removed if task_locations is empty it means the user is
+        # removing all Task and Location relationships
+
+        # pylint: disable=no-member
+        TaskLocation.objects.filter(task=task).delete()
+
+        for location_data in locations_data:
+            location_data['task'] = task
+            TaskLocationSerializer.create(
+                TaskLocationSerializer(), validated_data=location_data)
 
         return task
