@@ -132,14 +132,32 @@ class Task(BaseTask):
         """
         return self.bounty_set.all().order_by('-created').first()
 
+    def get_xform(self):
+        """
+        Get the XForm
+        """
+        try:
+            return self.target_content_object
+        except AttributeError:
+            return None
+
     def get_xform_title(self):
         """
         Custom Method to get xform title
         """
-        try:
-            return self.target_content_object.title
-        except AttributeError:
-            return ''
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.title
+        return ''
+
+    def get_xform_id_string(self):
+        """
+        Custom Method to get xform title
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.id_string
+        return ''
 
     @property
     def status_display(self):
@@ -154,6 +172,13 @@ class Task(BaseTask):
         Title of Xform
         """
         return self.get_xform_title()
+
+    @property
+    def xform_id_string(self):
+        """
+        Title of Xform
+        """
+        return self.get_xform_id_string()
 
     @property
     def required_expertise_display(self):
