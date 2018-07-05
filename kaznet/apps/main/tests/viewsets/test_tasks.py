@@ -1,6 +1,8 @@
 """
 Tests module for main Task viewsets.
 """
+
+import json
 from datetime import timedelta
 
 from django.utils import six, timezone
@@ -11,7 +13,7 @@ from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 from tasking.common_tags import TARGET_DOES_NOT_EXIST
 
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import KaznetTaskViewSet
 from kaznet.apps.users.tests.base import create_admin_user
@@ -253,6 +255,57 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(
             'd', response.data['status']
         )
+
+    def test_task_locations(self):
+        """
+        Test that we can create a task and add task locations
+        """
+        user = create_admin_user()
+        xform = mommy.make('ona.XForm')
+        location = mommy.make('main.Location')
+
+        data = {
+            "data": {
+                "type": "Task",
+                "id": None,
+                "attributes": {
+                    "name": "Coconut Quest",
+                    "description": "Mission impossible!",
+                    "user_submission_target": 1,
+                    "target_id": xform.id,
+                    "target_content_type": self.xform_type.id,
+                    "locations_input": [{
+                        "location": {
+                            "type": "Location",
+                            "id": str(location.id)
+                        },
+                        "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7",
+                        "start": '09:00:00',
+                        "end": '15:00:00'
+                    }]
+                }
+            }
+        }
+
+        view = KaznetTaskViewSet.as_view({'post': 'create'})
+
+        request = self.factory.post(
+            '/tasks', json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        # Need authenticated user
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(1, len(response.data['task_locations']))
+        task_location = TaskLocation.objects.get(
+            task__id=response.data['id'],
+            location=location)
+        self.assertEqual('RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7',
+                         task_location.timing_rule)
+        self.assertEqual('02:00:00', task_location.start.isoformat())
+        self.assertEqual('09:00:00', task_location.end.isoformat())
 
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
