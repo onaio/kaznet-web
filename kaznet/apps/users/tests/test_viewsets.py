@@ -179,13 +179,13 @@ class TestUserProfileViewSet(TestCase):
         test that you can get and order a list of userprofiles
         """
 
-        user = create_admin_user()  # ADMIN & EXPERT
+        user = create_admin_user()  # ADMIN & EXPERT & First name == 'Ona'
         ben = mommy.make('auth.User', first_name='ben')
         mosh = mommy.make('auth.User', first_name='mosh')
-        zzz = mommy.make('auth.User', first_name='zzz')
+        kyle = mommy.make('auth.User', first_name='kyle')
 
         mommy.make('main.Submission', user=ben, _quantity=7)
-        mommy.make('main.Submission', user=zzz, _quantity=9)
+        mommy.make('main.Submission', user=kyle, _quantity=9)
         mommy.make('main.Submission', user=mosh, _quantity=17)
 
         view = UserProfileViewSet.as_view({'get': 'list'})
@@ -199,7 +199,7 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual(
             'mosh', response1.data['results'][0]['first_name'])
         self.assertEqual(
-            'zzz', response1.data['results'][1]['first_name'])
+            'kyle', response1.data['results'][1]['first_name'])
         self.assertEqual(
             'ben', response1.data['results'][2]['first_name'])
 
@@ -210,11 +210,11 @@ class TestUserProfileViewSet(TestCase):
         response1 = view(request=request1)
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(
-            'ben', response1.data['results'][1]['first_name'])
+            'ben', response1.data['results'][0]['first_name'])
+        self.assertEqual(
+            'kyle', response1.data['results'][1]['first_name'])
         self.assertEqual(
             'mosh', response1.data['results'][2]['first_name'])
-        self.assertEqual(
-            'zzz', response1.data['results'][3]['first_name'])
 
     def test_update(self):
         """

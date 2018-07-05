@@ -158,6 +158,14 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(rule1, task.segment_rules.get(id=rule1.id))
         self.assertEqual(rule2, task.segment_rules.get(id=rule2.id))
 
+        # check that you get XForm stuff
+        self.assertEqual(
+            serializer_instance.data['xform_title'],
+            mocked_target_object.title)
+        self.assertEqual(
+            serializer_instance.data['xform_id_string'],
+            mocked_target_object.id_string)
+
         # test no bounty was created since amount wasn't passed
         # pylint: disable=no-member
         self.assertEqual(Bounty.objects.all().count(), 0)
@@ -165,11 +173,14 @@ class TestKaznetTaskSerializer(MainTestBase):
         expected_fields = [
             'id',
             'created',
+            'created_by',
+            'created_by_name',
             'modified',
             'name',
             'parent',
             'description',
             'xform_title',
+            'xform_id_string',
             'approved_submissions_count',
             'pending_submissions_count',
             'required_expertise_display',
@@ -396,3 +407,53 @@ class TestKaznetTaskSerializer(MainTestBase):
         task = serializer_instance.save()
 
         self.assertEqual(mocked_client, task.client)
+
+    def test_created_by_field(self):
+        """
+        Test created_by field
+        """
+        mocked_client = mommy.make('main.Client', name='Knights Order')
+        mocked_target_object = mommy.make('ona.XForm')
+        now = timezone.now()
+
+        data = {
+            "type": "Task",
+            'name': 'Milk Production',
+            'description': 'Some description',
+            'start': now,
+            'total_submission_target': 10,
+            'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'client': {
+                "type": "Client",
+                "id": mocked_client.id
+            }
+        }
+
+        serializer_instance = KaznetTaskSerializer(data=data)
+
+        self.assertTrue(serializer_instance.is_valid())
+
+        task = serializer_instance.save()
+
+        # no created by
+        self.assertEqual(None, task.created_by)
+        self.assertEqual('', task.created_by_name)
+        self.assertEqual(None, serializer_instance.data['created_by'])
+        self.assertEqual('', serializer_instance.data['created_by_name'])
+
+        # add created by and test that it is is seriakized
+        cate_user = mommy.make(
+            'auth.User', username='cate', first_name='Cate', last_name='Doe')
+        task.created_by = cate_user
+        task.save()
+        serializer_instance2 = KaznetTaskSerializer(instance=task)
+        self.assertDictEqual(
+            {'type': 'User', 'id': str(cate_user.id)},
+            dict(serializer_instance2.data['created_by'])
+        )
+        self.assertEqual(
+            'Cate Doe',
+            serializer_instance2.data['created_by_name']
+        )

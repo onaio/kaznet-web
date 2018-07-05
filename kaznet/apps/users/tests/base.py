@@ -10,7 +10,8 @@ def create_admin_user():
     """
     Return an admin role user
     """
-    user = mommy.make('auth.User')
+    user = mommy.make(
+        'auth.User', first_name='Ona', last_name='Kenya')
     user.userprofile.role = UserProfile.ADMIN
     user.userprofile.save()
     return user

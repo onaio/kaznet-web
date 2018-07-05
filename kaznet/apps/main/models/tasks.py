@@ -6,13 +6,16 @@ from django.db.models import Value as V
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
+from django.conf import settings
 
 from tasking.models import BaseTask
 
 from kaznet.apps.main.models.managers import TaskManager
 
+USER = settings.AUTH_USER_MODEL
 
-class Task(BaseTask):
+
+class Task(BaseTask):  # pylint: disable=too-many-public-methods
     """
     Task model class
     """
@@ -29,18 +32,22 @@ class Task(BaseTask):
         (EXPERT, _('Expert')),
     )
 
-    segment_rules = models.ManyToManyField(
-        'main.SegmentRule',
-        verbose_name=_('Segment Rules'),
+    created_by = models.ForeignKey(
+        USER,
+        verbose_name=_('Created By'),
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        default=None
+        default=None,
+        help_text=_('This represents the user who created the task.')
     )
     locations = models.ManyToManyField(
         'main.Location',
         verbose_name=_('Location'),
         blank=True,
         default=None,
-        help_text=_('This represents the location.'))
+        help_text=_('This represents the location.')
+    )
     client = models.ForeignKey(
         'main.Client',
         verbose_name=_('Client'),
@@ -55,7 +62,14 @@ class Task(BaseTask):
         choices=EXPERTISE_CHOICES,
         default=BEGINNER,
         max_length=1,
-        blank=True)
+        blank=True
+    )
+    segment_rules = models.ManyToManyField(
+        'main.SegmentRule',
+        verbose_name=_('Segment Rules'),
+        blank=True,
+        default=None
+    )
 
     # Custom Manager that has submission_count field
     with_submission_count = TaskManager()
@@ -118,14 +132,32 @@ class Task(BaseTask):
         """
         return self.bounty_set.all().order_by('-created').first()
 
+    def get_xform(self):
+        """
+        Get the XForm
+        """
+        try:
+            return self.target_content_object
+        except AttributeError:
+            return None
+
     def get_xform_title(self):
         """
         Custom Method to get xform title
         """
-        try:
-            return self.target_content_object.title
-        except AttributeError:
-            return ''
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.title
+        return ''
+
+    def get_xform_id_string(self):
+        """
+        Custom Method to get xform title
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.id_string
+        return ''
 
     @property
     def status_display(self):
@@ -140,6 +172,13 @@ class Task(BaseTask):
         Title of Xform
         """
         return self.get_xform_title()
+
+    @property
+    def xform_id_string(self):
+        """
+        Title of Xform
+        """
+        return self.get_xform_id_string()
 
     @property
     def required_expertise_display(self):
@@ -199,3 +238,12 @@ class Task(BaseTask):
         Total Amount to be paid for Task Submissions
         """
         return self.get_total_bounty_payout()['combined_amount']
+
+    @property
+    def created_by_name(self):
+        """
+        Name of created by user if set
+        """
+        if self.created_by:
+            return self.created_by.userprofile.get_name()
+        return ''

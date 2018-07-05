@@ -42,3 +42,40 @@ class TestTasks(TestCase):
 
         self.assertEqual(cattle_task.target_object_id, xform.id)
         self.assertEqual(cattle_task.target_content_type, self.instance_type)
+
+    def test_created_by_name(self):
+        """
+        Test the `created_by_name` property
+        """
+        cate_user = mommy.make(
+            'auth.User', username='cate', first_name='Cate', last_name='Doe')
+        self.assertEqual(
+            'Cate Doe',
+            mommy.make('main.Task', created_by=cate_user).created_by_name
+        )
+
+    def test_task_xform(self):
+        """
+        Test:
+            - get_xform method
+            - get_xform_title method
+            - get_xform_id_string method
+            - xform_title property
+            - xform_id_string property
+        """
+        xform = mommy.make(
+            'ona.XForm', title='Coconut', id_string='coconut828')
+        # test when no xform
+        task_no_xform = mommy.make('main.Task')
+        self.assertEqual(None, task_no_xform.get_xform())
+        self.assertEqual('', task_no_xform.get_xform_title())
+        self.assertEqual('', task_no_xform.get_xform_id_string())
+        self.assertEqual('', task_no_xform.xform_title)
+        self.assertEqual('', task_no_xform.xform_id_string)
+        # test when XForm
+        task = mommy.make('main.Task', target_content_object=xform)
+        self.assertEqual(xform, task.get_xform())
+        self.assertEqual('Coconut', task.get_xform_title())
+        self.assertEqual('coconut828', task.get_xform_id_string())
+        self.assertEqual('Coconut', task.xform_title)
+        self.assertEqual('coconut828', task.xform_id_string)

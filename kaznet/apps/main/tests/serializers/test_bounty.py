@@ -8,7 +8,9 @@ from django.test import TestCase
 from django_prices.models import Money
 from model_mommy import mommy
 
+from kaznet.apps.main.models import Bounty
 from kaznet.apps.main.serializers import BountySerializer
+from kaznet.apps.main.serializers.bounty import create_bounty
 
 
 class TestBountySerializer(TestCase):
@@ -16,7 +18,18 @@ class TestBountySerializer(TestCase):
     Test the ClientSerializer
     """
 
-    def test_create_bounty(self):
+    def test_method_create_bounty(self):
+        """
+        Test create_bounty
+        """
+        Bounty.objects.all().delete()
+        bounty = create_bounty(
+            task=mommy.make('main.Task'),
+            amount=Money('5400', 'KES')
+        )
+        self.assertEqual(bounty, Bounty.objects.first())
+
+    def test_serializer_create_bounty(self):
         """
         Test that serializer can create a bounty
         """
