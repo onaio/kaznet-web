@@ -6,10 +6,13 @@ from django.db.models import Value as V
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext as _
+from django.conf import settings
 
 from tasking.models import BaseTask
 
 from kaznet.apps.main.models.managers import TaskManager
+
+USER = settings.AUTH_USER_MODEL
 
 
 class Task(BaseTask):
@@ -29,18 +32,22 @@ class Task(BaseTask):
         (EXPERT, _('Expert')),
     )
 
-    segment_rules = models.ManyToManyField(
-        'main.SegmentRule',
-        verbose_name=_('Segment Rules'),
+    created_by = models.ForeignKey(
+        USER,
+        verbose_name=_('Created By'),
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        default=None
+        default=None,
+        help_text=_('This represents the user who created the task.')
     )
     locations = models.ManyToManyField(
         'main.Location',
         verbose_name=_('Location'),
         blank=True,
         default=None,
-        help_text=_('This represents the location.'))
+        help_text=_('This represents the location.')
+    )
     client = models.ForeignKey(
         'main.Client',
         verbose_name=_('Client'),
@@ -55,7 +62,14 @@ class Task(BaseTask):
         choices=EXPERTISE_CHOICES,
         default=BEGINNER,
         max_length=1,
-        blank=True)
+        blank=True
+    )
+    segment_rules = models.ManyToManyField(
+        'main.SegmentRule',
+        verbose_name=_('Segment Rules'),
+        blank=True,
+        default=None
+    )
 
     # Custom Manager that has submission_count field
     with_submission_count = TaskManager()
