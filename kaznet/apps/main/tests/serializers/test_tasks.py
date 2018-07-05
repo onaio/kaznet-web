@@ -165,6 +165,7 @@ class TestKaznetTaskSerializer(MainTestBase):
         expected_fields = [
             'id',
             'created',
+            'created_by',
             'modified',
             'name',
             'parent',
