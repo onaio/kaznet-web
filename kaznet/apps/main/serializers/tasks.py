@@ -3,13 +3,12 @@ Main Tasks serializer module
 """
 from django.utils import timezone
 
-from dateutil.rrule import rrulestr
 from rest_framework_json_api import serializers
 from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
                                  INVALID_TIMING_RULE)
-from tasking.utils import get_rrule_end, get_rrule_start
 from tasking.validators import validate_rrule
 
+from kaznet.apps.main.common_tags import MISSING_START_DATE
 from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers import (TaskLocationCreateSerializer,
                                           TaskLocationSerializer)
@@ -17,6 +16,7 @@ from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField,
                                                  create_bounty)
+from kaznet.apps.main.utils import get_start_end_from_timing_rules
 
 
 # pylint: disable=too-many-ancestors
@@ -106,7 +106,6 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         """
         Object level validation method for TaskSerializer
         """
-
         # if timing_rule is provided, we extract start and end from its value
         if self.instance is not None:
             # we are doing an update
@@ -115,31 +114,58 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             # we are creating a new object
             timing_rule = attrs.get('timing_rule')
 
-        if timing_rule is not None:
-            # get start and end values from timing_rule
-            end_time = attrs.get('end')
-            attrs['start'] = get_rrule_start(rrulestr(timing_rule))
-            # If the user did not set the end_time and passed the timing_rule
-            # We try to set the end_date to the timing rules end
-            if end_time is None:
-                attrs['end'] = get_rrule_end(rrulestr(timing_rule))
+        # get list of timing rules
+        timing_rules = [timing_rule]
+        for location_input in attrs.get('locations_input', []):
+            timing_rules.append(location_input['timing_rule'])
 
-        target_id = attrs.get('target_object_id')
-        end_date = attrs.get('end')
-        start_date = attrs.get('start')
+        # get start and end from timing rules
+        timing_rule_start, timing_rule_end =\
+            get_start_end_from_timing_rules(timing_rules)
+
+        # get end from input
+        start_from_input = attrs.get('start')
+
+        if not any([start_from_input, timing_rule_start]):
+            # we cannot determin a start time
+            raise serializers.ValidationError(
+                {
+                    'timing_rule': MISSING_START_DATE,
+                    'start': INVALID_START_DATE,
+                    'locations_input': INVALID_START_DATE
+                }
+            )
+
+        # get end from from input
+        end_from_input = attrs.get('end')
+
+        # get start from timing_rule
+        # notice that we ignore start_from_input if timing_rule_start is
+        # greater than start_from_input
+        if timing_rule_start is not None:
+            if start_from_input is None or\
+                    timing_rule_start < start_from_input:
+                attrs['start'] = timing_rule_start
+
+        # If the user did not set the end_from_input and passed the timing_rule
+        # We try to set the end_date to the timing rules end
+        if end_from_input is None:
+            attrs['end'] = timing_rule_end
 
         # If end date is present we validate that it is greater than start_date
-        if end_date is not None:
+        if attrs['end'] is not None:
             # If end date is lesser than the start date raise an error
-            if end_date < start_date:
+            if attrs['end'] < attrs['start']:
                 raise serializers.ValidationError(
                     {'end': INVALID_END_DATE, 'start': INVALID_START_DATE}
                 )
 
-        if start_date > timezone.now():
+        # set automated statuses
+        # scheduled
+        if attrs['start'] > timezone.now():
             attrs['status'] = Task.SCHEDULED
-
-        if target_id is None:
+        # draft
+        if attrs.get('target_object_id') is None:
             attrs['status'] = Task.DRAFT
 
         return super().validate(attrs)
