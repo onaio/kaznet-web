@@ -18,7 +18,8 @@ def create_occurrences(sender, instance, created, **kwargs):
         instance.taskoccurrence_set.all().delete()
         # generate new occurrences
         generate_task_occurrences(
-            instance, OccurrenceModelClass=TaskOccurrence)
+            task=instance, timing_rule=instance.timing_rule,
+            OccurrenceModelClass=TaskOccurrence)
 
 
 def create_submission(sender, instance, created, **kwargs):
