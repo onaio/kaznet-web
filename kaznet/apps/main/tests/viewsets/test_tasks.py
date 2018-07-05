@@ -5,7 +5,7 @@ Tests module for main Task viewsets.
 import json
 from datetime import timedelta
 
-from django.utils import six, timezone
+from django.utils import timezone
 
 import pytz
 from dateutil.parser import parse
@@ -107,7 +107,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         self.assertEqual(response1.status_code, 400)
         self.assertEqual(TARGET_DOES_NOT_EXIST,
-                         six.text_type(response1.data[0]['detail']))
+                         str(response1.data[0]['detail']))
 
         # test bad content type validation
         bad_content_type = dict(
@@ -129,7 +129,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 400)
         self.assertEqual(
             'Invalid pk "999" - object does not exist.',
-            six.text_type(response2.data[0]['detail']))
+            str(response2.data[0]['detail']))
 
     def test_delete_task(self):
         """
@@ -304,8 +304,64 @@ class TestKaznetTaskViewSet(MainTestBase):
             location=location)
         self.assertEqual('RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7',
                          task_location.timing_rule)
-        self.assertEqual('02:00:00', task_location.start.isoformat())
-        self.assertEqual('09:00:00', task_location.end.isoformat())
+        self.assertEqual('09:00:00', task_location.start.isoformat())
+        self.assertEqual('15:00:00', task_location.end.isoformat())
+
+    def test_validate_task_locations(self):
+        """
+        Test that task locations are validated
+        """
+        user = create_admin_user()
+        xform = mommy.make('ona.XForm')
+
+        data = {
+            "data": {
+                "type": "Task",
+                "id": None,
+                "attributes": {
+                    "name": "Coconut Quest",
+                    "description": "Mission impossible!",
+                    "user_submission_target": 1,
+                    "target_id": xform.id,
+                    "target_content_type": self.xform_type.id,
+                    "locations_input": [{
+                        "location": {
+                            "type": "Location",
+                            "id": '0'  # invalid
+                        },
+                        "timing_rule": "x",  # invalid
+                        "start": 'y',  # invalid
+                        "end": '15:99:00'  # invalid
+                    }]
+                }
+            }
+        }
+
+        view = KaznetTaskViewSet.as_view({'post': 'create'})
+
+        request = self.factory.post(
+            '/tasks', json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        # Need authenticated user
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertEqual(
+            'Invalid pk "0" - object does not exist.',
+            str(response.data[0]['detail']['location'][0]))
+        self.assertEqual(
+            'Time has wrong format. Use one of these formats instead: '
+            'hh:mm[:ss[.uuuuuu]].',
+            str(response.data[0]['detail']['start'][0]))
+        self.assertEqual(
+            'Time has wrong format. Use one of these formats instead: '
+            'hh:mm[:ss[.uuuuuu]].',
+            str(response.data[0]['detail']['end'][0]))
+        self.assertEqual(
+            'Invalid Timing Rule.',
+            str(response.data[0]['detail']['timing_rule']['timing_rule']))
 
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
@@ -333,7 +389,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response.data[0]['detail']))
+            str(response.data[0]['detail']))
 
         # test that you need authentication for retrieving a task
         view2 = KaznetTaskViewSet.as_view({'get': 'retrieve'})
@@ -342,7 +398,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response2.data[0]['detail']))
+            str(response2.data[0]['detail']))
 
         # test that you need authentication for listing a task
         view3 = KaznetTaskViewSet.as_view({'get': 'list'})
@@ -351,7 +407,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response3.data[0]['detail']))
+            str(response3.data[0]['detail']))
 
         # test that you need authentication for deleting a task
         self.assertTrue(Task.objects.filter(pk=task.id).exists())
@@ -363,7 +419,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response4.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response4.data[0]['detail']))
+            str(response4.data[0]['detail']))
 
         # test that you need authentication for updating a task
         data = {
@@ -380,7 +436,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response5.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
-            six.text_type(response5.data[0]['detail']))
+            str(response5.data[0]['detail']))
 
     def test_location_filter(self):
         """
@@ -391,7 +447,10 @@ class TestKaznetTaskViewSet(MainTestBase):
         arusha = mommy.make('main.Location', name='Arusha')
         for _ in range(0, 7):
             task = mommy.make('main.Task')
-            task.locations.add(nairobi)
+            mommy.make(
+                'main.TaskLocation', task=task, location=nairobi,
+                start='09:00:00', end='19:00:00',
+                timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
         view = KaznetTaskViewSet.as_view({'get': 'list'})
 
@@ -413,7 +472,10 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         # add one Arusha task and assert that we get it back
         task2 = mommy.make('main.Task')
-        task2.locations.add(arusha)
+        mommy.make(
+            'main.TaskLocation', task=task2, location=arusha,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
         request = self.factory.get('/tasks', {'locations': arusha.id})
         force_authenticate(request, user=user)
         response = view(request=request)
