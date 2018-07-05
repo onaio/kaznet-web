@@ -67,10 +67,11 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             'target_id',
             'segment_rules',
             'locations',
+            'created_by_name'
         ]
 
         model = Task
-        read_only_fields = ['created_by']
+        read_only_fields = ['created_by', 'created_by_name']
 
     def get_submission_count(self, obj):  # pylint: disable=no-self-use
         """

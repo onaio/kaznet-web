@@ -166,6 +166,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'id',
             'created',
             'created_by',
+            'created_by_name',
             'modified',
             'name',
             'parent',
@@ -429,6 +430,9 @@ class TestKaznetTaskSerializer(MainTestBase):
 
         # no created by
         self.assertEqual(None, task.created_by)
+        self.assertEqual('', task.created_by_name)
+        self.assertEqual(None, serializer_instance.data['created_by'])
+        self.assertEqual('', serializer_instance.data['created_by_name'])
 
         # add created by and test that it is is seriakized
         cate_user = mommy.make(
@@ -439,4 +443,8 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertDictEqual(
             {'type': 'User', 'id': str(cate_user.id)},
             dict(serializer_instance2.data['created_by'])
+        )
+        self.assertEqual(
+            'Cate Doe',
+            serializer_instance2.data['created_by_name']
         )

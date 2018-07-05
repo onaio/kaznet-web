@@ -42,3 +42,14 @@ class TestTasks(TestCase):
 
         self.assertEqual(cattle_task.target_object_id, xform.id)
         self.assertEqual(cattle_task.target_content_type, self.instance_type)
+
+    def test_created_by_name(self):
+        """
+        Test the `created_by_name` property
+        """
+        cate_user = mommy.make(
+            'auth.User', username='cate', first_name='Cate', last_name='Doe')
+        self.assertEqual(
+            'Cate Doe',
+            mommy.make('main.Task', created_by=cate_user).created_by_name
+        )

@@ -213,3 +213,12 @@ class Task(BaseTask):
         Total Amount to be paid for Task Submissions
         """
         return self.get_total_bounty_payout()['combined_amount']
+
+    @property
+    def created_by_name(self):
+        """
+        Name of created by user if set
+        """
+        if self.created_by:
+            return self.created_by.userprofile.get_name()
+        return ''
