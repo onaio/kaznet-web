@@ -10,10 +10,11 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
 from tasking.utils import get_rrule_end, get_rrule_start
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.models import Bounty, Task
+from kaznet.apps.main.models import Task
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
-                                                 SerializableAmountField)
+                                                 SerializableAmountField,
+                                                 create_bounty)
 
 
 # pylint: disable=too-many-ancestors
@@ -24,7 +25,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
     start = serializers.DateTimeField(required=False)
     submission_count = serializers.SerializerMethodField()
     amount = SerializableAmountField(
-        source='main.Bounty', required=False, write_only=True)
+        source='bounty', required=False, write_only=True)
     total_bounty_payout = SerializableAmountField(read_only=True)
     current_bounty_amount = SerializableAmountField(read_only=True)
     bounty = BountySerializer(read_only=True)
@@ -37,6 +38,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         fields = [
             'id',
             'created',
+            'created_by',
             'modified',
             'name',
             'amount',
@@ -68,6 +70,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         ]
 
         model = Task
+        read_only_fields = ['created_by']
 
     def get_submission_count(self, obj):  # pylint: disable=no-self-use
         """
@@ -135,25 +138,26 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
     def create(self, validated_data):
         """
-        Custom Create method to create Task then Bounty Object
+        Custom Create method for Task
         """
-        amount = None
+        # get current user and set that as created_by
+        request = getattr(self.context, 'request', None)
+        if request is not None:
+            user = getattr(request, 'user', None)
+            if user.is_authenticated():
+                validated_data['created_by'] = user
 
+        # get the supplied amount
         try:
-            amount = validated_data.pop('main')
+            amount = validated_data.pop('bounty')
         except KeyError:
-            pass
+            amount = None
 
+        # create the task
         task = super().create(validated_data)
 
-        if amount is not None:
-            bounty_data = {
-                'task': task,
-                'amount': amount['Bounty']
-            }
-
-            BountySerializer.create(BountySerializer(),
-                                    validated_data=bounty_data)
+        # create the bounty object
+        create_bounty(task, amount)
 
         return task
 
@@ -161,25 +165,16 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         """
         Custom Update method for Task
         """
-        amount = None
-
+        # get the supplied amount
         try:
-            amount = validated_data.pop('main')
+            amount = validated_data.pop('bounty')
         except KeyError:
-            pass
+            amount = None
 
-        task = super().update(
-            instance, validated_data)
+        # update the task
+        task = super().update(instance, validated_data)
 
-        if amount is not None:
-            try:
-                task.bounty_set.get(amount=amount['Bounty'])
-            # pylint: disable=no-member
-            except Bounty.DoesNotExist:
-                bounty_data = {
-                    'task': task,
-                    'amount': amount['Bounty']
-                }
-                BountySerializer.create(BountySerializer(),
-                                        validated_data=bounty_data)
+        # create the bounty object
+        create_bounty(task, amount)
+
         return task
