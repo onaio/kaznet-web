@@ -80,9 +80,16 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
                 "user_submission_target": 100,
                 "status": "a",
                 "submission_count": 0,
-                "target_id": 2
+                "target_id": 2,
+                "created_by_name": "The Professor"
             },
             "relationships": {
+                "created_by": {
+                    "data": {
+                        "type": "User",
+                        "id": "1"
+                    }
+                },
                 "parent": {
                     "data": null
                 },
@@ -137,9 +144,16 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
                 "user_submission_target": 1000,
                 "status": "a",
                 "submission_count": 0,
-                "target_id": 4
+                "target_id": 4,
+                "created_by_name": "The Professor"
             },
             "relationships": {
+                "created_by": {
+                    "data": {
+                        "type": "User",
+                        "id": "1"
+                    }
+                },
                 "parent": {
                     "data": {
                         "type": "Task",
@@ -291,9 +305,16 @@ This request returns a response containing the specific task.
             "user_submission_target": 1000,
             "status": "a",
             "submission_count": 0,
-            "target_id": 4
+            "target_id": 4,
+            "created_by_name": "The Professor"
         },
         "relationships": {
+            "created_by": {
+                "data": {
+                    "type": "User",
+                    "id": "1"
+                }
+            },
             "parent": {
                 "data": {
                     "type": "Task",
