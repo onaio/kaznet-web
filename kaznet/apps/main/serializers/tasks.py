@@ -10,7 +10,9 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
 from tasking.utils import get_rrule_end, get_rrule_start
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Bounty, Task, TaskLocation
+from kaznet.apps.main.serializers import (TaskLocationCreateSerializer,
+                                          TaskLocationSerializer)
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField,
@@ -29,6 +31,9 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
     total_bounty_payout = SerializableAmountField(read_only=True)
     current_bounty_amount = SerializableAmountField(read_only=True)
     bounty = BountySerializer(read_only=True)
+    locations_input = TaskLocationCreateSerializer(
+        many=True, required=False, write_only=True)
+    task_locations = serializers.SerializerMethodField(read_only=True)
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
@@ -69,10 +74,11 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             'segment_rules',
             'locations',
             'created_by_name'
+            'locations_input',
+            'task_locations',
         ]
-
         model = Task
-        read_only_fields = ['created_by', 'created_by_name']
+        read_only_fields = ['locations', 'created_by', 'created_by_name']
 
     def get_submission_count(self, obj):  # pylint: disable=no-self-use
         """
@@ -137,6 +143,14 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             attrs['status'] = Task.DRAFT
 
         return super().validate(attrs)
+
+    def get_task_locations(self, obj):
+        """
+        Get serialized TaskLocation objects
+        """
+        # pylint: disable=no-member
+        queryset = TaskLocation.objects.filter(task=obj)
+        return TaskLocationSerializer(queryset, many=True).data
 
     def create(self, validated_data):
         """
