@@ -81,7 +81,10 @@ class TestAPIMethods(MainTestBase):
 
             location = serializer_instance.save()
 
-        task.locations.add(location)
+        mommy.make(
+            'main.TaskLocation', task=task, location=location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
         data = instance.json
 
@@ -103,7 +106,11 @@ class TestAPIMethods(MainTestBase):
             target_object_id=instance.xform.id)
         mocked_location = mommy.make(
             'main.Location', geopoint=Point(36.806852, -1.313721), radius=1)
-        task.locations.add(mocked_location)
+
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
         data = instance.json
 
@@ -230,7 +237,10 @@ class TestAPIMethods(MainTestBase):
 
         mocked_location = mommy.make(
             'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
-        task.locations.add(mocked_location)
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
         submission = create_submission(instance)
 
@@ -268,7 +278,10 @@ class TestAPIMethods(MainTestBase):
 
         mocked_location = mommy.make(
             'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
-        task.locations.add(mocked_location)
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
         submission = create_submission(instance)
 
