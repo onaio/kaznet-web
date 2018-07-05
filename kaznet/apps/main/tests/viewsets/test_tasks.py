@@ -256,6 +256,41 @@ class TestKaznetTaskViewSet(MainTestBase):
             'd', response.data['status']
         )
 
+    def test_clone_task_with_locations(self):
+        """
+        Test cloning a task that has locations
+        """
+        user = create_admin_user()
+        arusha = mommy.make('main.Location', name='Arusha')
+        task = mommy.make('main.Task', name='Qqquest!')
+        mommy.make(
+            'main.TaskLocation', task=task, location=arusha,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        data = {
+            'id': task.id
+        }
+
+        view = KaznetTaskViewSet.as_view({'post': 'clone_task'})
+        request = self.factory.post(
+            '/tasks/{id}/clone_task'.format(id=task.id), data=data)
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            f'Qqquest! - Copy', response.data['name'])
+
+        expected = {
+            'task': {'type': 'Task', 'id': f'{response.data["id"]}'},
+            'location': {'type': 'Location', 'id': f'{arusha.id}'},
+            'timing_rule': 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5',
+            'start': '09:00:00',
+            'end': '19:00:00'
+        }
+        self.assertDictContainsSubset(
+            expected, response.data['task_locations'][0])
+
     def test_task_locations(self):
         """
         Test that we can create a task and add task locations
