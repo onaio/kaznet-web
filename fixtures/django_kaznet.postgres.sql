@@ -856,6 +856,7 @@ CREATE TABLE public.main_task (
     tree_id integer NOT NULL,
     level integer NOT NULL,
     client_id integer,
+    created_by_id integer,
     parent_id integer,
     target_content_type_id integer,
     CONSTRAINT main_task_level_check CHECK ((level >= 0)),
@@ -1668,8 +1669,8 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 --
 
 COPY public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) FROM stdin;
-1	pbkdf2_sha256$100000$crp64mZ83aj6$UVR//QS5Kr6IfzfvuuzGT3cO2CwSqgKzYLgZDlwqlXw=	2018-06-27 15:06:45+03	t	sol	Davis	Raymond	sol@admin.me	t	t	2018-06-27 15:06:29+03
-3	pbkdf2_sha256$100000$uCQ6w3jJr81E$mz0/T7M7hP2c09Ox/rjQCkSJqzOjuxKI7UTCI96vtjE=	\N	t	onauser	Ona	User		f	t	2018-06-27 15:08:09+03
+1	pbkdf2_sha256$100000$t2ldQTfP2v52$lpizsStCy78Onaf/L+s4t9wlGpIjYLDg3D5MoM58CXo=	2018-07-06 10:29:16+03	t	sol	Davis	Raymond	sol@admin.me	t	t	2018-07-06 10:24:37+03
+3	pbkdf2_sha256$100000$3ILIY69wqN1i$4tyBxiRGp62IWTicjXItsraf1iuUNN3r8k01rhIoyeI=	2018-07-06 10:31:50+03	t	onauser	Ona	User	ona@test.me	t	t	2018-07-06 10:31:28+03
 \.
 
 
@@ -1694,8 +1695,8 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.authtoken_token (key, created, user_id) FROM stdin;
-afba84d36d7279ac1f104ddbfbea348a36779610	2018-06-27 15:06:29.129617+03	1
-3164da5d8e34b52370e426065b8d42ed3c992424	2018-06-27 15:08:09.535924+03	3
+d4451494908a73745770a880097b451984e78719	2018-07-06 10:24:37.657578+03	1
+a068bf9af441dcb308d2ee51295d548218757bc5	2018-07-06 10:31:29.057849+03	3
 \.
 
 
@@ -1704,23 +1705,12 @@ afba84d36d7279ac1f104ddbfbea348a36779610	2018-06-27 15:06:29.129617+03	1
 --
 
 COPY public.django_admin_log (id, action_time, object_id, object_repr, action_flag, change_message, content_type_id, user_id) FROM stdin;
-1	2018-06-27 15:07:19.197116+03	1	sol	2	[{"changed": {"fields": ["first_name", "last_name"]}}, {"changed": {"name": "Profile", "object": "Davis Raymond's profile", "fields": ["role", "expertise", "gender"]}}]	4	1
-2	2018-06-27 15:10:20.057318+03	3	onauser	2	[{"changed": {"fields": ["first_name", "last_name"]}}, {"changed": {"name": "Profile", "object": "Ona User's profile", "fields": ["ona_username", "expertise"]}}]	4	1
-3	2018-06-27 15:11:39.655205+03	3	onauser	2	[{"changed": {"fields": ["is_superuser"]}}]	4	1
-4	2018-06-27 15:15:45.748612+03	1	Client1	1	[{"added": {}}]	18	1
-5	2018-06-27 15:15:48.470108+03	2	Client2	1	[{"added": {}}]	18	1
-6	2018-06-27 15:15:50.790354+03	3	Client3	1	[{"added": {}}]	18	1
-7	2018-06-27 15:15:53.416615+03	4	Client4	1	[{"added": {}}]	18	1
-8	2018-06-27 15:15:55.692602+03	5	Client5	1	[{"added": {}}]	18	1
-9	2018-06-27 15:15:57.986943+03	6	Client6	1	[{"added": {}}]	18	1
-10	2018-06-27 15:16:01.765612+03	7	Client7	1	[{"added": {}}]	18	1
-11	2018-06-27 15:16:21.872052+03	8	Client8	1	[{"added": {}}]	18	1
-12	2018-06-27 15:16:26.644547+03	9	Client9	1	[{"added": {}}]	18	1
-13	2018-06-27 15:16:29.471802+03	10	Client10	1	[{"added": {}}]	18	1
-14	2018-06-27 15:20:47.059059+03	1	City	1	[{"added": {}}]	20	1
-15	2018-06-27 15:20:48.292224+03	1	Kenya - Nairobi	1	[{"added": {}}]	19	1
-16	2018-06-27 15:21:52.161206+03	2	Area	1	[{"added": {}}]	20	1
-17	2018-06-27 15:21:53.639094+03	2	Kenya - Hurlingham	1	[{"added": {}}]	19	1
+1	2018-07-06 10:30:46.576366+03	1	sol	2	[{"changed": {"fields": ["first_name", "last_name"]}}, {"changed": {"name": "Profile", "object": "Davis Raymond's profile", "fields": ["ona_username", "national_id", "payment_number", "phone_number", "role", "expertise", "gender"]}}]	4	1
+2	2018-07-06 10:32:12.638188+03	3	onauser	2	[{"changed": {"fields": ["first_name", "last_name", "last_login"]}}, {"changed": {"name": "Profile", "object": "Ona User's profile", "fields": ["ona_username", "national_id", "payment_number", "phone_number", "role", "expertise"]}}]	4	1
+3	2018-07-06 10:36:44.398877+03	1	City	1	[{"added": {}}]	20	1
+4	2018-07-06 10:36:45.648653+03	1	Kenya - Nairobi	1	[{"added": {}}]	19	1
+5	2018-07-06 10:37:37.434437+03	2	Area	1	[{"added": {}}]	20	1
+6	2018-07-06 10:37:38.702024+03	2	Kenya - Hurlingham	1	[{"added": {}}]	19	1
 \.
 
 
@@ -1763,32 +1753,32 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 --
 
 COPY public.django_migrations (id, app, name, applied) FROM stdin;
-1	contenttypes	0001_initial	2018-06-27 15:05:55.526718+03
-2	auth	0001_initial	2018-06-27 15:05:55.731891+03
-3	account	0001_initial	2018-06-27 15:05:55.806967+03
-4	account	0002_email_max_length	2018-06-27 15:05:55.82171+03
-5	admin	0001_initial	2018-06-27 15:05:55.869201+03
-6	admin	0002_logentry_remove_auto_add	2018-06-27 15:05:55.880149+03
-7	contenttypes	0002_remove_content_type_name	2018-06-27 15:05:55.907388+03
-8	auth	0002_alter_permission_name_max_length	2018-06-27 15:05:55.917147+03
-9	auth	0003_alter_user_email_max_length	2018-06-27 15:05:55.930395+03
-10	auth	0004_alter_user_username_opts	2018-06-27 15:05:55.942825+03
-11	auth	0005_alter_user_last_login_null	2018-06-27 15:05:55.956964+03
-12	auth	0006_require_contenttypes_0002	2018-06-27 15:05:55.960248+03
-13	auth	0007_alter_validators_add_error_messages	2018-06-27 15:05:55.974415+03
-14	auth	0008_alter_user_username_max_length	2018-06-27 15:05:56.01311+03
-15	auth	0009_alter_user_last_name_max_length	2018-06-27 15:05:56.027231+03
-16	authtoken	0001_initial	2018-06-27 15:05:56.070314+03
-17	authtoken	0002_auto_20160226_1747	2018-06-27 15:05:56.121084+03
-18	main	0001_initial	2018-06-27 15:05:56.793162+03
-19	ona	0001_initial	2018-06-27 15:05:56.96471+03
-20	sessions	0001_initial	2018-06-27 15:05:56.994692+03
-21	sites	0001_initial	2018-06-27 15:05:57.008801+03
-22	sites	0002_alter_domain_unique	2018-06-27 15:05:57.027277+03
-23	socialaccount	0001_initial	2018-06-27 15:05:57.195465+03
-24	socialaccount	0002_token_max_lengths	2018-06-27 15:05:57.285625+03
-25	socialaccount	0003_extra_data_default_dict	2018-06-27 15:05:57.296713+03
-26	users	0001_initial	2018-06-27 15:05:57.40772+03
+1	contenttypes	0001_initial	2018-07-06 10:24:00.892531+03
+2	auth	0001_initial	2018-07-06 10:24:01.117983+03
+3	account	0001_initial	2018-07-06 10:24:01.207121+03
+4	account	0002_email_max_length	2018-07-06 10:24:01.229349+03
+5	admin	0001_initial	2018-07-06 10:24:01.27298+03
+6	admin	0002_logentry_remove_auto_add	2018-07-06 10:24:01.286924+03
+7	contenttypes	0002_remove_content_type_name	2018-07-06 10:24:01.336317+03
+8	auth	0002_alter_permission_name_max_length	2018-07-06 10:24:01.346129+03
+9	auth	0003_alter_user_email_max_length	2018-07-06 10:24:01.361633+03
+10	auth	0004_alter_user_username_opts	2018-07-06 10:24:01.376558+03
+11	auth	0005_alter_user_last_login_null	2018-07-06 10:24:01.393259+03
+12	auth	0006_require_contenttypes_0002	2018-07-06 10:24:01.397132+03
+13	auth	0007_alter_validators_add_error_messages	2018-07-06 10:24:01.418936+03
+14	auth	0008_alter_user_username_max_length	2018-07-06 10:24:01.453421+03
+15	auth	0009_alter_user_last_name_max_length	2018-07-06 10:24:01.474693+03
+16	authtoken	0001_initial	2018-07-06 10:24:01.532957+03
+17	authtoken	0002_auto_20160226_1747	2018-07-06 10:24:01.597731+03
+18	main	0001_initial	2018-07-06 10:24:02.337991+03
+19	ona	0001_initial	2018-07-06 10:24:02.498965+03
+20	sessions	0001_initial	2018-07-06 10:24:02.545475+03
+21	sites	0001_initial	2018-07-06 10:24:02.561457+03
+22	sites	0002_alter_domain_unique	2018-07-06 10:24:02.580703+03
+23	socialaccount	0001_initial	2018-07-06 10:24:02.794874+03
+24	socialaccount	0002_token_max_lengths	2018-07-06 10:24:02.920391+03
+25	socialaccount	0003_extra_data_default_dict	2018-07-06 10:24:02.936201+03
+26	users	0001_initial	2018-07-06 10:24:03.036162+03
 \.
 
 
@@ -1797,7 +1787,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 --
 
 COPY public.django_session (session_key, session_data, expire_date) FROM stdin;
-feaqmcs1cob55jw2dsb425dj1g8k2typ	YWY4Y2Y3MzgzZWZhMzk5N2Q3OTc1MjlmYmVjMGE2ZWFmODgwY2NlNjp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiI2NTEwY2ZkNTg2NmYzYzc0Njc1ODY5OWY5ZGM2MTE0YjNlOGMxMDVhIn0=	2018-07-11 15:06:45.651222+03
+fw4d7xx8ry88jvzxi8oluctta3qz3zhc	MDEwODNkNzc4NmFkNzJlNDI0ODY3ZWExOTkxOTY2ZmUxMDhhYjIzZTp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiIwNDU4ODk1ZThiNjllMDAyMDE2YTFjOWUyOTQwNDhiNzY4OTg3ODY2In0=	2018-07-20 10:29:16.09924+03
 \.
 
 
@@ -1815,6 +1805,8 @@ COPY public.django_site (id, domain, name) FROM stdin;
 --
 
 COPY public.main_bounty (id, created, amount, task_id) FROM stdin;
+1	2018-07-06 10:34:26.317914+03	15000.00	1
+2	2018-07-06 10:35:51.529766+03	9000.00	2
 \.
 
 
@@ -1823,67 +1815,56 @@ COPY public.main_bounty (id, created, amount, task_id) FROM stdin;
 --
 
 COPY public.main_client (id, created, modified, name) FROM stdin;
-1	2018-06-27 15:15:45.743001+03	2018-06-27 15:15:45.743021+03	Client1
-2	2018-06-27 15:15:48.464778+03	2018-06-27 15:15:48.464798+03	Client2
-3	2018-06-27 15:15:50.783372+03	2018-06-27 15:15:50.783398+03	Client3
-4	2018-06-27 15:15:53.411336+03	2018-06-27 15:15:53.411356+03	Client4
-5	2018-06-27 15:15:55.687348+03	2018-06-27 15:15:55.687367+03	Client5
-6	2018-06-27 15:15:57.980725+03	2018-06-27 15:15:57.980748+03	Client6
-7	2018-06-27 15:16:01.760373+03	2018-06-27 15:16:01.760393+03	Client7
-8	2018-06-27 15:16:21.866839+03	2018-06-27 15:16:21.866859+03	Client8
-9	2018-06-27 15:16:26.639508+03	2018-06-27 15:16:26.639528+03	Client9
-10	2018-06-27 15:16:29.466603+03	2018-06-27 15:16:29.466622+03	Client10
-11	2018-06-28 10:31:48.070709+03	2018-06-28 10:31:48.07074+03	Client11
-12	2018-06-28 10:31:57.639902+03	2018-06-28 10:31:57.639924+03	Client22
-13	2018-06-28 10:32:03.287461+03	2018-06-28 10:32:03.2875+03	Client12
-14	2018-06-28 10:32:22.438417+03	2018-06-28 10:32:22.438451+03	Client13
-15	2018-06-28 10:32:25.04271+03	2018-06-28 10:32:25.042755+03	Client14
-16	2018-06-28 10:32:27.603093+03	2018-06-28 10:32:27.603114+03	Client15
-17	2018-06-28 10:32:30.019593+03	2018-06-28 10:32:30.019628+03	Client16
-18	2018-06-28 10:32:32.258337+03	2018-06-28 10:32:32.258381+03	Client17
-19	2018-06-28 10:32:34.443803+03	2018-06-28 10:32:34.443828+03	Client18
-20	2018-06-28 10:32:40.672977+03	2018-06-28 10:32:40.673058+03	Client19
-21	2018-06-28 10:32:42.723928+03	2018-06-28 10:32:42.723951+03	Client20
-22	2018-06-28 10:32:45.76107+03	2018-06-28 10:32:45.761091+03	Client21
-23	2018-06-28 10:32:48.895488+03	2018-06-28 10:32:48.895542+03	Client23
-24	2018-06-28 10:32:50.654803+03	2018-06-28 10:32:50.654847+03	Client24
-25	2018-06-28 10:32:52.583625+03	2018-06-28 10:32:52.583657+03	Client25
-26	2018-06-28 10:32:54.674145+03	2018-06-28 10:32:54.674193+03	Client26
-27	2018-06-28 10:32:56.926387+03	2018-06-28 10:32:56.926415+03	Client27
-28	2018-06-28 10:32:58.747532+03	2018-06-28 10:32:58.747554+03	Client28
-29	2018-06-28 10:33:00.636327+03	2018-06-28 10:33:00.636375+03	Client29
-30	2018-06-28 10:33:03.199525+03	2018-06-28 10:33:03.199589+03	Client30
-31	2018-06-28 10:35:28.360716+03	2018-06-28 10:35:28.360738+03	Client31
-32	2018-06-28 10:35:30.254985+03	2018-06-28 10:35:30.255031+03	Client32
-33	2018-06-28 10:35:33.276113+03	2018-06-28 10:35:33.276149+03	Client33
-34	2018-06-28 10:35:35.364097+03	2018-06-28 10:35:35.364119+03	Client34
-35	2018-06-28 10:35:36.950015+03	2018-06-28 10:35:36.950055+03	Client35
-36	2018-06-28 10:35:38.50238+03	2018-06-28 10:35:38.502425+03	Client36
-37	2018-06-28 10:35:40.355942+03	2018-06-28 10:35:40.355989+03	Client37
-38	2018-06-28 10:35:42.253866+03	2018-06-28 10:35:42.253887+03	Client38
-39	2018-06-28 10:35:44.011745+03	2018-06-28 10:35:44.011786+03	Client39
-40	2018-06-28 10:35:47.002784+03	2018-06-28 10:35:47.002807+03	Client40
-41	2018-06-28 10:35:48.641217+03	2018-06-28 10:35:48.641247+03	Client41
-42	2018-06-28 10:35:50.303565+03	2018-06-28 10:35:50.303619+03	Client42
-43	2018-06-28 10:35:52.27878+03	2018-06-28 10:35:52.278816+03	Client43
-44	2018-06-28 10:35:53.915394+03	2018-06-28 10:35:53.915426+03	Client44
-45	2018-06-28 10:35:56.269278+03	2018-06-28 10:35:56.269315+03	Client45
-46	2018-06-28 10:35:58.564768+03	2018-06-28 10:35:58.564809+03	Client46
-47	2018-06-28 10:36:00.224641+03	2018-06-28 10:36:00.224689+03	Client47
-48	2018-06-28 10:36:02.558191+03	2018-06-28 10:36:02.558222+03	Client48
-49	2018-06-28 10:36:04.418226+03	2018-06-28 10:36:04.418256+03	Client49
-50	2018-06-28 10:36:07.323747+03	2018-06-28 10:36:07.323769+03	Client50
-51	2018-06-28 10:36:09.089297+03	2018-06-28 10:36:09.08933+03	Client51
-52	2018-06-28 10:36:10.874558+03	2018-06-28 10:36:10.874594+03	Client52
-53	2018-06-28 10:36:12.714014+03	2018-06-28 10:36:12.714052+03	Client53
-54	2018-06-28 10:36:14.303487+03	2018-06-28 10:36:14.303519+03	Client54
-55	2018-06-28 10:36:16.045109+03	2018-06-28 10:36:16.045139+03	Client55
-56	2018-06-28 10:36:17.726388+03	2018-06-28 10:36:17.726428+03	Client56
-57	2018-06-28 10:36:19.460337+03	2018-06-28 10:36:19.460389+03	Client57
-58	2018-06-28 10:36:21.302065+03	2018-06-28 10:36:21.302094+03	Client58
-59	2018-06-28 10:36:23.539857+03	2018-06-28 10:36:23.539887+03	Client59
-60	2018-06-28 10:36:31.507576+03	2018-06-28 10:36:31.507597+03	Client60
-61	2018-06-28 10:36:43.201849+03	2018-06-28 10:36:43.201913+03	Client61
+1	2018-07-06 10:25:29.812966+03	2018-07-06 10:25:29.81299+03	Client1
+2	2018-07-06 10:25:31.593745+03	2018-07-06 10:25:31.593787+03	Client2
+3	2018-07-06 10:25:33.240288+03	2018-07-06 10:25:33.240328+03	Client3
+4	2018-07-06 10:25:36.615127+03	2018-07-06 10:25:36.615168+03	Client4
+5	2018-07-06 10:25:38.078727+03	2018-07-06 10:25:38.078767+03	Client5
+6	2018-07-06 10:25:39.815023+03	2018-07-06 10:25:39.815054+03	Client6
+7	2018-07-06 10:25:41.510615+03	2018-07-06 10:25:41.510653+03	Client7
+8	2018-07-06 10:25:43.277455+03	2018-07-06 10:25:43.277486+03	Client8
+9	2018-07-06 10:25:48.402942+03	2018-07-06 10:25:48.403009+03	Client9
+10	2018-07-06 10:25:50.645137+03	2018-07-06 10:25:50.645174+03	Client10
+11	2018-07-06 10:25:52.388617+03	2018-07-06 10:25:52.388698+03	Client11
+12	2018-07-06 10:25:55.170079+03	2018-07-06 10:25:55.170128+03	Client12
+13	2018-07-06 10:25:56.93869+03	2018-07-06 10:25:56.93872+03	Client13
+14	2018-07-06 10:25:58.609853+03	2018-07-06 10:25:58.609885+03	Client14
+15	2018-07-06 10:26:00.504142+03	2018-07-06 10:26:00.504169+03	Client15
+16	2018-07-06 10:26:02.390323+03	2018-07-06 10:26:02.390366+03	Client16
+17	2018-07-06 10:26:04.040944+03	2018-07-06 10:26:04.04098+03	Client17
+18	2018-07-06 10:26:06.058302+03	2018-07-06 10:26:06.058352+03	Client18
+19	2018-07-06 10:26:07.837388+03	2018-07-06 10:26:07.83743+03	Client19
+20	2018-07-06 10:26:10.706065+03	2018-07-06 10:26:10.706106+03	Client20
+21	2018-07-06 10:26:12.188356+03	2018-07-06 10:26:12.188395+03	Client21
+22	2018-07-06 10:26:13.793592+03	2018-07-06 10:26:13.793647+03	Client22
+23	2018-07-06 10:26:15.416294+03	2018-07-06 10:26:15.416333+03	Client23
+24	2018-07-06 10:26:17.337471+03	2018-07-06 10:26:17.337506+03	Client24
+25	2018-07-06 10:26:19.050179+03	2018-07-06 10:26:19.050202+03	Client25
+26	2018-07-06 10:26:20.822367+03	2018-07-06 10:26:20.822392+03	Client26
+27	2018-07-06 10:26:22.536567+03	2018-07-06 10:26:22.536606+03	Client27
+28	2018-07-06 10:26:26.366592+03	2018-07-06 10:26:26.366615+03	Client28
+29	2018-07-06 10:26:28.28534+03	2018-07-06 10:26:28.285375+03	Client29
+30	2018-07-06 10:26:31.019663+03	2018-07-06 10:26:31.019697+03	Client30
+31	2018-07-06 10:26:32.518733+03	2018-07-06 10:26:32.518767+03	Client31
+32	2018-07-06 10:26:34.045567+03	2018-07-06 10:26:34.0456+03	Client32
+33	2018-07-06 10:26:36.082821+03	2018-07-06 10:26:36.08285+03	Client33
+34	2018-07-06 10:26:38.084615+03	2018-07-06 10:26:38.08466+03	Client34
+35	2018-07-06 10:26:39.924812+03	2018-07-06 10:26:39.924841+03	Client35
+36	2018-07-06 10:26:41.541004+03	2018-07-06 10:26:41.541036+03	Client36
+37	2018-07-06 10:26:43.060056+03	2018-07-06 10:26:43.06008+03	Client37
+38	2018-07-06 10:26:44.741808+03	2018-07-06 10:26:44.741853+03	Client38
+39	2018-07-06 10:26:46.731982+03	2018-07-06 10:26:46.732004+03	Client39
+40	2018-07-06 10:26:49.552338+03	2018-07-06 10:26:49.552398+03	Client40
+41	2018-07-06 10:26:51.694742+03	2018-07-06 10:26:51.694784+03	Client41
+42	2018-07-06 10:26:53.106927+03	2018-07-06 10:26:53.106958+03	Client42
+43	2018-07-06 10:26:54.618117+03	2018-07-06 10:26:54.618193+03	Client43
+44	2018-07-06 10:26:56.817615+03	2018-07-06 10:26:56.817675+03	Client44
+45	2018-07-06 10:26:58.46208+03	2018-07-06 10:26:58.462104+03	Client45
+46	2018-07-06 10:27:00.122203+03	2018-07-06 10:27:00.122249+03	Client46
+47	2018-07-06 10:27:01.666041+03	2018-07-06 10:27:01.666103+03	Client47
+48	2018-07-06 10:27:03.774447+03	2018-07-06 10:27:03.774471+03	Client48
+49	2018-07-06 10:27:05.821368+03	2018-07-06 10:27:05.821425+03	Client49
+50	2018-07-06 10:27:08.611479+03	2018-07-06 10:27:08.611512+03	Client50
 \.
 
 
@@ -1892,8 +1873,8 @@ COPY public.main_client (id, created, modified, name) FROM stdin;
 --
 
 COPY public.main_location (id, created, modified, name, country, geopoint, radius, shapefile, description, lft, rght, tree_id, level, location_type_id, parent_id) FROM stdin;
-1	2018-06-27 15:20:48.271943+03	2018-06-27 15:20:48.271967+03	Nairobi	KE	\N	\N	\N	Nairobi is so HUGE!!!!! I can't even remember where i live.	1	4	1	0	1	\N
-2	2018-06-27 15:21:53.61901+03	2018-06-27 15:21:53.619053+03	Hurlingham	KE	\N	\N	\N	Part of nairobi	2	3	1	1	2	1
+1	2018-07-06 10:36:45.627041+03	2018-07-06 10:36:45.627074+03	Nairobi	KE	0101000020E6100000FEFFFFFFFFAF93BFDBA6E4F3FF9B983F	40.0000	\N	Nairobi!!!	1	4	1	0	1	\N
+2	2018-07-06 10:37:38.681311+03	2018-07-06 10:37:38.681335+03	Hurlingham	KE	\N	\N	0106000020E61000000100000001030000000100000005000000FFFFFFFFFF7195BF9BB4BEFAFFA1923FFFFFFFFFFFF8A5BFCD67FBFFFFDF503F0B433A014E6C5ABFC5BDA8BA89058EBFD78638689B01823F698AF412511F8C3FFFFFFFFFFF7195BF9BB4BEFAFFA1923F	Lorem ipsum dolor amet unicorn meh paleo banjo distillery twee. Flannel meggings cold-pressed, raw denim listicle poutine organic literally cornhole cloud bread vaporware ugh. Paleo chia glossier tbh, put a bird on it tacos direct trade venmo. Neutra farm-to-table prism authentic pork belly iPhone tofu kickstarter brooklyn salvia cliche single-origin coffee knausgaard migas.\r\n\r\nFranzen keffiyeh pickled, everyday carry narwhal pabst ennui adaptogen organic vaporware vape portland food truck vegan bicycle rights. Kogi kickstarter schlitz woke, intelligentsia literally cronut kombucha pour-over locavore. Salvia sartorial intelligentsia tacos chambray palo santo banjo. Actually everyday carry snackwave biodiesel swag deep v. Knausgaard hot chicken hashtag asymmetrical disrupt fashion axe. Chicharrones DIY tattooed kale chips chillwave seitan fashion axe scenester lumbersexual locavore jianbing green juice air plant blog fingerstache.\r\n\r\nBlue bottle chambray roof party yuccie cray coloring book hoodie pinterest succulents food truck prism. Hashtag air plant cornhole, retro everyday carry meggings activated charcoal seitan readymade. Meditation mixtape +1 locavore, artisan venmo retro PBR&B slow-carb man bun hella craft beer enamel pin yr microdosing. Pork belly tousled YOLO etsy sriracha cardigan lomo. Keytar butcher tacos blue bottle, coloring book kale chips you probably haven't heard of them tattooed 8-bit kogi.\r\n\r\nOccupy raclette af authentic. YOLO microdosing polaroid, selfies air plant fingerstache iceland hoodie trust fund whatever cornhole actually kitsch. Intelligentsia vaporware hoodie taxidermy, selfies cold-pressed YOLO. Banjo fixie lumbersexual hoodie. Pinterest vaporware humblebrag mixtape lumbersexual hexagon. Roof party fingerstache artisan neutra gochujang. Normcore sartorial 90's, neutra humblebrag health goth forage franzen taxidermy keffiyeh kale chips taiyaki try-hard master cleanse.\r\n\r\nTbh glossier poke etsy gochujang semiotics blue bottle XOXO flexitarian flannel edison bulb. Scenester irony sriracha etsy heirloom schlitz crucifix palo santo bitters sartorial synth locavore four dollar toast +1 green juice. +1 meh yr master cleanse, hammock VHS enamel pin four loko normcore raw denim. Scenester selvage vape poke, ethical chambray chartreuse cray chillwave humblebrag whatever waistcoat.\r\n\r\nOh. You need a little dummy text for your mockup? How quaint.\r\n\r\nI bet you’re still using Bootstrap too…	2	3	1	1	2	1
 \.
 
 
@@ -1902,8 +1883,8 @@ COPY public.main_location (id, created, modified, name, country, geopoint, radiu
 --
 
 COPY public.main_locationtype (id, created, modified, name) FROM stdin;
-1	2018-06-27 15:20:47.053706+03	2018-06-27 15:20:47.053727+03	City
-2	2018-06-27 15:21:52.146571+03	2018-06-27 15:21:52.146594+03	Area
+1	2018-07-06 10:36:44.393313+03	2018-07-06 10:36:44.393333+03	City
+2	2018-07-06 10:37:37.429037+03	2018-07-06 10:37:37.429057+03	Area
 \.
 
 
@@ -1943,9 +1924,9 @@ COPY public.main_submission (id, created, modified, target_object_id, submission
 -- Data for Name: main_task; Type: TABLE DATA; Schema: public; Owner: sol
 --
 
-COPY public.main_task (id, created, modified, target_object_id, name, description, start, "end", timing_rule, total_submission_target, user_submission_target, status, estimated_time, required_expertise, lft, rght, tree_id, level, client_id, parent_id, target_content_type_id) FROM stdin;
-1	2018-06-27 15:14:42.953615+03	2018-06-27 15:14:42.953642+03	2	Awesome Task	Super Awesome Task!!!!!!!!!!!!!	2018-06-27 12:00:00+03	2018-06-27 12:00:00+03	\N	\N	100	a	00:10:00	3	1	2	1	0	\N	\N	16
-2	2018-06-27 15:15:19.790924+03	2018-06-27 15:15:19.790962+03	\N	Awesomeness in Progress	Super Task	2018-06-27 12:00:00+03	2018-06-27 12:00:00+03	\N	\N	10	d	00:15:00	1	1	2	2	0	\N	\N	16
+COPY public.main_task (id, created, modified, target_object_id, name, description, start, "end", timing_rule, total_submission_target, user_submission_target, status, estimated_time, required_expertise, lft, rght, tree_id, level, client_id, created_by_id, parent_id, target_content_type_id) FROM stdin;
+1	2018-07-06 10:34:14.236472+03	2018-07-06 10:34:14.236521+03	1	Awesome Task	Awesome Task Description was here.... I promise.	2018-07-06 10:34:14+03	2018-07-08 12:00:00+03	FREQ=DAILY;INTERVAL=1	\N	500	a	01:00:00	4	1	2	1	0	1	3	\N	16
+2	2018-07-06 10:35:39.777683+03	2018-07-06 10:35:39.77771+03	2	Chill Task	Sup?	2018-07-06 10:35:39+03	2018-07-31 12:00:00+03	FREQ=DAILY;INTERVAL=1	\N	100	a	02:30:00	3	1	2	2	0	14	3	\N	16
 \.
 
 
@@ -1970,6 +1951,35 @@ COPY public.main_task_segment_rules (id, task_id, segmentrule_id) FROM stdin;
 --
 
 COPY public.main_taskoccurrence (id, created, modified, date, start_time, end_time, task_id) FROM stdin;
+1	2018-07-06 10:34:26.297314+03	2018-07-06 10:34:26.297336+03	2018-07-06	10:34:14	23:59:59.999999	1
+2	2018-07-06 10:34:26.297388+03	2018-07-06 10:34:26.297417+03	2018-07-07	10:34:14	23:59:59.999999	1
+3	2018-07-06 10:34:26.297455+03	2018-07-06 10:34:26.297462+03	2018-07-08	10:34:14	23:59:59.999999	1
+4	2018-07-06 10:35:51.501827+03	2018-07-06 10:35:51.50185+03	2018-07-06	10:35:39	23:59:59.999999	2
+5	2018-07-06 10:35:51.501894+03	2018-07-06 10:35:51.501903+03	2018-07-07	10:35:39	23:59:59.999999	2
+6	2018-07-06 10:35:51.501927+03	2018-07-06 10:35:51.501934+03	2018-07-08	10:35:39	23:59:59.999999	2
+7	2018-07-06 10:35:51.501957+03	2018-07-06 10:35:51.501963+03	2018-07-09	10:35:39	23:59:59.999999	2
+8	2018-07-06 10:35:51.501985+03	2018-07-06 10:35:51.501991+03	2018-07-10	10:35:39	23:59:59.999999	2
+9	2018-07-06 10:35:51.502013+03	2018-07-06 10:35:51.502019+03	2018-07-11	10:35:39	23:59:59.999999	2
+10	2018-07-06 10:35:51.502053+03	2018-07-06 10:35:51.50206+03	2018-07-12	10:35:39	23:59:59.999999	2
+11	2018-07-06 10:35:51.502084+03	2018-07-06 10:35:51.502091+03	2018-07-13	10:35:39	23:59:59.999999	2
+12	2018-07-06 10:35:51.502115+03	2018-07-06 10:35:51.502123+03	2018-07-14	10:35:39	23:59:59.999999	2
+13	2018-07-06 10:35:51.502148+03	2018-07-06 10:35:51.502158+03	2018-07-15	10:35:39	23:59:59.999999	2
+14	2018-07-06 10:35:51.502183+03	2018-07-06 10:35:51.502191+03	2018-07-16	10:35:39	23:59:59.999999	2
+15	2018-07-06 10:35:51.502215+03	2018-07-06 10:35:51.502222+03	2018-07-17	10:35:39	23:59:59.999999	2
+16	2018-07-06 10:35:51.502245+03	2018-07-06 10:35:51.502253+03	2018-07-18	10:35:39	23:59:59.999999	2
+17	2018-07-06 10:35:51.502276+03	2018-07-06 10:35:51.502283+03	2018-07-19	10:35:39	23:59:59.999999	2
+18	2018-07-06 10:35:51.502307+03	2018-07-06 10:35:51.502314+03	2018-07-20	10:35:39	23:59:59.999999	2
+19	2018-07-06 10:35:51.502337+03	2018-07-06 10:35:51.502344+03	2018-07-21	10:35:39	23:59:59.999999	2
+20	2018-07-06 10:35:51.502367+03	2018-07-06 10:35:51.502374+03	2018-07-22	10:35:39	23:59:59.999999	2
+21	2018-07-06 10:35:51.502398+03	2018-07-06 10:35:51.502405+03	2018-07-23	10:35:39	23:59:59.999999	2
+22	2018-07-06 10:35:51.502428+03	2018-07-06 10:35:51.502435+03	2018-07-24	10:35:39	23:59:59.999999	2
+23	2018-07-06 10:35:51.502459+03	2018-07-06 10:35:51.502466+03	2018-07-25	10:35:39	23:59:59.999999	2
+24	2018-07-06 10:35:51.502489+03	2018-07-06 10:35:51.502496+03	2018-07-26	10:35:39	23:59:59.999999	2
+25	2018-07-06 10:35:51.502519+03	2018-07-06 10:35:51.502526+03	2018-07-27	10:35:39	23:59:59.999999	2
+26	2018-07-06 10:35:51.502558+03	2018-07-06 10:35:51.502564+03	2018-07-28	10:35:39	23:59:59.999999	2
+27	2018-07-06 10:35:51.502585+03	2018-07-06 10:35:51.502592+03	2018-07-29	10:35:39	23:59:59.999999	2
+28	2018-07-06 10:35:51.502613+03	2018-07-06 10:35:51.502619+03	2018-07-30	10:35:39	23:59:59.999999	2
+29	2018-07-06 10:35:51.50264+03	2018-07-06 10:35:51.502646+03	2018-07-31	10:35:39	23:59:59.999999	2
 \.
 
 
@@ -1994,11 +2004,16 @@ COPY public.ona_project (id, created, modified, ona_pk, organization, name, dele
 --
 
 COPY public.ona_xform (id, created, modified, ona_pk, project_id, title, id_string, deleted_at, last_updated) FROM stdin;
-1	2018-06-27 15:09:28.235285+03	2018-06-27 15:09:28.235321+03	8949	6083	Form1	Hf0NStRnXYre2VKiDqgf-VlJ9hVSfZdoFT8lbneTSKurscWybsxH8T4hmfQ-in6ZVhRHSxengHqPJ-ssoc1Hg6VCa-8S8q0P8WzK	\N	\N
-2	2018-06-27 15:09:30.232453+03	2018-06-27 15:09:30.232515+03	2849	3129	Form2	lRIstdPX9RYXqjxM5sTCvBJ-PVpMJwNUXP3ZQlEeJ-dT1nE3s7cuUfI7ZTiUMxK1bVK-mgRjLBQEbZoXFrYO1Hx9Re8bbHVQf_xy	\N	\N
-3	2018-06-27 15:09:32.754463+03	2018-06-27 15:09:32.75452+03	3273	2779	Form3	i2yKINGC8EXUPlbMZ2PWyDxmocEisJfbmnSjSuZe_1av2R_n4B7rlEa9LSHjgE8FjUBYDnVw2Hi4CjSk_nGKZVZy5LeXetm3YGAP	\N	\N
-4	2018-06-27 15:09:34.454346+03	2018-06-27 15:09:34.454379+03	733	1357	Form4	X3MvgAL-ehjt0cU0E1d6mv29dIUlsjeUNjsSpb08xl7t8k4mYLVAmBLXroodidDFwqWhghV7U9Es_BAJXK1Z27_9jrmF8X-Ppq6v	\N	\N
-5	2018-06-27 15:09:36.282385+03	2018-06-27 15:09:36.282413+03	7699	9899	Form5	F7ttwaUrFXK-KUluLoCrA_2F_iCnHxjcqYiskwsHKU_axhTU2rRoRNWYmGK5bv_Vv-Hk40MO1P2Vqfew1I0pgMK35PUENxlXjaiB	\N	\N
+1	2018-07-06 10:27:32.825844+03	2018-07-06 10:27:32.825934+03	7223	4583	Form1	CaJIJNyVTLthgkwmHolx_ocesN5lMEqQqcpovvpmGmt2MxZf5avUmGrklG5eCG5r8rJYAJE3qY14Gfqg19MkHq2C1y5JtYrCur8Y	\N	\N
+2	2018-07-06 10:27:34.684932+03	2018-07-06 10:27:34.68497+03	1032	6524	Form2	4RzwpngrNLtXACnBDmZKd5JRUp7nQfSde_6NXZa3sYEtlQKIkA1_1jdWmocFTo0u1iCdO7t-OMbdFeIqzpk8ajrtbdtoeLmp1D0f	\N	\N
+3	2018-07-06 10:27:36.414256+03	2018-07-06 10:27:36.414285+03	5046	5182	Form3	PJITY5ufQjHyrkdec84noP9luJWxLlV_5GT-pNdXNf2g1g9H91fDDQeJSXAfrbs1_So0Yiswf2YK3Z-VzQZq65cTLYgsLGi6yNqp	\N	\N
+4	2018-07-06 10:27:37.968213+03	2018-07-06 10:27:37.968234+03	3372	6397	Form4	FXOwB0pNIXlHgzo3oh5PBBoexzy2VjkQm-8cjXNpvP-jX4PtGHW0zdLIDwhH47NwhOqDX6-9uR4m5EBMqWUds-6udiOnzWBu_kqD	\N	\N
+5	2018-07-06 10:27:39.767839+03	2018-07-06 10:27:39.767861+03	9408	9383	Form5	jdWyW5mVQuMOU057X6ODZOGLScK8DOwhY3ZkwC0QqnaxNuvzSQnNBfhSgfVPAydnfkQh_O51NR0RIGl0JZ7kqprQHgety667eAhz	\N	\N
+6	2018-07-06 10:27:42.238509+03	2018-07-06 10:27:42.238533+03	7925	6317	Form6	Xne7EviTHs6LQvE3OEewjYmgKWKh4V5lsJMpioT3v8TWNPBqWzTvMCTCpKB2Aar-t8ascmsEX7RPV091iXkp0UMrfDyf7rALvpq6	\N	\N
+7	2018-07-06 10:27:44.113859+03	2018-07-06 10:27:44.113889+03	6160	7700	Form7	0N2FUXSkW2Ef6rBco2n0fFFAXT8j-_YqsPv7bTbTl7j2SDDy_JTjR58YJAuHnrhu_p-sXuxcKo4Du_bFS6Yh0Bm9wJXyqFAreq0v	\N	\N
+8	2018-07-06 10:27:45.893545+03	2018-07-06 10:27:45.893582+03	4108	9862	Form8	c3ITIsBtZO29Prw2ccoSbvUrNOEmDI13dawoFD7mN74aV4VO_4yJ3I6mY8HhHjfy_5KP5HG5yEshyhJZNJrFnjAdisQDxreMKvGr	\N	\N
+9	2018-07-06 10:27:47.671175+03	2018-07-06 10:27:47.671213+03	9824	4968	Form9	4mGzfe1eOzjEub4bzpHswhOY741OmtSWTNTjM72tYr2t3RI-sl0woSpJumXX4lREiUHbL9cN_hOk25kAu8izCTwpKi9TBkku5B9B	\N	\N
+10	2018-07-06 10:27:49.651928+03	2018-07-06 10:27:49.651988+03	9008	1434	Form10	vPNchwVGGtsZmwPFcfXzE8c-4WPcA-761IBsz_xM-1lTkrmvUhbTqbtZtg3YmpHfX8z5KAN-0R_gUHjWhQS0xeShI6G_ElRcf01Q	\N	\N
 \.
 
 
@@ -2047,8 +2062,8 @@ COPY public.spatial_ref_sys (srid, auth_name, auth_srid, srtext, proj4text) FROM
 --
 
 COPY public.users_userprofile (id, created, modified, ona_pk, ona_username, national_id, payment_number, phone_number, role, expertise, gender, user_id) FROM stdin;
-1	2018-06-27 15:06:29.120453+03	2018-06-27 15:07:19.190802+03	\N	\N	\N			1	3	1	1
-4	2018-06-27 15:08:09.531149+03	2018-06-27 15:10:20.050217+03	\N	onauser	\N			1	4	0	3
+1	2018-07-06 10:24:37.653628+03	2018-07-06 10:30:46.567612+03	\N	davisray	0000000	+254788096605	+254788096605	1	3	1	1
+4	2018-07-06 10:31:29.054485+03	2018-07-06 10:32:12.628915+03	\N	onauser	010000	+254788096605	+254788096605	1	4	0	3
 \.
 
 
@@ -2112,7 +2127,7 @@ SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sol
 --
 
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 17, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 6, true);
 
 
 --
@@ -2140,14 +2155,14 @@ SELECT pg_catalog.setval('public.django_site_id_seq', 1, true);
 -- Name: main_bounty_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sol
 --
 
-SELECT pg_catalog.setval('public.main_bounty_id_seq', 1, false);
+SELECT pg_catalog.setval('public.main_bounty_id_seq', 2, true);
 
 
 --
 -- Name: main_client_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sol
 --
 
-SELECT pg_catalog.setval('public.main_client_id_seq', 61, true);
+SELECT pg_catalog.setval('public.main_client_id_seq', 50, true);
 
 
 --
@@ -2217,7 +2232,7 @@ SELECT pg_catalog.setval('public.main_task_segment_rules_id_seq', 1, false);
 -- Name: main_taskoccurrence_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sol
 --
 
-SELECT pg_catalog.setval('public.main_taskoccurrence_id_seq', 1, false);
+SELECT pg_catalog.setval('public.main_taskoccurrence_id_seq', 29, true);
 
 
 --
@@ -2238,7 +2253,7 @@ SELECT pg_catalog.setval('public.ona_project_id_seq', 1, false);
 -- Name: ona_xform_id_seq; Type: SEQUENCE SET; Schema: public; Owner: sol
 --
 
-SELECT pg_catalog.setval('public.ona_xform_id_seq', 5, true);
+SELECT pg_catalog.setval('public.ona_xform_id_seq', 10, true);
 
 
 --
@@ -3043,6 +3058,13 @@ CREATE INDEX main_task_client_id_08588672 ON public.main_task USING btree (clien
 
 
 --
+-- Name: main_task_created_by_id_23ce62ed; Type: INDEX; Schema: public; Owner: sol
+--
+
+CREATE INDEX main_task_created_by_id_23ce62ed ON public.main_task USING btree (created_by_id);
+
+
+--
 -- Name: main_task_level_1378e816; Type: INDEX; Schema: public; Owner: sol
 --
 
@@ -3408,6 +3430,14 @@ ALTER TABLE ONLY public.main_submission
 
 ALTER TABLE ONLY public.main_task
     ADD CONSTRAINT main_task_client_id_08588672_fk_main_client_id FOREIGN KEY (client_id) REFERENCES public.main_client(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: main_task main_task_created_by_id_23ce62ed_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: sol
+--
+
+ALTER TABLE ONLY public.main_task
+    ADD CONSTRAINT main_task_created_by_id_23ce62ed_fk_auth_user_id FOREIGN KEY (created_by_id) REFERENCES public.auth_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
