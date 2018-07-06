@@ -60,7 +60,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
     modified = filters.DateTimeFilter(
         name='modified',
         lookup_expr=DATETIME_LOOKUPS,
-        method='filter_modified'
+        method='filter_timing'
     )
 
     # pylint: disable=too-few-public-methods
@@ -92,7 +92,6 @@ class KaznetTaskFilterSet(filters.FilterSet):
         """
         Method to filter against task timing using TaskOccurrences
         """
-
         # get the filter
         try:
             the_filter = self.get_filters()[name]
@@ -122,34 +121,9 @@ class KaznetTaskFilterSet(filters.FilterSet):
         filter_args = {query_name: data}
         # get task ids
         # pylint: disable=no-member
+        if name == 'modified':
+            return queryset.filter(**filter_args)
+
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
-
-    def filter_modified(self, queryset, name, value):
-        """
-        Method to filter modified
-        """
-        try:
-            the_filter = self.get_filters()[name]
-        except KeyError:
-            return queryset
-
-        data = self.data.get(name)
-        if data is not None:
-            query_name = name
-        else:
-            lookups = the_filter.lookup_expr
-
-            if lookups:
-                for lookup in lookups:
-                    query_name = self.get_filter_name(name, lookup)
-                    data = self.data.get(query_name)
-                    if data is not None:
-                        break
-        if data is None:
-            return queryset
-
-        filter_args = {query_name: data}
-
-        return queryset.filter(**filter_args)
