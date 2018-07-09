@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib.gis.geos import Point
+from django.test import override_settings
 
 from model_mommy import mommy
 
@@ -24,6 +25,7 @@ from kaznet.apps.users.models import UserProfile
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class TestAPIMethods(MainTestBase):
     """
     Test class for API Methods
