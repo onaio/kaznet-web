@@ -189,7 +189,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             'name': "Milk Price",
             'target_content_type': self.xform_type.id,
             'target_id': xform.id,
-            }
+        }
 
         view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
         request = self.factory.patch(
@@ -207,7 +207,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         data2 = {
             'name': "Cattle Price",
             'description': 'Hello there!',
-            }
+        }
 
         view2 = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
         request2 = self.factory.patch(
@@ -220,6 +220,32 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(
             'Hello there!',
             response2.data['description'])
+
+    def test_update_name_only(self):
+        """
+        Test that you can update the Task name only
+        """
+        user = create_admin_user()
+        task_data = self._create_task()
+        data = {
+            "data": {
+                "type": "Task",
+                "id": task_data['id'],
+                "attributes": {
+                    "name": "What is Softball?"
+                }
+            }
+        }
+        view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
+
+        request = self.factory.patch(
+            f"/tasks/{task_data['id']}", data=json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task_data['id'])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['name'], "What is Softball?")
 
     def test_clone_task(self):
         """
@@ -1077,7 +1103,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             'name': "Milk Price",
             'target_content_type': self.xform_type.id,
             'target_id': xform.id,
-            }
+        }
 
         view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
         request = self.factory.patch(
