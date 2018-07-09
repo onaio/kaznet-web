@@ -3,7 +3,7 @@ Filters module for main Kaznet app
 """
 from django_filters import rest_framework as filters
 
-from kaznet.apps.main.models import Task, TaskOccurrence
+from kaznet.apps.main.models import Task, TaskOccurrence, Location
 
 DATE_LOOKUPS = [
     'exact', 'gt', 'lt', 'gte', 'lte', 'year', 'year__gt', 'year__lt',
@@ -17,6 +17,77 @@ DATETIME_LOOKUPS = [
     'time__lte'
 ]
 TIME_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
+
+
+class KaznetFilterSet(filters.FilterSet):
+    """
+    Generic filteset class for Kaznet
+    """
+
+    def _get_filter_args(self, name):
+        """
+        This method returns lookups-aware filter arguments
+        """
+        # get the filter
+        try:
+            the_filter = self.get_filters()[name]
+        except KeyError:
+            # this name isn't a valid filter
+            return None
+
+        # first try the exact name
+        data = self.data.get(name)
+        if data is not None:
+            query_name = name
+        else:
+            # get the lookups
+            lookups = the_filter.lookup_expr
+            # loop through lookups to find which one is being used
+            if lookups:
+                for lookup in lookups:
+                    query_name = self.get_filter_name(name, lookup)
+                    data = self.data.get(query_name)
+                    if data is not None:
+                        break
+
+        if data is None:
+            return None
+
+        return {query_name: data}
+
+    def filter_modified(self, queryset, name, value):
+        """
+        Filter by modified
+        """
+        filter_args = self._get_filter_args(name)
+
+        if filter_args is None:
+            return queryset
+
+        return queryset.filter(**filter_args)
+
+
+class KaznetLocationFilterSet(KaznetFilterSet):
+    """
+    Filterset for locations
+    """
+    modified = filters.DateTimeFilter(
+        name='modified',
+        lookup_expr=DATETIME_LOOKUPS,
+        method='filter_modified'
+    )
+
+    # pylint: disable=too-few-public-methods
+    class Meta(object):
+        """
+        Meta options for TaskOccurrenceFilterSet
+        """
+        model = Location
+        fields = [
+            'parent',
+            'country',
+            'modified',
+        ]
 
 
 class KaznetTaskOccurrenceFilterSet(filters.FilterSet):
@@ -80,12 +151,6 @@ class KaznetTaskFilterSet(filters.FilterSet):
             'start_time',
             'end_time'
         ]
-
-        # filter_overrides = {
-        #     models.DateTimeField: {
-        #         'filter_class': filters.IsoDateTimeFilter
-        #     },
-        # }
 
     # pylint: disable=unused-argument
     def filter_timing(self, queryset, name, value):
