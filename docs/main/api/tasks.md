@@ -238,7 +238,7 @@ Returns a list of all tasks with a specific parent if given `parent` query param
 curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?parent=43"
 ```
 
-Returns a list of all tasks with a specific client if given `clinet` query parameter. The `client` query parameter takes an *integer* which is the unique identifier for a client object.
+Returns a list of all tasks with a specific client if given `client` query parameter. The `client` query parameter takes an *integer* which is the unique identifier for a client object.
 
 ```console
 curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?client=78"
