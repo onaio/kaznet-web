@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from kaznet.apps.main.common_tags import INCORRECT_CLONE_DATA
 from kaznet.apps.main.filters import KaznetTaskFilterSet
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.users.permissions import IsAdmin, IsAdminOrReadOnly
 
@@ -55,21 +55,33 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         task = self.get_object()
 
         if task_id == str(task.id):
-            # Get old Locations from Task
-            locations = task.locations.all()
             # Get old Segment rules from Task
             segmentrules = task.segment_rules.all()
+            # get task locations
+            # pylint: disable=no-member
+            task_locations = TaskLocation.objects.filter(task=task)
+
             # Get Bounty of Task
             bounty = task.bounty
+
+            # clone it
             cloned_task = task
             cloned_task.pk = None
             cloned_task.target_content_type = None
             cloned_task.target_id = None
             cloned_task.name = f'{task.name} - Copy'
             cloned_task.save()
-            cloned_task.locations.set(locations)
+
+            # deal with segment rules
             cloned_task.segment_rules.set(segmentrules)
 
+            # deal with locations
+            for task_location in task_locations:
+                task_location.id = None
+                task_location.task = cloned_task
+                task_location.save()
+
+            # deal with bounty
             if bounty is not None:
                 bounty.id = None
                 bounty.task = cloned_task

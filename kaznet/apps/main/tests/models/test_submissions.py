@@ -5,7 +5,6 @@ Test for Submission model
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from django.utils import six
 
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
@@ -33,7 +32,7 @@ class TestSubmission(TestCase):
             _fill_optional=['user', 'comment', 'submission_time'])
         expected = "Cattle Price - {} submission {}".format(
             submission.task.id, submission.id)
-        self.assertEqual(expected, six.text_type(submission))
+        self.assertEqual(expected, str(submission))
 
     def test_relationship_with_ona_instance(self):
         instance = mommy.make('ona.Instance')
