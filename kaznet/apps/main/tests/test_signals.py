@@ -29,7 +29,7 @@ class TestSignals(TestCase):
         # create a Task object
         task = mommy.make(
             'main.Task',
-            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=57')
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=1;COUNT=57')
 
         # pylint: disable=no-member
         self.assertEqual(57, TaskOccurrence.objects.filter(task=task).count())
