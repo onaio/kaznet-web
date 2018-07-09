@@ -10,12 +10,12 @@ from model_mommy import mommy
 from kaznet.apps.main.tasks import task_create_occurrences
 
 
-@patch('kaznet.apps.main.tasks.create_occurrences')
 class TestCeleryTasks(TestCase):
     """
     Tests for celery tasks
     """
 
+    @patch('kaznet.apps.main.tasks.create_occurrences')
     def test_task_create_occurrences(self, mock):
         """
         Test task_create_occurrences
