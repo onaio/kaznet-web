@@ -64,4 +64,5 @@ def create_occurrences(task):
     # next, occurrences based on TaskLocations
     task_locations = TaskLocation.objects.filter(task=task)
     for task_location in task_locations:
-        generate_tasklocation_occurrences(task_location)
+        generate_tasklocation_occurrences(
+            task_location, OccurrenceModelClass=TaskOccurrence)
