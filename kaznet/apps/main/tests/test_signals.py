@@ -1,6 +1,7 @@
 """
 Tests for main signals
 """
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -34,6 +35,24 @@ class TestSignals(TestCase):
 
         # pylint: disable=no-member
         self.assertEqual(57, TaskOccurrence.objects.filter(task=task).count())
+
+    @patch('kaznet.apps.main.signals.task_create_occurrences.delay')
+    def test_create_occurrences_signal_handler(self, mock):
+        """
+        Test create_occurrences signal handler
+        """
+        task = mommy.make(
+            'main.Task',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=1;COUNT=57')
+        # the celery task should have been called
+        self.assertEqual(1, mock.call_count)
+        mock.assert_called_with(task_id=task.id)
+
+        task.timing_rule = 'RRULE:FREQ=DAILY;INTERVAL=1;COUNT=7'
+        task.save()
+        # the celery task should have been called again
+        self.assertEqual(2, mock.call_count)
+        mock.assert_called_with(task_id=task.id)
 
     def test_create_submissions(self):
         """
