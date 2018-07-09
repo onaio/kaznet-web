@@ -24,7 +24,7 @@ class TestKaznetLocationViewSet(MainTestBase):
     """
 
     def setUp(self):
-        super(TestKaznetLocationViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def _create_location(self):
@@ -292,6 +292,33 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(
             Location.objects.filter(country='KE').count(), 1)
 
+    def test_modified_filter(self):
+        """
+        Test that you can filter by modified
+        """
+        user = mommy.make('auth.User')
+        location = mommy.make('main.Location')
+        mommy.make('main.Location', _quantity=10)
+
+        view = KaznetLocationViewSet.as_view({'get': 'list'})
+
+        # test that we get the location with our unique modified datetime
+        request = self.factory.get('/locations',
+                                   {'modified': str(location.modified)})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], location.id)
+
+        # test we can get locations modified after a certain time
+        request = self.factory.get('/locations',
+                                   {'modified__gt': str(location.modified)})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 10)
+
     def test_name_search(self):
         """
         Test that you can search by Name
@@ -474,7 +501,7 @@ class TestKaznetLocationViewSet(MainTestBase):
             'You shall not pass.',
             str(response.data[0]['detail']))
 
-        # Cant List
+        # Can List
 
         mommy.make('main.Location', name='Solair')
         mommy.make('main.Location', name='Generic', _quantity=7)
@@ -484,12 +511,9 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user)
         response = view(request=request)
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            str(response.data[0]['detail']))
+        self.assertEqual(response.status_code, 200)
 
-        # Cant Retrieve
+        # Can Retrieve
 
         client = mommy.make('main.Location', name='Bob')
 
@@ -498,7 +522,4 @@ class TestKaznetLocationViewSet(MainTestBase):
         force_authenticate(request, user)
         response = view(request=request, pk=location.id)
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            str(response.data[0]['detail']))
+        self.assertEqual(response.status_code, 200)
