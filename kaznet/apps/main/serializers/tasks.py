@@ -127,7 +127,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         start_from_input = attrs.get('start')
 
         if not any([start_from_input, timing_rule_start]):
-            # we cannot determin a start time
+            # we cannot determine a start time
             raise serializers.ValidationError(
                 {
                     'timing_rule': MISSING_START_DATE,
@@ -139,13 +139,9 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         # get end from from input
         end_from_input = attrs.get('end')
 
-        # get start from timing_rule
-        # notice that we ignore start_from_input if timing_rule_start is
-        # greater than start_from_input
-        if timing_rule_start is not None:
-            if start_from_input is None or\
-                    timing_rule_start < start_from_input:
-                attrs['start'] = timing_rule_start
+        # get start from timing_rule when start_from_input is not set
+        if start_from_input is None and timing_rule_start is not None:
+            attrs['start'] = timing_rule_start
 
         # If the user did not set the end_from_input and passed the timing_rule
         # We try to set the end_date to the timing rules end
@@ -238,7 +234,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         # update the TaskLocations
         # we assume that this (locations_data) is the one final list of
         # locations to be linked to this task and that other relationships
-        # should be removed if task_locations is empty it means the user is
+        # should be removed.  If task_locations is empty it means the user is
         # removing all Task and Location relationships
 
         # pylint: disable=no-member
