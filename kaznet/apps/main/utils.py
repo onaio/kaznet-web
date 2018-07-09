@@ -1,8 +1,14 @@
 """
 Main app utils module
 """
+from django.utils import timezone
+
 from dateutil.rrule import rrulestr
-from tasking.utils import get_rrule_end, get_rrule_start
+from tasking.utils import (generate_task_occurrences,
+                           generate_tasklocation_occurrences, get_rrule_end,
+                           get_rrule_start)
+
+from kaznet.apps.main.models import TaskLocation, TaskOccurrence
 
 
 def get_start_end_from_timing_rules(timing_rules: list):
@@ -37,3 +43,28 @@ def get_start_end_from_timing_rules(timing_rules: list):
         end = max(end_list)
 
     return (start, end)
+
+
+def create_occurrences(task):
+    """
+    Updates a task's occurrences
+    Deletes a task's future occurrences and recreates them
+    This task is meant to be called by a post_save signal on the Task model
+    """
+    # pylint: disable=no-member
+    # delete all future occurrences
+    future_occurrences = TaskOccurrence.objects.filter(
+        task=task,
+        date__gt=timezone.now().date())
+    future_occurrences.delete()
+    # now generate new occurrences if any
+    # first, occurrences based on the task timing rule
+    if task.timing_rule:
+        generate_task_occurrences(
+            task=task, timing_rule=task.timing_rule,
+            OccurrenceModelClass=TaskOccurrence)
+    # next, occurrences based on TaskLocations
+    task_locations = TaskLocation.objects.filter(task=task)
+    for task_location in task_locations:
+        generate_tasklocation_occurrences(
+            task_location, OccurrenceModelClass=TaskOccurrence)
