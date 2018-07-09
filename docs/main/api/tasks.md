@@ -244,7 +244,7 @@ Returns a list of all tasks with a specific client if given `clinet` query param
 curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?client=78"
 ```
 
-Returns a list of all tasks filtered by modified if given `modified` query parameter. The `modified` query parameter takes either *datetime* formatted as "YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]".  You can use [standard Django lookups](https://docs.djangoproject.com/en/2.0/ref/models/querysets/#field-lookups) when filtering by modified.
+Returns a list of all tasks filtered by modified if given `modified` query parameter. The `modified` query parameter takes a *datetime* formatted as "YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]".  You can use [standard Django lookups](https://docs.djangoproject.com/en/2.0/ref/models/querysets/#field-lookups) when filtering by modified.
 
 ```console
 curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?modified__gt=2018-06-15 06:00:00.000000"
