@@ -21,7 +21,7 @@ TIME_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
 
 class KaznetFilterSet(filters.FilterSet):
     """
-    Generic filteset class for Kaznet
+    Generic filterset class for Kaznet
     """
 
     def _get_filter_args(self, name):
@@ -109,7 +109,7 @@ class KaznetTaskOccurrenceFilterSet(filters.FilterSet):
         }
 
 
-class KaznetTaskFilterSet(filters.FilterSet):
+class KaznetTaskFilterSet(KaznetFilterSet):
     """
     Filterset for Task
     """
@@ -131,7 +131,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
     modified = filters.DateTimeFilter(
         name='modified',
         lookup_expr=DATETIME_LOOKUPS,
-        method='filter_timing'
+        method='filter_modified'
     )
 
     # pylint: disable=too-few-public-methods
@@ -157,38 +157,13 @@ class KaznetTaskFilterSet(filters.FilterSet):
         """
         Method to filter against task timing using TaskOccurrences
         """
-        # get the filter
-        try:
-            the_filter = self.get_filters()[name]
-        except KeyError:
-            # this name isn't a valid filter
+        filter_args = self._get_filter_args(name)
+
+        if filter_args is None:
             return queryset
 
-        # first try the exact name
-        data = self.data.get(name)
-        if data is not None:
-            query_name = name
-        else:
-            # get the lookups
-            lookups = the_filter.lookup_expr
-            # loop through lookups to find which one is being used
-            if lookups:
-                for lookup in lookups:
-                    query_name = self.get_filter_name(name, lookup)
-                    data = self.data.get(query_name)
-                    if data is not None:
-                        break
-
-        if data is None:
-            # no data was found
-            return queryset
-
-        filter_args = {query_name: data}
         # get task ids
         # pylint: disable=no-member
-        if name == 'modified':
-            return queryset.filter(**filter_args)
-
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
