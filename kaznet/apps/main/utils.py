@@ -51,6 +51,7 @@ def create_occurrences(task):
     Deletes a task's future occurrences and recreates them
     This task is meant to be called by a post_save signal on the Task model
     """
+    # pylint: disable=no-member
     # delete all future occurrences
     future_occurrences = TaskOccurrence.objects.filter(
         date__gt=timezone.now().date())
