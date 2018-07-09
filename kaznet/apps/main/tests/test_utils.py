@@ -152,4 +152,4 @@ class TestUtils(TestCase):
         create_occurrences(task4)
         # we should keep the occurrence in the past
         # pylint: disable=no-member
-        self.assertEqual(0, TaskOccurrence.objects.filter(task=task4).count())
+        self.assertEqual(1, TaskOccurrence.objects.filter(task=task4).count())
