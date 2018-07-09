@@ -55,6 +55,7 @@ class KaznetFilterSet(filters.FilterSet):
 
         return {query_name: data}
 
+    # pylint: disable=unused-argument
     def filter_modified(self, queryset, name, value):
         """
         Filter by modified
