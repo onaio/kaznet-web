@@ -5,11 +5,17 @@ from django_filters import rest_framework as filters
 
 from kaznet.apps.main.models import Task, TaskOccurrence
 
-DATETIME_LOOKUPS = [
+DATE_LOOKUPS = [
     'exact', 'gt', 'lt', 'gte', 'lte', 'year', 'year__gt', 'year__lt',
     'year__gte', 'year__lte', 'month', 'month__gt', 'month__lt',
     'month__gte', 'month__lte', 'day', 'day__gt', 'day__lt', 'day__gte',
     'day__lte']
+
+DATETIME_LOOKUPS = [
+    'exact', 'gt', 'lt', 'gte', 'lte', 'date', 'date__gt', 'date__lt',
+    'date__gte', 'date__lte', 'time', 'time__gt', 'time__lt', 'time__gte',
+    'time__lte'
+]
 TIME_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
 
 
@@ -26,7 +32,7 @@ class KaznetTaskOccurrenceFilterSet(filters.FilterSet):
         model = TaskOccurrence
         fields = {
             'task': ['exact'],
-            'date': DATETIME_LOOKUPS,
+            'date': DATE_LOOKUPS,
             'start_time': TIME_LOOKUPS,
             'end_time': TIME_LOOKUPS
         }
@@ -38,7 +44,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
     """
     date = filters.DateFilter(
         name='date',
-        lookup_expr=DATETIME_LOOKUPS,
+        lookup_expr=DATE_LOOKUPS,
         method='filter_timing'
     )
     start_time = filters.TimeFilter(
@@ -51,6 +57,11 @@ class KaznetTaskFilterSet(filters.FilterSet):
         lookup_expr=TIME_LOOKUPS,
         method='filter_timing'
     )
+    modified = filters.DateTimeFilter(
+        name='modified',
+        lookup_expr=DATETIME_LOOKUPS,
+        method='filter_timing'
+    )
 
     # pylint: disable=too-few-public-methods
     class Meta(object):
@@ -60,6 +71,7 @@ class KaznetTaskFilterSet(filters.FilterSet):
         model = Task
         fields = [
             'locations',
+            'modified',
             'status',
             'project',
             'parent',
@@ -69,12 +81,17 @@ class KaznetTaskFilterSet(filters.FilterSet):
             'end_time'
         ]
 
+        # filter_overrides = {
+        #     models.DateTimeField: {
+        #         'filter_class': filters.IsoDateTimeFilter
+        #     },
+        # }
+
     # pylint: disable=unused-argument
     def filter_timing(self, queryset, name, value):
         """
         Method to filter against task timing using TaskOccurrences
         """
-
         # get the filter
         try:
             the_filter = self.get_filters()[name]
@@ -104,6 +121,9 @@ class KaznetTaskFilterSet(filters.FilterSet):
         filter_args = {query_name: data}
         # get task ids
         # pylint: disable=no-member
+        if name == 'modified':
+            return queryset.filter(**filter_args)
+
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
