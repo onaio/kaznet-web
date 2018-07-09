@@ -311,6 +311,70 @@ class TestKaznetTaskSerializer(MainTestBase):
         serializer_instance = KaznetTaskSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
 
+    def test_task_start(self):
+        """
+        Test how the task start is set
+        """
+        mocked_target_object = mommy.make('ona.XForm')
+        rrule1 = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=50'  # noqa
+        rrule2 = 'DTSTART:20190521T210000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=50'  # noqa
+
+        # no timing rule provided
+        data1 = {
+            "type": "Task",
+            'name': 'Coconut One',
+            'description': 'Some description',
+            'total_submission_target': 1,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'estimated_time': '15:00:00',
+            'amount': '5400',
+            'start': '2018-06-12T17:48:34+03:00'
+        }
+        serializer_instance1 = KaznetTaskSerializer(data=data1)
+        self.assertTrue(serializer_instance1.is_valid())
+        serializer_instance1.save()
+        result1 = serializer_instance1.data
+        self.assertEqual("2018-06-12T17:48:34+03:00", result1['start'])
+
+        # start > timing rule dtstart
+        data2 = {
+            "type": "Task",
+            'name': 'Coconut One',
+            'description': 'Some description',
+            'total_submission_target': 1,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'estimated_time': '15:00:00',
+            'amount': '5400',
+            'start': '2018-05-30T17:48:34+03:00',
+            'timing_rule': rrule1
+        }
+        serializer_instance2 = KaznetTaskSerializer(data=data2)
+        self.assertTrue(serializer_instance2.is_valid())
+        serializer_instance2.save()
+        result2 = serializer_instance2.data
+        self.assertEqual("2018-05-30T17:48:34+03:00", result2['start'])
+
+        # start < timing rule dtstart
+        data3 = {
+            "type": "Task",
+            'name': 'Coconut One',
+            'description': 'Some description',
+            'total_submission_target': 1,
+            'target_content_type': self.xform_type.id,
+            'target_id': mocked_target_object.id,
+            'estimated_time': '15:00:00',
+            'amount': '5400',
+            'start': '2018-07-17T17:48:34+03:00',
+            'timing_rule': rrule2
+        }
+        serializer_instance3 = KaznetTaskSerializer(data=data3)
+        self.assertTrue(serializer_instance3.is_valid())
+        serializer_instance3.save()
+        result3 = serializer_instance3.data
+        self.assertEqual("2018-07-17T17:48:34+03:00", result3['start'])
+
     def test_location_link(self):
         """
         Test the connection of Task and Location
