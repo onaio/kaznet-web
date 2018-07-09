@@ -2,7 +2,7 @@
 Tests for main signals
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from model_mommy import mommy
@@ -21,6 +21,7 @@ class TestSignals(TestCase):
             username='sluggie'
         )
 
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_task_occurrences(self):
         """
         Test that task occurrences are created when a new Task object is
