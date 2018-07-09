@@ -44,6 +44,13 @@ Returns a list of all locations in a specific country if given a `country` query
 curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/locations/?country=KE
 ```
 
+Returns a list of all locationss filtered by modified if given `modified` query parameter. The `modified` query parameter takes a *datetime* formatted as "YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]".  You can use [standard Django lookups](https://docs.djangoproject.com/en/2.0/ref/models/querysets/#field-lookups) when filtering by modified.
+
+```console
+curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/locations/?modified__gt=2018-06-15 06:00:00.000000"
+
+```
+
 Returns a list of all locations with a specific name if given `search` query parameter. The `search` query parameter takes a *string* which is the name of the location.
 
 ```console
