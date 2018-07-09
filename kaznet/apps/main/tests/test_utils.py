@@ -75,6 +75,12 @@ class TestUtils(TestCase):
         """
         Test create_occurrences
         """
+        task0 = mommy.make(
+            'main.Task',
+            name="Task Zero",
+            timing_rule=f'RRULE:FREQ=DAILY;INTERVAL=1;COUNT=66')
+        create_occurrences(task0)
+
         # test future occurrences
         future = timezone.now() + timedelta(days=10)
         task = mommy.make(
@@ -153,3 +159,6 @@ class TestUtils(TestCase):
         # we should keep the occurrence in the past
         # pylint: disable=no-member
         self.assertEqual(1, TaskOccurrence.objects.filter(task=task4).count())
+
+        # ensure that other task task occurrences were not affected
+        self.assertEqual(66, TaskOccurrence.objects.filter(task=task0).count())

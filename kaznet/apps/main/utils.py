@@ -54,6 +54,7 @@ def create_occurrences(task):
     # pylint: disable=no-member
     # delete all future occurrences
     future_occurrences = TaskOccurrence.objects.filter(
+        task=task,
         date__gt=timezone.now().date())
     future_occurrences.delete()
     # now generate new occurrences if any
