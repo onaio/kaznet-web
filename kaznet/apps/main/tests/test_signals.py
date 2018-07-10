@@ -9,6 +9,7 @@ from django.utils import timezone
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Submission, TaskOccurrence
+from kaznet.apps.ona.tests.test_celery_tasks import MOCKED_INSTANCES
 
 
 class TestSignals(TestCase):
@@ -54,11 +55,13 @@ class TestSignals(TestCase):
         self.assertEqual(2, mock.call_count)
         mock.assert_called_with(task_id=task.id)
 
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_create_submissions(self):
         """
         Check that a kaznet submission is created when an ona
         submission is made
         """
+        mommy.make('auth.User', username='onasupport')
         ona_form = mommy.make('ona.XForm')
         puppy_task = mommy.make(
             'main.Task',
@@ -68,10 +71,8 @@ class TestSignals(TestCase):
         mommy.make(
             'ona.Instance',
             xform=ona_form,
-            user=self.user,
-            json=dict(submission_time=timezone.now().isoformat())
+            json=MOCKED_INSTANCES[1]
         )
-
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())
 
         # when dict is empty fail silently
@@ -81,3 +82,24 @@ class TestSignals(TestCase):
             json=dict
         )
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())
+
+    @patch('kaznet.apps.main.signals.task_create_submission.delay')
+    def test_create_submission_signal_handler(self, mock):
+        """
+        Test create_submission signal handler
+        """
+        ona_form = mommy.make('ona.XForm')
+        instance = mommy.make(
+            'ona.Instance',
+            xform=ona_form,
+            user=self.user,
+            json=dict(submission_time=timezone.now().isoformat())
+        )
+        # the celery task should have been called
+        self.assertEqual(1, mock.call_count)
+        mock.assert_called_with(instance_id=instance.id)
+
+        instance.save()
+        # the celery task should have been called again
+        self.assertEqual(2, mock.call_count)
+        mock.assert_called_with(instance_id=instance.id)
