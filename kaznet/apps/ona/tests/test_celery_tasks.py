@@ -77,7 +77,7 @@ MOCKED_INSTANCES = [
         "_xform_id_string": "attachment_test",
         "meta/instanceID": "uuid:65903eb7-6524-4f81-89df-5a3cc725910e",
         "_duration": "",
-        "_geolocation": [],
+        "_geolocation": [None, None],
         "_edited": False,
         "_status": "submitted_via_web",
         "_uuid": "65903eb7-6524-4f81-89df-5a3cc725910e",
