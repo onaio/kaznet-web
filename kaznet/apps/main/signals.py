@@ -3,8 +3,8 @@ Signals for tasking
 """
 from django.db.models.signals import post_save
 
-from kaznet.apps.main.models import Submission
-from kaznet.apps.main.tasks import task_create_occurrences
+from kaznet.apps.main.tasks import (task_create_occurrences,
+                                    task_create_submission)
 
 
 # pylint: disable=unused-argument
@@ -20,20 +20,7 @@ def create_submission(sender, instance, created, **kwargs):
     Create a kaznet.apps.main submission after a
     kaznet.apps.ona submission is created
     """
-    task = instance.get_task()
-    submission_time = instance.json.get("submission_time")
-    user = instance.user
-
-    if all([task, submission_time, user]):
-        bounty = task.bounty_set.all().order_by('-created').first()
-        submission = Submission(
-            task=task,
-            bounty=bounty,
-            location=None,
-            submission_time=submission_time,
-            user=user
-        )
-        submission.save()
+    task_create_submission.delay(instance_id=instance.id)
 
 
 post_save.connect(
