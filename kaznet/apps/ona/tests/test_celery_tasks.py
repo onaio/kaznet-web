@@ -2,7 +2,6 @@
 Test module for celery tasks for Ona app
 """
 from unittest.mock import patch
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.test import TestCase, override_settings
