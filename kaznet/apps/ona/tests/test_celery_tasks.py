@@ -10,6 +10,7 @@ from django.utils import timezone
 import requests_mock
 from model_mommy import mommy
 
+from kaznet.apps.main.models import Task
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (task_fetch_all_instances,
                                    task_fetch_form_instances,
@@ -239,10 +240,16 @@ class TestCeleryTasks(TestCase):
         """
         Test task_fetch_all_instances
         """
-        mommy.make('ona.XForm', deleted_at=timezone.now())
-        mommy.make(
+        mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        mommy.make('ona.XForm', id=67, deleted_at=None)
+        form1 = mommy.make('ona.XForm', id=99)
+        form2 = mommy.make(
             'ona.XForm', id=7, ona_pk=897, id_string='attachment_test',
             title='attachment test')
+
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
 
         task_fetch_all_instances()
         mock.assert_called_once_with(xform_id=7)

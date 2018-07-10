@@ -3,9 +3,9 @@ Celery tasks module for Ona app
 """
 from celery import task as celery_task
 
-from kaznet.apps.ona.api import (get_instances, get_projects,
-                                 process_instance, process_projects,
-                                 process_xforms)
+from kaznet.apps.main.models import Task
+from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
+                                 process_projects, process_xforms)
 from kaznet.apps.ona.models import XForm
 
 
@@ -57,6 +57,8 @@ def task_fetch_all_instances():
     """
     Gets and processes instances for all known XForms
     """
-    forms = XForm.objects.filter(deleted_at=None)
+    forms = XForm.objects.filter(deleted_at=None).exclude(task=None)
     for form in forms:
-        task_fetch_form_instances.delay(xform_id=form.id)
+        the_task = form.task.first()
+        if the_task is not None and the_task.status == Task.ACTIVE:
+            task_fetch_form_instances.delay(xform_id=form.id)
