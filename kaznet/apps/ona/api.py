@@ -151,7 +151,7 @@ def get_xform(xform_id: int):
         settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
 
 
-def process_xforms(forms_data: dict, project_id: int):
+def process_xforms(forms_data: list, project_id: int):
     """
     Custom Method that takes in a Dictionary containing Data
     of Forms from OnaData API and a Project ID then processes
