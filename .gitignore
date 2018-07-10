@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# celery
+celerybeat-schedule.db
+celerybeat.pid
+
 # Distribution / packaging
 .Python
 env/

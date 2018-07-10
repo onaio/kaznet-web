@@ -151,7 +151,7 @@ def get_xform(xform_id: int):
         settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
 
 
-def process_xforms(forms_data: dict, project_id: int):
+def process_xforms(forms_data: list, project_id: int):
     """
     Custom Method that takes in a Dictionary containing Data
     of Forms from OnaData API and a Project ID then processes
@@ -191,12 +191,13 @@ def process_xform(xform_data: dict, project_id: int = None):
             )
 
         if not created:
+            date_modified = xform_data.get('date_modified')
 
-            last_updated_ona = dateutil.parser.parse(xform_data.get(
-                'date_modified'))
+            if date_modified:
+                last_updated_ona = dateutil.parser.parse(date_modified)
+                if last_updated_ona and obj.last_updated != last_updated_ona:
+                    obj.last_updated = last_updated_ona
 
-            if last_updated_ona and obj.last_updated != last_updated_ona:
-                obj.last_updated = last_updated_ona
             if obj.title != title:
                 obj.title = title
 
@@ -248,7 +249,7 @@ def get_instances(xform_id: int):
 def get_instance(xform_id: int, instance_id: int):
     """
     Custom Method that takes in an XFormID and InstanceID
-    and retrieves instance date
+    and retrieves instance data
     """
     return request(
         urljoin(

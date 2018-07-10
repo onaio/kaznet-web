@@ -36,7 +36,8 @@ class TestApiMethods(TestCase):
             username='sluggie'
         )
 
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
     @requests_mock.Mocker()
     def test_get_projects(self, mocked):
         """
@@ -63,7 +64,7 @@ class TestApiMethods(TestCase):
             urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
             json=mocked_projects_data
             )
-        response = get_projects()
+        response = get_projects(username=settings.ONA_USERNAME)
 
         self.assertEqual(response, mocked_projects_data)
 

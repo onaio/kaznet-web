@@ -92,7 +92,7 @@ def validate_location(data: dict, task: object):
 
     # Check if we were able to succesfully get coords
     # If we weren't then the Submission is not Valid
-    if coords is not None:
+    if coords and all(coords):
         submission_point = Point(coords[0], coords[1])
 
         try:
