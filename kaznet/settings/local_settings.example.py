@@ -1,6 +1,8 @@
 """
 Local settings module for Kaznet
 """
+from celery.schedules import crontab
+
 from .common import INSTALLED_APPS
 
 ALLAUTH_ONA_BASE_URL = "https://api.ona.io"
@@ -18,6 +20,18 @@ DATABASES = {
 # CELERY
 CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+
+CELERY_BEAT_SCHEDULE = {
+    'fetch_all_instances': {
+        'task': 'task_fetch_all_instances',
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 min
+    },
+    'fetch_projects': {
+        'task': 'task_fetch_projects',
+        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
+        'kwargs': {'username': 'the one username'}
+    },
+}
 
 # Emails
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
