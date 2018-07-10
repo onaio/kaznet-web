@@ -41,3 +41,28 @@ class TestLocations(TestCase):
             name="Hurlingham",
             parent=nairobi)
         self.assertEqual(nairobi, hurlingham.parent)
+
+    def test_parent_name(self):
+        """
+        Test parent name
+        """
+        nairobi = mommy.make('main.Location', name="Nairobi")
+        hurlingham = mommy.make(
+            'main.Location',
+            name="Hurlingham",
+            parent=nairobi)
+        self.assertEqual(None, nairobi.parent_name)
+        self.assertEqual("Nairobi", hurlingham.parent_name)
+
+    def test_location_type_name(self):
+        """
+        Test location_type_name
+        """
+        market = mommy.make('main.LocationType', name="Market")
+        nairobi = mommy.make('main.Location', name="Nairobi")
+        hurlingham = mommy.make(
+            'main.Location',
+            name="Hurlingham",
+            location_type=market)
+        self.assertEqual(None, nairobi.location_type_name)
+        self.assertEqual("Market", hurlingham.location_type_name)
