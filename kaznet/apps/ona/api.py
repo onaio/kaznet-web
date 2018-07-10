@@ -248,7 +248,7 @@ def get_instances(xform_id: int):
 def get_instance(xform_id: int, instance_id: int):
     """
     Custom Method that takes in an XFormID and InstanceID
-    and retrieves instance date
+    and retrieves instance data
     """
     return request(
         urljoin(
