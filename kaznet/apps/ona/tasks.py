@@ -50,3 +50,13 @@ def task_fetch_form_instances(xform_id: int):
             instance_data_list = _
             for instance_data in instance_data_list:
                 process_instance(instance_data=instance_data, xform=xform)
+
+
+@celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
+def task_fetch_all_instances():
+    """
+    Gets and processes instances for all known XForms
+    """
+    forms = XForm.objects.filter(deleted_at=None)
+    for form in forms:
+        task_fetch_form_instances.delay(xform_id=form.id)
