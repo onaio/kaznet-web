@@ -1,6 +1,7 @@
 """
 Celery tasks module for Ona app
 """
+from time import sleep
 from celery import task as celery_task
 
 from kaznet.apps.main.models import Task
@@ -25,6 +26,7 @@ def task_fetch_projects(username: str):
         if project_forms and project_id:
             task_fetch_project_xforms.delay(
                 forms=project_forms, project_id=int(project_id))
+            sleep(0.1)  # to avoid overload on onadata API
 
 
 @celery_task(name="task_fetch_project_xforms")  # pylint: disable=not-callable
