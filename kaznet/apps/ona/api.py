@@ -191,12 +191,13 @@ def process_xform(xform_data: dict, project_id: int = None):
             )
 
         if not created:
+            date_modified = xform_data.get('date_modified')
 
-            last_updated_ona = dateutil.parser.parse(xform_data.get(
-                'date_modified'))
+            if date_modified:
+                last_updated_ona = dateutil.parser.parse(date_modified)
+                if last_updated_ona and obj.last_updated != last_updated_ona:
+                    obj.last_updated = last_updated_ona
 
-            if last_updated_ona and obj.last_updated != last_updated_ona:
-                obj.last_updated = last_updated_ona
             if obj.title != title:
                 obj.title = title
 
