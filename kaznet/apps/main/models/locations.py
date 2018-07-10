@@ -51,7 +51,7 @@ class Location(BaseLocation):
         try:
             return self.parent.name
         except AttributeError:
-            return 'None'
+            return None
 
     def get_location_type_name(self):
         """
@@ -60,7 +60,7 @@ class Location(BaseLocation):
         try:
             return self.location_type.name
         except AttributeError:
-            return 'None'
+            return None
 
     @property
     def parent_name(self):
