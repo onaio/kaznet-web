@@ -4,6 +4,7 @@ Test  module for main Task serializers
 
 from collections import OrderedDict
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.utils import timezone
 
@@ -12,7 +13,7 @@ from django_prices.models import Money
 from model_mommy import mommy
 from tasking.utils import get_rrule_end, get_rrule_start
 
-from kaznet.apps.main.models import Bounty
+from kaznet.apps.main.models import Bounty, Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.main.tests.base import MainTestBase
 
@@ -207,6 +208,254 @@ class TestKaznetTaskSerializer(MainTestBase):
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
+
+    def test_start_end_and_timing_rule(self):
+        """
+        Test start, end and timing rule
+        """
+        rrule = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=5'
+
+        # when just rrule is provided
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual('2018-05-21T21:00:00+00:00', task.start.isoformat())
+        self.assertEqual(
+            '2018-05-25T23:59:59.999999+00:00', task.end.isoformat())
+
+        # when start and rrule are provided
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+            'start': '2018-04-21T07:00:00+03:00',
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual('2018-04-21T07:00:00+03:00', task.start.isoformat())
+        self.assertEqual(
+            '2018-05-25T23:59:59.999999+00:00', task.end.isoformat())
+
+        # when end and rrule are provided
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+            'end': '2019-05-21T07:00:00+03:00',
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual('2018-05-21T21:00:00+00:00', task.start.isoformat())
+        self.assertEqual(
+            '2019-05-21T07:00:00+03:00', task.end.isoformat())
+
+        # when end is less than start
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'start': '2018-05-21T07:00:00+03:00',
+            'end': '2018-04-21T07:00:00+03:00',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            "The end date cannnot be lesser than the start date.",
+            str(
+                serializer_instance.errors['end'][0]
+            )
+        )
+
+        # when no start and no timing rule
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        msg = "Cannot determine the start date.  Please provide either the start date or timing rule(s)"  # noqa
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['timing_rule'][0]
+            )
+        )
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['start'][0]
+            )
+        )
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['locations_input'][0]
+            )
+        )
+
+    @patch(
+        'kaznet.apps.main.serializers.tasks.get_start_end_from_timing_rules')
+    def test_start_end_and_timing_rule_bad_rule(self, mock):
+        """
+        Test start and end when a bad rule is provide
+        and by bad we mean one from which we cannot infer start or end
+        """
+        mock.return_value = (None, None)
+        rrule = 'RRULE:FREQ=DAILY;INTERVAL=1;COUNT=5'
+
+        # when start and bad rrule is provided
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'start': '2018-05-21T07:00:00+03:00',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual('2018-05-21T07:00:00+03:00', task.start.isoformat())
+        self.assertEqual(None, task.end)
+
+        # when just rrule is provided
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        msg = "Cannot determine the start date.  Please provide either the start date or timing rule(s)"  # noqa
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['timing_rule'][0]
+            )
+        )
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['start'][0]
+            )
+        )
+        self.assertEqual(
+            msg,
+            str(
+                serializer_instance.errors['locations_input'][0]
+            )
+        )
+
+    def test_start_end_timing_rule_update(self):
+        """
+        Test start, end and timing rule when doing an update
+        """
+        rrule = 'DTSTART:20180521T210000Z RRULE:FREQ=DAILY;INTERVAL=1;COUNT=5'
+
+        # when just rrule is provided
+        old_task = mommy.make('main.Task')
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'target_content_type': self.xform_type.id,
+            'timing_rule': rrule,
+        }
+        serializer_instance = KaznetTaskSerializer(
+            data=data, instance=old_task)
+        self.assertTrue(serializer_instance.is_valid())
+        serializer_instance.save()
+        old_task.refresh_from_db()
+        self.assertEqual(rrule, old_task.timing_rule)
+
+        # when start is greater than existing end
+        old_task = mommy.make('main.Task', end=timezone.now())
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'target_content_type': self.xform_type.id,
+            'start': (timezone.now() + timedelta(days=7)).isoformat(),
+        }
+        serializer_instance = KaznetTaskSerializer(
+            data=data, instance=old_task)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            "The start date cannnot be greater than the end date",
+            str(
+                serializer_instance.errors['start'][0]
+            )
+        )
+
+        # when end is less than existing start
+        old_task = mommy.make('main.Task', start=timezone.now())
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'target_content_type': self.xform_type.id,
+            'end': (timezone.now() - timedelta(days=7)).isoformat(),
+        }
+        serializer_instance = KaznetTaskSerializer(
+            data=data, instance=old_task)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            "The end date cannnot be lesser than the start date.",
+            str(
+                serializer_instance.errors['end'][0]
+            )
+        )
+
+    def test_auto_schedule(self):
+        """
+        Test that tasks with future dates are auto-scheduled
+        """
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'start': (timezone.now() + timedelta(days=17)).isoformat(),
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'target_id': mommy.make('ona.XForm').id,
+            'status': Task.ACTIVE
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual(Task.SCHEDULED, task.status)
+
+    def test_auto_draft(self):
+        """
+        Test that tasks with no XForms are auto-drafted
+        """
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'start': "2018-05-21T07:00:00+03:00",
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'status': Task.ACTIVE
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertTrue(serializer_instance.is_valid())
+        task = serializer_instance.save()
+        self.assertEqual(Task.DRAFT, task.status)
 
     def test_create_task_with_bounty(self):
         """
