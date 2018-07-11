@@ -142,7 +142,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
                 attrs['start'] = timing_rule_start
 
             # get end
-            attrs['end'] = attrs.get('start', timing_rule_end)
+            attrs['end'] = attrs.get('end', timing_rule_end)
 
         # If end date is present we validate that it is greater than start_date
         if attrs.get('end') is not None:
