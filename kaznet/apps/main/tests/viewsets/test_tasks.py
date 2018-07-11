@@ -247,6 +247,37 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['name'], "What is Softball?")
 
+    def test_update_status(self):
+        """
+        Test that you can update Task status only
+        """
+        user = create_admin_user()
+        xform = mommy.make('ona.XForm')
+        task = mommy.make(
+            'main.Task',
+            start=timezone.now(),
+            target_content_object=xform,
+            status=Task.ACTIVE)
+        data = {
+            "data": {
+                "type": "Task",
+                "id": task.id,
+                "attributes": {
+                    "status": Task.DEACTIVATED
+                }
+            }
+        }
+        view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
+
+        request = self.factory.patch(
+            f"/tasks/{task.id}", data=json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], Task.DEACTIVATED)
+
     def test_clone_task(self):
         """
         Test Clone task
