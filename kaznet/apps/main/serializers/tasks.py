@@ -106,39 +106,25 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         """
         Object level validation method for TaskSerializer
         """
-        # get timing_rule from input
-        timing_rule_from_input = attrs.get('timing_rule')
-
-        # get start from input
-        start_from_input = attrs.get('start')
-
-        # get end from from input
-        end_from_input = attrs.get('end')
-
-        # get timing rules from task locations
-        tasklocation_timing_rules = []
-        for location_input in attrs.get('locations_input', []):
-            tasklocation_timing_rules.append(location_input['timing_rule'])
-
         if not self.instance:
             # this is a new object
+
+            # get timing_rule from input
+            timing_rule_from_input = attrs.get('timing_rule')
+
+            # get start from input
+            start_from_input = attrs.get('start')
+
+            # get timing rules from task locations
+            tasklocation_timing_rules = []
+            for location_input in attrs.get('locations_input', []):
+                tasklocation_timing_rules.append(location_input['timing_rule'])
 
             # get start and end from timing rules
             timing_rules = [timing_rule_from_input] +\
                 tasklocation_timing_rules
             timing_rule_start, timing_rule_end =\
                 get_start_end_from_timing_rules(timing_rules)
-
-            # we must provide start, or at least one timing rule
-            if not start_from_input and not timing_rule_from_input\
-                    and not tasklocation_timing_rules:
-                raise serializers.ValidationError(
-                    {
-                        'timing_rule': MISSING_START_DATE,
-                        'start': MISSING_START_DATE,
-                        'locations_input': MISSING_START_DATE
-                    }
-                )
 
             if not start_from_input:
                 # start was not input by user, we try and generate it from
@@ -155,10 +141,8 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
                 attrs['start'] = timing_rule_start
 
-            if not end_from_input:
-                # end was not input by user, we try and generate it from
-                # timing rules
-                attrs['end'] = timing_rule_end
+            # get end
+            attrs['end'] = attrs.get('start', timing_rule_end)
 
         # If end date is present we validate that it is greater than start_date
         if attrs.get('end') is not None:
@@ -179,12 +163,12 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
         # If start date is present and this is an existing object, we validate
         # that the start date is not greater than the existing end date
-        if attrs.get('start') is not None and self.instance is not None:
-            if self.instance.end is not None and attrs.get('start') >\
-                    self.instance.end:
-                raise serializers.ValidationError(
-                    {'start': INVALID_START_DATE}
-                )
+        if attrs.get('start') is not None and self.instance is not None\
+                and self.instance.end is not None and attrs.get('start') >\
+                self.instance.end:
+            raise serializers.ValidationError(
+                {'start': INVALID_START_DATE}
+            )
 
         # set automated statuses
         # scheduled
