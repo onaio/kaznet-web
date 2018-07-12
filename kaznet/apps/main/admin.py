@@ -138,6 +138,9 @@ class LocationTypeAdmin(admin.ModelAdmin):
 
 @admin.register(TaskLocation)
 class TaskLocationAdmin(admin.ModelAdmin):
+    """
+    Admin definition for TaskLocation
+    """
     list_display = (
         'id',
         'task',
