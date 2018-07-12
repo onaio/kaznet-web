@@ -5,7 +5,8 @@ URLs module for main Kaznet app
 from django.contrib import admin
 
 from kaznet.apps.main.models import (Bounty, Client, Location, LocationType,
-                                     Project, Submission, Task, TaskOccurrence)
+                                     Project, Submission, Task, TaskLocation,
+                                     TaskOccurrence)
 
 
 @admin.register(Location)
@@ -14,9 +15,6 @@ class LocationAdmin(admin.ModelAdmin):
     Admin Definition for Location Model
     """
     list_display = (
-        'id',
-        'created',
-        'parent',
         'name',
         'country',
     )
@@ -27,14 +25,14 @@ class LocationAdmin(admin.ModelAdmin):
 @admin.register(TaskOccurrence)
 class TaskOccurrenceAdmin(admin.ModelAdmin):
     """
-    Admin Definition for TaskOccurence Model
+    Admin Definition for TaskOccurrence Model
     """
     list_display = (
         'id',
+        'task',
         'date',
         'start_time',
         'end_time',
-        'task',
     )
     list_filter = ('created', 'modified', 'date', 'task')
 
@@ -45,7 +43,6 @@ class ProjectAdmin(admin.ModelAdmin):
     Admin Definition for Project Model
     """
     list_display = (
-        'id',
         'name',
     )
     list_filter = ('created', 'modified', 'target_content_type')
@@ -61,12 +58,12 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'user',
-        'submission_time',
-        'valid',
-        'status',
         'task',
         'bounty',
         'location',
+        'submission_time',
+        'valid',
+        'status',
     )
     list_filter = (
         'created',
@@ -80,6 +77,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'location',
     )
     date_hierarchy = 'submission_time'
+    search_fields = ('task__name',)
 
 
 @admin.register(Task)
@@ -88,9 +86,8 @@ class TaskAdmin(admin.ModelAdmin):
     Admin Definition for Task Model
     """
     list_display = (
-        'id',
-        'parent',
         'name',
+        'parent',
         'start',
         'end',
         'status',
@@ -124,7 +121,7 @@ class ClientAdmin(admin.ModelAdmin):
     """
     Admin Definition for Client Model
     """
-    list_display = ('id', 'name')
+    list_display = ('name',)
     list_filter = ('created', 'modified')
     search_fields = ('name',)
 
@@ -134,6 +131,23 @@ class LocationTypeAdmin(admin.ModelAdmin):
     """
     Admin definition for LocationType
     """
-    list_display = ('id', 'name')
+    list_display = ('name',)
     list_filter = ('created', 'modified')
     search_fields = ('name',)
+
+
+@admin.register(TaskLocation)
+class TaskLocationAdmin(admin.ModelAdmin):
+    """
+    Admin definition for TaskLocation
+    """
+    list_display = (
+        'id',
+        'task',
+        'location',
+        'timing_rule',
+        'start',
+        'end',
+    )
+    list_filter = ('created', 'modified', 'task', 'location')
+    search_fields = ('task__name',)
