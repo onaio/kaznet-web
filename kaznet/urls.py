@@ -9,6 +9,7 @@ from rest_framework import routers
 
 from kaznet.apps.main.viewsets import (BountyViewSet, ClientViewSet,
                                        ContentTypeViewSet,
+                                       KaznetLocationTypeViewSet,
                                        KaznetLocationViewSet,
                                        KaznetSubmissionsViewSet,
                                        KaznetTaskOccurrenceViewSet,
@@ -24,10 +25,11 @@ ROUTER.register(r'userprofiles', UserProfileViewSet)
 # ona
 ROUTER.register(r'forms', XFormViewSet)
 
-# tasking
+# main
 ROUTER.register(r'bounties', BountyViewSet)
 ROUTER.register(r'clients', ClientViewSet)
 ROUTER.register(r'locations', KaznetLocationViewSet)
+ROUTER.register(r'locationtypes', KaznetLocationTypeViewSet)
 ROUTER.register(r'submissions', KaznetSubmissionsViewSet)
 ROUTER.register(r'occurrences', KaznetTaskOccurrenceViewSet)
 ROUTER.register(r'tasks', KaznetTaskViewSet)
