@@ -28,3 +28,21 @@ class TaskLocation(BaseTaskLocation):
         String representation of a TaskLocation object
         """
         return f"{self.task.name} at {self.location.name}"
+
+    def get_location_name(self):
+        if self.location:
+            return self.location.name
+        return None
+
+    def get_location_description(self):
+        if self.location:
+            return self.location.description
+        return None
+
+    @property
+    def location_name(self):
+        return self.get_location_name()
+
+    @property
+    def location_description(self):
+        return self.get_location_description()
