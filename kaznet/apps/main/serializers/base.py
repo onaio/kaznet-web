@@ -6,6 +6,13 @@ from tasking.common_tags import TARGET_DOES_NOT_EXIST
 from tasking.utils import get_allowed_contenttypes
 
 
+def validate_parent_field(instance, value):
+    """
+    Check if parent field is valid
+    """
+    return instance is not None and value == instance
+
+
 # pylint: disable=too-many-ancestors
 class ContentTypeFieldSerializer(serializers.ModelSerializer):
     """

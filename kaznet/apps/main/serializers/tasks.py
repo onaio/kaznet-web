@@ -10,7 +10,8 @@ from tasking.validators import validate_rrule
 
 from kaznet.apps.main.common_tags import MISSING_START_DATE, SAME_PARENT
 from kaznet.apps.main.models import Task, TaskLocation
-from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
+from kaznet.apps.main.serializers.base import (GenericForeignKeySerializer,
+                                               validate_parent_field)
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField,
                                                  create_bounty)
@@ -102,11 +103,12 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
     def validate_parent(self, value):
         """
-        Validate parent field
+        Validate task parent field
         """
-        if self.instance is not None and value == self.instance:
-            raise serializers.ValidationError(SAME_PARENT)
-        return value
+        if validate_parent_field(self.instance, value):
+            return value
+        # tasks cannot be their own parents
+        raise serializers.ValidationError(SAME_PARENT)
 
     def validate(self, attrs):
         """

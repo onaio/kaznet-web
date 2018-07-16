@@ -11,6 +11,7 @@ from tasking.serializers.location import (GeopointField,
 
 from kaznet.apps.main.common_tags import SAME_PARENT
 from kaznet.apps.main.models import Location
+from kaznet.apps.main.serializers.base import validate_parent_field
 
 
 # pylint: disable=too-many-ancestors
@@ -26,9 +27,10 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
 
     def validate_parent(self, value):
         """
-        Validate parent field
+        Validate location parent field
         """
-        if self.instance is not None and value == self.instance:
+        if not validate_parent_field(self.instance, value):
+            # locations cannot be their own parents
             raise serializers.ValidationError(SAME_PARENT)
         return value
 
