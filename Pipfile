@@ -5,7 +5,7 @@ verify_ssl = true
 
 [packages]
 "e1839a8" = {editable = true, path = "."}
-ona-tasking = {editable = true, ref = "v0.1.6", git = "https://github.com/onaio/tasking.git"}
+ona-tasking = {editable = true, ref = "v0.1.7", git = "https://github.com/onaio/tasking.git"}
 redis = "*"
 allauth-onadata = {git = "https://github.com/onaio/django-allauth-onadata.git", ref = "v0.0.2", editable = true}
 
