@@ -9,6 +9,7 @@ from tasking.serializers.location import (GeopointField,
                                           SerializableCountryField,
                                           ShapeFileField)
 
+from kaznet.apps.main.common_tags import SAME_PARENT
 from kaznet.apps.main.models import Location
 
 
@@ -23,13 +24,26 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
     shapefile = ShapeFileField(required=False)
     geopoint = GeopointField(required=False)
 
+    def validate_parent(self, value):
+        """
+        Validate parent field
+        """
+        if self.instance is not None and value == self.instance:
+            raise serializers.ValidationError(SAME_PARENT)
+        return value
+
     def validate(self, attrs):
         """
         Custom Validation for KaznetLocationSerializer
         """
-        geopoint = attrs.get('geopoint')
-        radius = attrs.get('radius')
-        shapefile = attrs.get('shapefile')
+        if self.instance:
+            geopoint = attrs.get('geopoint', self.instance.geopoint)
+            radius = attrs.get('radius', self.instance.radius)
+            shapefile = attrs.get('shapefile', self.instance.shapefile)
+        else:
+            geopoint = attrs.get('geopoint')
+            radius = attrs.get('radius')
+            shapefile = attrs.get('shapefile')
 
         if geopoint is not None:
             if shapefile is not None:
