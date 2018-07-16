@@ -48,16 +48,14 @@ def request_session(
                 settings.ONA_USERNAME, settings.ONA_PASSWORD), params=payload
             )
         return response
-    elif method == 'POST':
+    if method == 'POST':
         response = session.post(
             url, auth=(
                 settings.ONA_USERNAME, settings.ONA_PASSWORD), data=payload
             )
         return response
-    else:
-        response = None
 
-    return response
+    return None
 
 
 def request(

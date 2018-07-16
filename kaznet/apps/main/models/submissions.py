@@ -58,7 +58,7 @@ class Submission(BaseSubmission):
         """
         if status == self.APPROVED:
             return True
-        elif status == self.REJECTED:
+        if status == self.REJECTED:
             return False
 
         return None

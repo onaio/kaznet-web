@@ -48,9 +48,9 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
         if self.instance is not None:
             if self.instance.task == value:
                 return value
-            else:
-                raise serializers.ValidationError(
-                    CANT_EDIT_TASK
-                )
-        else:
-            return value
+
+            raise serializers.ValidationError(
+                CANT_EDIT_TASK
+            )
+
+        return value
