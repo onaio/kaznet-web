@@ -169,7 +169,7 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
               "id": "1"
             },
             "location_name": "Kiambu",
-            "location_name": "Some county in Kenya",
+            "location_description": "Some county in Kenya",
             "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7",
             "start": "09:00:00",
             "end": "15:00:00"
@@ -261,7 +261,7 @@ curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/
               "id": "1"
             },
             "location_name": "Meru",
-            "location_name": "Some county in Kenya",
+            "location_description": "Some county in Kenya",
             "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7",
             "start": "09:00:00",
             "end": "15:00:00"
@@ -438,7 +438,7 @@ This request returns a response containing the specific task.
             "id": "1"
         },
         "location_name": "Taita Taveta",
-        "location_name": "Some county in Kenya",
+        "location_description": "Some county in Kenya",
         "timing_rule": "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=7",
         "start": "09:00:00",
         "end": "15:00:00"
