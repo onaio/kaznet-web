@@ -453,7 +453,7 @@ class TestKaznetTaskViewSet(MainTestBase):
             str(response.data[0]['detail']['end'][0]))
         self.assertEqual(
             'Invalid Timing Rule.',
-            str(response.data[0]['detail']['timing_rule']['timing_rule']))
+            str(response.data[0]['detail']['timing_rule'][0]))
 
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
