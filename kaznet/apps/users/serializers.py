@@ -34,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
     UserSerializer class
     """
 
-    class Meta(object):  # pylint:  disable=too-few-public-methods
+    class Meta:  # pylint:  disable=too-few-public-methods
         """
         meta options
         """
@@ -56,7 +56,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     amount_earned = SerializableAmountField(read_only=True)
     avg_amount_earned = SerializableAvgAmountEarnedField(read_only=True)
 
-    class Meta(object):  # pylint:  disable=too-few-public-methods
+    class Meta:  # pylint:  disable=too-few-public-methods
         """
         class meta options
         """

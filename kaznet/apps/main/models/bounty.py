@@ -41,7 +41,7 @@ class Bounty(TimeStampedModel):
         return _(f"Task {self.task.id} bounty is {self.amount}")
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         This is the meta options class for the Bounty Model
         """

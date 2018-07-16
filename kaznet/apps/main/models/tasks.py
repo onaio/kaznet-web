@@ -76,7 +76,7 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
 
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         This is the meta options class for the Task model
         """

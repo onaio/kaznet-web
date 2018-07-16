@@ -17,7 +17,7 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     amount = SerializableAmountField(read_only=True)
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for KaznetSubmissionSerializer
         """

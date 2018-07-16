@@ -37,7 +37,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
     task_locations = serializers.SerializerMethodField(read_only=True)
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for KaznetTaskSerializer
         """
@@ -105,10 +105,11 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         """
         Validate task parent field
         """
-        if validate_parent_field(self.instance, value):
-            return value
-        # tasks cannot be their own parents
-        raise serializers.ValidationError(SAME_PARENT)
+        valid_parent = validate_parent_field(self.instance, value)
+        if not valid_parent and self.instance is not None:
+            # tasks cannot be their own parents
+            raise serializers.ValidationError(SAME_PARENT)
+        return value
 
     def validate(self, attrs):
         """

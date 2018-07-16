@@ -10,7 +10,7 @@ class SegmentRule(BaseSegmentRule):
     """
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for SegmentRule
         """

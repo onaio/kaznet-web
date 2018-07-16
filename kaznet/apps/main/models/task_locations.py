@@ -15,7 +15,7 @@ class TaskLocation(BaseTaskLocation):
 
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for TaskLocation
         """

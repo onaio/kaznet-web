@@ -29,7 +29,8 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
         """
         Validate location parent field
         """
-        if not validate_parent_field(self.instance, value):
+        if self.instance is not None and not validate_parent_field(
+                self.instance, value):
             # locations cannot be their own parents
             raise serializers.ValidationError(SAME_PARENT)
         return value
@@ -69,7 +70,7 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for KaznetLocationSerializer
         """

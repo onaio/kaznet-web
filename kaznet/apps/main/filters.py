@@ -79,7 +79,7 @@ class KaznetLocationFilterSet(KaznetFilterSet):
     )
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for TaskOccurrenceFilterSet
         """
@@ -97,7 +97,7 @@ class KaznetTaskOccurrenceFilterSet(filters.FilterSet):
     """
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for TaskOccurrenceFilterSet
         """
@@ -136,7 +136,7 @@ class KaznetTaskFilterSet(KaznetFilterSet):
     )
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for TaskFilterSet
         """

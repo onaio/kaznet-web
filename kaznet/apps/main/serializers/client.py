@@ -14,7 +14,7 @@ class ClientSerializer(serializers.ModelSerializer):
     """
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for ClientSerializer
         """

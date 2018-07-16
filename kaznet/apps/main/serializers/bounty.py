@@ -54,7 +54,7 @@ class BountySerializer(serializers.ModelSerializer):
     amount = SerializableAmountField()
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for ClientSerializer
         """

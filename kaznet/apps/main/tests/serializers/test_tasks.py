@@ -756,7 +756,6 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
 
         serializer_instance = KaznetTaskSerializer(data=data)
-
         self.assertTrue(serializer_instance.is_valid())
 
         task = serializer_instance.save()
