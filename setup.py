@@ -26,6 +26,7 @@ setup(
         'whitenoise',
         'djangorestframework-jsonapi',
         'geopy',
+        'django-filter < 2',
     ],
     classifiers=[
         'Programming Language :: Python',

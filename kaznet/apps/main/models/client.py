@@ -17,7 +17,7 @@ class Client(TimeStampedModel):
         help_text=_('Name of the client.'))
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta Options for Client Model
         """

@@ -8,14 +8,15 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
                                  INVALID_TIMING_RULE)
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.common_tags import MISSING_START_DATE
+from kaznet.apps.main.common_tags import MISSING_START_DATE, SAME_PARENT
 from kaznet.apps.main.models import Task, TaskLocation
-from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
+from kaznet.apps.main.serializers.base import (GenericForeignKeySerializer,
+                                               validate_parent_field)
 from kaznet.apps.main.serializers.bounty import (BountySerializer,
                                                  SerializableAmountField,
                                                  create_bounty)
-from kaznet.apps.main.serializers.task_location import\
-    (TaskLocationCreateSerializer, TaskLocationSerializer)
+from kaznet.apps.main.serializers.task_location import (
+    TaskLocationCreateSerializer, TaskLocationSerializer)
 from kaznet.apps.main.utils import get_start_end_from_timing_rules
 
 
@@ -36,7 +37,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
     task_locations = serializers.SerializerMethodField(read_only=True)
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for KaznetTaskSerializer
         """
@@ -97,10 +98,18 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         if value is not None:
             if validate_rrule(value) is True:
                 return value
-            raise serializers.ValidationError(
-                {'timing_rule': INVALID_TIMING_RULE}
-            )
+            raise serializers.ValidationError(INVALID_TIMING_RULE)
         return None
+
+    def validate_parent(self, value):
+        """
+        Validate task parent field
+        """
+        valid_parent = validate_parent_field(self.instance, value)
+        if not valid_parent and self.instance is not None:
+            # tasks cannot be their own parents
+            raise serializers.ValidationError(SAME_PARENT)
+        return value
 
     def validate(self, attrs):
         """

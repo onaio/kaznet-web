@@ -17,7 +17,7 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     amount = SerializableAmountField(read_only=True)
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for KaznetSubmissionSerializer
         """
@@ -48,9 +48,9 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
         if self.instance is not None:
             if self.instance.task == value:
                 return value
-            else:
-                raise serializers.ValidationError(
-                    CANT_EDIT_TASK
-                )
-        else:
-            return value
+
+            raise serializers.ValidationError(
+                CANT_EDIT_TASK
+            )
+
+        return value

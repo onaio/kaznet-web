@@ -36,7 +36,7 @@ class Submission(BaseSubmission):
 
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         This is the meta options class for the Submission model
         """
@@ -58,7 +58,7 @@ class Submission(BaseSubmission):
         """
         if status == self.APPROVED:
             return True
-        elif status == self.REJECTED:
+        if status == self.REJECTED:
             return False
 
         return None

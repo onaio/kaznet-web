@@ -728,7 +728,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'Invalid Timing Rule.',
             str(
                 serializer_instance.errors[
-                    'locations_input'][0]['timing_rule']['timing_rule']
+                    'locations_input'][0]['timing_rule'][0]
             )
         )
 
@@ -756,7 +756,6 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
 
         serializer_instance = KaznetTaskSerializer(data=data)
-
         self.assertTrue(serializer_instance.is_valid())
 
         task = serializer_instance.save()

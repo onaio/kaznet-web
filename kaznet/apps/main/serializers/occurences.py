@@ -14,7 +14,7 @@ class KaznetTaskOccurrenceSerializer(serializers.ModelSerializer):
     time_string = serializers.SerializerMethodField()
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta options for TaskOccurrenceSerializer
         """

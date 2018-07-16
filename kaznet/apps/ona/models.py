@@ -55,7 +55,7 @@ class XForm(TimeStampedModel, models.Model):
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta Options for XForm
         """
@@ -111,7 +111,7 @@ class Instance(TimeStampedModel, models.Model):
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta Options for Instance
         """
@@ -154,7 +154,7 @@ class Project(TimeStampedModel, models.Model):
     objects = GenericSoftDeleteManager()
 
     # pylint: disable=too-few-public-methods
-    class Meta(object):
+    class Meta:
         """
         Meta Options for Project
         """
