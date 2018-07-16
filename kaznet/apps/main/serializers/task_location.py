@@ -24,6 +24,8 @@ class TaskLocationSerializer(serializers.ModelSerializer):
             'created',
             'modified',
             'location',
+            'location_name',
+            'location_description',
             'timing_rule',
             'start',
             'end'
