@@ -8,3 +8,4 @@ from kaznet.apps.main.viewsets.occurences import KaznetTaskOccurrenceViewSet  # 
 from kaznet.apps.main.viewsets.bounty import BountyViewSet  # noqa
 from kaznet.apps.main.viewsets.submissions import KaznetSubmissionsViewSet  # noqa
 from kaznet.apps.main.viewsets.contenttype import ContentTypeViewSet  # noqa
+from kaznet.apps.main.viewsets.locationtypes import KaznetLocationTypeViewSet  # noqa

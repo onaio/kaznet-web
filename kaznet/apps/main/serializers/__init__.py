@@ -9,4 +9,5 @@ from kaznet.apps.main.serializers.occurences import KaznetTaskOccurrenceSerializ
 from kaznet.apps.main.serializers.submissions import KaznetSubmissionSerializer  # noqa
 from kaznet.apps.main.serializers.task_location import (TaskLocationCreateSerializer,  # noqa
                                                         TaskLocationSerializer)
+from kaznet.apps.main.serializers.locationttypes import KaznetLocationTypeSerializer  # noqa
 from kaznet.apps.main.serializers.tasks import KaznetTaskSerializer  # noqa
