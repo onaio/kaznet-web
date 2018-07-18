@@ -148,7 +148,7 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
         xform = self.get_xform()
         if xform is not None:
             return xform.title
-        return ''
+        return None
 
     def get_xform_id_string(self):
         """
@@ -157,7 +157,25 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
         xform = self.get_xform()
         if xform is not None:
             return xform.id_string
-        return ''
+        return None
+
+    def get_xform_ona_id(self):
+        """
+        Custom Method to get xform title
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.ona_pk
+        return None
+
+    def get_xform_project_id(self):
+        """
+        Custom Method to get xform title
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.project_id
+        return None
 
     @property
     def status_display(self):
@@ -179,6 +197,20 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
         Title of Xform
         """
         return self.get_xform_id_string()
+
+    @property
+    def xform_ona_id(self):
+        """
+        Title of Xform
+        """
+        return self.get_xform_ona_id()
+
+    @property
+    def xform_project_id(self):
+        """
+        Title of Xform
+        """
+        return self.get_xform_project_id()
 
     @property
     def required_expertise_display(self):
