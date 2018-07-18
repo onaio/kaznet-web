@@ -204,7 +204,9 @@ class TestKaznetTaskSerializer(MainTestBase):
             'target_id',
             'segment_rules',
             'locations',
-            'task_locations'
+            'task_locations',
+            'xform_ona_id',
+            'xform_project_id',
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
