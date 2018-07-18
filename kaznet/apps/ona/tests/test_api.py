@@ -295,6 +295,13 @@ class TestApiMethods(TestCase):
         self.assertEqual(XForm.objects.all().count(), 1)
         self.assertEqual(Project.objects.all().count(), 1)
 
+        the_xform = XForm.objects.first()
+
+        self.assertEqual("aFEjJKzULJbQYsmQzKcpL9", the_xform.id_string)
+        self.assertEqual("Changed", the_xform.title)
+        self.assertEqual(18, the_xform.project_id)
+        self.assertEqual(53, the_xform.ona_pk)
+
         # Doesnt create a project if present
 
         mommy.make('ona.Project', ona_pk=49)

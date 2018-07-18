@@ -63,18 +63,24 @@ class TestTasks(TestCase):
             - xform_id_string property
         """
         xform = mommy.make(
-            'ona.XForm', title='Coconut', id_string='coconut828')
+            'ona.XForm',
+            title='Coconut',
+            id_string='coconut828',
+            ona_pk=200,
+            project_id=12389)
         # test when no xform
         task_no_xform = mommy.make('main.Task')
         self.assertEqual(None, task_no_xform.get_xform())
-        self.assertEqual('', task_no_xform.get_xform_title())
-        self.assertEqual('', task_no_xform.get_xform_id_string())
-        self.assertEqual('', task_no_xform.xform_title)
-        self.assertEqual('', task_no_xform.xform_id_string)
+        self.assertEqual(None, task_no_xform.get_xform_title())
+        self.assertEqual(None, task_no_xform.get_xform_id_string())
+        self.assertEqual(None, task_no_xform.xform_title)
+        self.assertEqual(None, task_no_xform.xform_id_string)
         # test when XForm
         task = mommy.make('main.Task', target_content_object=xform)
         self.assertEqual(xform, task.get_xform())
         self.assertEqual('Coconut', task.get_xform_title())
         self.assertEqual('coconut828', task.get_xform_id_string())
         self.assertEqual('Coconut', task.xform_title)
+        self.assertEqual(200, task.xform_ona_id)
         self.assertEqual('coconut828', task.xform_id_string)
+        self.assertEqual(12389, task.xform_project_id)
