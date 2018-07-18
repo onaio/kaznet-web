@@ -183,7 +183,7 @@ def process_xform(xform_data: dict, project_id: int = None):
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
-                'project_id': project.id,
+                'project_id': project.ona_pk,
                 'last_updated': xform_data.get('last_updated_at')
             }
             )
