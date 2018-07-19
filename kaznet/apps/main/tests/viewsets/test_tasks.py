@@ -313,6 +313,86 @@ class TestKaznetTaskViewSet(MainTestBase):
             'd', response.data['status']
         )
 
+    def test_update_task_with_locations(self):
+        """
+        Test update of a task that has locations
+        """
+        user = create_admin_user()
+        arusha = mommy.make('main.Location', name='Arusha')
+        xform = mommy.make('ona.XForm')
+        task = mommy.make(
+            'main.Task',
+            start=timezone.now(),
+            target_content_object=xform,
+            status=Task.ACTIVE)
+        tasklocation = mommy.make(
+            'main.TaskLocation', task=task, location=arusha,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        data = {
+            "data": {
+                "type": "Task",
+                "id": task.id,
+                "attributes": {
+                    "status": Task.DEACTIVATED
+                }
+            }
+        }
+        view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
+
+        request = self.factory.patch(
+            f"/tasks/{task.id}", data=json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], Task.DEACTIVATED)
+        task.refresh_from_db()
+        self.assertEqual(
+            'Arusha', response.data['task_locations'][0]['location_name'])
+        self.assertEqual(task.tasklocation_set.first(), tasklocation)
+
+    def test_remove_tasklocations(self):
+        """
+        Test removing task locations
+        """
+        user = create_admin_user()
+        arusha = mommy.make('main.Location', name='Arusha')
+        xform = mommy.make('ona.XForm')
+        task = mommy.make(
+            'main.Task',
+            start=timezone.now(),
+            target_content_object=xform,
+            status=Task.ACTIVE)
+        mommy.make(
+            'main.TaskLocation', task=task, location=arusha,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        data = {
+            "data": {
+                "type": "Task",
+                "id": task.id,
+                "attributes": {
+                    "locations_input": []
+                }
+            }
+        }
+        view = KaznetTaskViewSet.as_view({'patch': 'partial_update'})
+
+        request = self.factory.patch(
+            f"/tasks/{task.id}", data=json.dumps(data),
+            content_type='application/vnd.api+json')
+
+        force_authenticate(request, user=user)
+        response = view(request=request, pk=task.id)
+        self.assertEqual(response.status_code, 200)
+        task.refresh_from_db()
+        self.assertEqual([], response.data['task_locations'])
+        self.assertEqual(task.tasklocation_set.first(), None)
+
     def test_clone_task_with_locations(self):
         """
         Test cloning a task that has locations
