@@ -4,13 +4,13 @@ Models from Onadata
 See: https://github.com/onaio/onadata
 """
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from tasking.models.base import TimeStampedModel
 
+from kaznet.apps.main.models import Task
 from kaznet.apps.ona.constants import MAX_ID_LENGTH, XFORM_TITLE_LENGTH
 from kaznet.apps.ona.managers import GenericSoftDeleteManager
 
@@ -46,11 +46,6 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
-    task = GenericRelation(
-        'main.Task',
-        content_type_field='target_content_type',
-        object_id_field='target_object_id'
-    )
 
     objects = GenericSoftDeleteManager()
 
@@ -65,11 +60,26 @@ class XForm(TimeStampedModel, models.Model):
     def __str__(self):
         return self.title
 
+    def get_task_queryset(self):
+        """
+        Returns the attached task object
+        """
+        # pylint: disable=no-member
+        return Task.objects.filter(
+            target_content_type__model='xform', target_object_id=self.id)
+
     def get_has_task(self):
         """
         Custom method that returns whether task has_task or not
         """
         return self.task.exists()  # pylint: disable=no-member
+
+    @property
+    def task(self):
+        """
+        Property to get the task
+        """
+        return self.get_task_queryset()
 
     @property
     def has_task(self):

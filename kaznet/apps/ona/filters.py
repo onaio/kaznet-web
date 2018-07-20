@@ -1,10 +1,9 @@
 """
 Filters module for ona Kaznet app
 """
-from django.db.models import Case, BooleanField, When
-
 from django_filters import rest_framework as filters
 
+from kaznet.apps.main.models import Task
 from kaznet.apps.ona.models import XForm
 
 
@@ -31,7 +30,14 @@ class XFormFilterSet(filters.FilterSet):
         """
         Method to filter has_task
         """
-        return queryset.annotate(task_present=Case(
-            When(task=None, then=False), default=True,
-            output_field=BooleanField()
-            )).filter(task_present=value)
+        # get ids of XForms that have task attachments
+
+        # pylint: disable=no-member
+        form_ids = Task.objects.filter(
+            target_content_type__model='xform').values_list(
+                'target_object_id', flat=True)
+
+        if value is True:
+            return queryset.filter(id__in=form_ids)
+
+        return queryset.exclude(id__in=form_ids)
