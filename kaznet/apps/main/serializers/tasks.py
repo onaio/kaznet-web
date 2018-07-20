@@ -252,7 +252,10 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             amount = None
 
         # get the input locations
-        locations_data = validated_data.pop('locations_input', [])
+        try:
+            locations_data = validated_data.pop('locations_input')
+        except KeyError:
+            locations_data = None
 
         # update the task
         task = super().update(instance, validated_data)
@@ -260,18 +263,19 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         # create the bounty object
         create_bounty(task, amount)
 
-        # update the TaskLocations
-        # we assume that this (locations_data) is the one final list of
-        # locations to be linked to this task and that other relationships
-        # should be removed.  If task_locations is empty it means the user is
-        # removing all Task and Location relationships
+        if locations_data is not None:
+            # update the TaskLocations
+            # we assume that this (locations_data) is the one final list of
+            # locations to be linked to this task and that other relationships
+            # should be removed.
+            # If task_locations is empty it means the user is
+            # removing all Task and Location relationships
 
-        # pylint: disable=no-member
-        TaskLocation.objects.filter(task=task).delete()
-
-        for location_data in locations_data:
-            location_data['task'] = task
-            TaskLocationSerializer.create(
-                TaskLocationSerializer(), validated_data=location_data)
+            # pylint: disable=no-member
+            TaskLocation.objects.filter(task=task).delete()
+            for location_data in locations_data:
+                location_data['task'] = task
+                TaskLocationSerializer.create(
+                    TaskLocationSerializer(), validated_data=location_data)
 
         return task
