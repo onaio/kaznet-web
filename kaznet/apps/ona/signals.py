@@ -6,6 +6,7 @@ from django.db.models.signals import pre_delete
 from kaznet.apps.main.models import Task
 
 
+# pylint: disable=unused-argument
 def delete_xform(sender, instance, **kwargs):
     """
     Pre delete signal handler for XForm objects
