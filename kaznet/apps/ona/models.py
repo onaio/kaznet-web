@@ -39,6 +39,7 @@ class XForm(TimeStampedModel, models.Model):
         max_length=MAX_ID_LENGTH)
     deleted_at = models.DateTimeField(
         _('Deleted at'),
+        blank=True,
         null=True,
         default=None)
     last_updated = models.DateTimeField(
@@ -108,6 +109,7 @@ class Instance(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'),
         null=True,
+        blank=True,
         default=None)
     user = models.ForeignKey(
         'auth.User',
@@ -154,6 +156,7 @@ class Project(TimeStampedModel, models.Model):
     deleted_at = models.DateTimeField(
         _('Deleted at'),
         null=True,
+        blank=True,
         default=None)
     last_updated = models.DateTimeField(
         _('Last Updated'),
