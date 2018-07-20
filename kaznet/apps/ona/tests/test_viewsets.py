@@ -20,7 +20,7 @@ class TestXFormViewSet(TestCase):
         super(TestXFormViewSet, self).setUp()
         self.factory = APIRequestFactory()
 
-    def test_list_xfrom(self):
+    def test_list_xform(self):
         """
         Test that GET /xforms returns a list of all xforms
         """
@@ -35,7 +35,7 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(4, len(response.data['results']))
 
-    def test_retrieve_xfrom(self):
+    def test_retrieve_xform(self):
         """
         Test that GET /xforms/[id] returns a specific item
         matching pk
