@@ -310,14 +310,18 @@ def process_instance(instance_data: dict, xform: object = None):
                     edited = data.get('_edited')
                     data_edited = instance_data.get('_edited')
                     last_updated = instance_data.get('_last_edited')
-                    last_updated_ona = dateutil.parser.parse(last_updated)
+
+                    if last_updated is not None:
+                        last_updated_ona = dateutil.parser.parse(last_updated)
 
                     if (edited is not True and data_edited is True) or (
                             obj.last_updated != last_updated_ona
                     ):
-                        obj.last_updated = instance_data.get('_last_edited')
+                        obj.last_updated = instance_data.get(
+                            '_last_edited')
                         obj.json = instance_data
                         obj.save()
+
                     return obj
     return None
 
