@@ -13,3 +13,4 @@ class MainConfig(AppConfig):
     def ready(self):
         # pylint: disable=unused-variable
         import kaznet.apps.main.signals  # noqa
+        import kaznet.apps.ona.signals  # noqa
