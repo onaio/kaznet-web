@@ -9,6 +9,8 @@ from django.test import TestCase
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
 
+from kaznet.apps.main.models import Submission
+
 
 class TestSubmission(TestCase):
     """
@@ -35,6 +37,9 @@ class TestSubmission(TestCase):
         self.assertEqual(expected, str(submission))
 
     def test_relationship_with_ona_instance(self):
+        """
+        Test the link between a submission and an ona instance
+        """
         instance = mommy.make('ona.Instance')
         cattle = mommy.make(
             'main.Task',
@@ -49,6 +54,9 @@ class TestSubmission(TestCase):
         self.assertEqual(submission.target_content_type, self.instance_type)
 
     def test_submissions_have_bounties(self):
+        """
+        Test Link Between Bounties and Submissions
+        """
         cattle = mommy.make(
             'main.Task',
             name='Cattle Price')
@@ -62,3 +70,35 @@ class TestSubmission(TestCase):
             _fill_optional=['user', 'comment', 'submission_time'])
 
         self.assertEqual(submission.bounty.id, bounty_instance.id)
+
+    def test_submission_approved(self):
+        """
+        Test that the approved property works
+        """
+
+        submission = mommy.make(
+            'main.Submission',
+            status=Submission.APPROVED
+            )
+
+        self.assertTrue(submission.approved)
+
+    def test_submission_amount(self):
+        """
+        Test the amount property gets the correct Bounty
+        Amount
+        """
+        cattle = mommy.make(
+            'main.Task',
+            name='Cattle Price')
+        bounty_instance = mommy.make(
+            'main.Bounty',
+            amount=4000,
+            task=cattle)
+        submission = mommy.make(
+            'main.Submission',
+            task=cattle,
+            bounty=bounty_instance,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        self.assertEqual(submission.amount, 4000)
