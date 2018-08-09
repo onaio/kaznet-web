@@ -7,6 +7,7 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.models import LocationType
 from kaznet.apps.main.serializers import KaznetLocationTypeSerializer
 from kaznet.apps.users.permissions import IsAdminOrReadOnly
@@ -20,7 +21,11 @@ class KaznetLocationTypeViewSet(
     """
     Viewset for LocationTypes
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        SessionAuthentication,
+        TokenAuthentication,
+        OnaTempTokenAuthentication
+        ]
     serializer_class = KaznetLocationTypeSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [

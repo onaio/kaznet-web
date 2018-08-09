@@ -7,6 +7,7 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 from kaznet.apps.users.permissions import IsOwnSubmissionOrAdmin
@@ -17,7 +18,11 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Viewset for Submissions
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        SessionAuthentication,
+        TokenAuthentication,
+        OnaTempTokenAuthentication
+        ]
     serializer_class = KaznetSubmissionSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
