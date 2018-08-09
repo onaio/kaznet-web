@@ -47,8 +47,8 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             )
 
         if response.status_code != 200:
-            return exceptions.AuthenticationFailed(
-                _('User not logged in to Ona.'))
+            raise exceptions.AuthenticationFailed(
+                _('User not logged into Ona.'))
 
         request_user = response.json().get('username')
 

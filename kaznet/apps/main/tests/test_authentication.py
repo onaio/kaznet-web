@@ -13,7 +13,6 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.test import APIRequestFactory
 
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
-from kaznet.apps.users.models import UserProfile
 
 
 class TestOnaTempTokenAuthentication(TestCase):
@@ -66,17 +65,19 @@ class TestOnaTempTokenAuthentication(TestCase):
         self.assertEqual(self.user_profile, returned_profile)
 
         # Test it doesn't authenticate  if User doesn't exist
-        # mocked.get(
-        #     urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
-        #     json={
-        #         'username': 'intruder'
-        #         }
-        #     )
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
+            json={
+                'username': 'intruder'
+                }
+            )
 
-        # self.assertRaises(
-        #     UserProfile.DoesNotExist,  # pylint: disable=no-member
-        #     self.auth.authenticate_credentials('token')
-        # )
+        self.assertRaisesMessage(
+            AuthenticationFailed,
+            'Invalid User.',
+            self.auth.authenticate_credentials,
+            'token'
+        )
 
         # Test it doesn't authenticate if User isn't logged onto Ona
         mocked.get(
@@ -84,3 +85,9 @@ class TestOnaTempTokenAuthentication(TestCase):
             status_code=401
             )
 
+        self.assertRaisesMessage(
+            AuthenticationFailed,
+            'User not logged into Ona.',
+            self.auth.authenticate_credentials,
+            'token'
+        )
