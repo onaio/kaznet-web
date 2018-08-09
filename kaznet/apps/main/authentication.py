@@ -53,9 +53,9 @@ class OnaTempTokenAuthentication(TokenAuthentication):
         request_user = response.json().get('username')
 
         try:
-            user = UserProfile.objects.get(ona_username=request_user)
+            profile = UserProfile.objects.get(ona_username=request_user)
 
-            return (user, None)
+            return (profile, None)
         except UserProfile.DoesNotExist:  # pylint: disable=no-member
             raise exceptions.AuthenticationFailed(
                 _('Invalid User.')
