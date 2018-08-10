@@ -2,6 +2,7 @@
 Authentication Tests Module
 """
 
+from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -91,3 +92,53 @@ class TestOnaTempTokenAuthentication(TestCase):
             self.auth.authenticate_credentials,
             'token'
         )
+
+    @override_settings(
+        CACHES={
+            'default': {
+                'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+            }
+        }
+        )
+    @patch('django.core.cache.cache.set')
+    @requests_mock.Mocker()
+    def test_authenticate_credentials_caches(
+            self, mockedSet, mocked):
+        """
+        Test:
+            - Caches a Users Profile after authentication
+        """
+
+        # Test Caches User Profile
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
+            json=self.ona_response,
+            )
+
+        self.auth.authenticate_credentials(
+            'token'
+        )
+
+        mockedSet.assert_called_with(
+            'token', self.user_profile.ona_username, 14400)
+
+    @patch('kaznet.apps.ona.api.request_session')
+    @patch('django.core.cache.cache.get')
+    @patch('django.core.cache.cache.set')
+    def test_authenticate_credentials_reads_cache(
+            self, mockedSet, mockedGet, mockedRequest):
+        """
+        Test:
+            - Doesn't authenticate with Ona if User is already
+              cached
+            - Doesn't cache if authentication is already cached
+        """
+
+        mockedGet.return_value = self.user_profile.ona_username
+
+        self.auth.authenticate_credentials(
+            'token'
+        )
+
+        self.assertFalse(mockedSet.called)
+        self.assertFalse(mockedRequest.called)
