@@ -77,6 +77,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'kaznet.urls'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -158,6 +164,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Authentication
+TEMP_TOKEN_TIMEOUT = 14400
 
 # Onadata
 ONA_BASE_URL = 'https://stage-api.ona.io'
