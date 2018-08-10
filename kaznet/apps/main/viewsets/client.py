@@ -22,8 +22,8 @@ class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     authentication_classes = [
         SessionAuthentication,
-        TokenAuthentication,
-        OnaTempTokenAuthentication
+        OnaTempTokenAuthentication,
+        TokenAuthentication
         ]
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, IsAdmin]

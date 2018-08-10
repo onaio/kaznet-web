@@ -20,8 +20,7 @@ class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [
         SessionAuthentication,
         TokenAuthentication,
-        OnaTempTokenAuthentication
-        ]
+        OnaTempTokenAuthentication]
     serializer_class = KaznetContentTypeSerializer
     permission_classes = [IsAuthenticated]
     queryset = get_allowed_contenttypes()

@@ -19,10 +19,9 @@ class BountyViewSet(viewsets.ReadOnlyModelViewSet):
     Bounty ViewSet class
     """
     authentication_classes = [
-        SessionAuthentication,
         TokenAuthentication,
-        OnaTempTokenAuthentication
-        ]
+        OnaTempTokenAuthentication,
+        SessionAuthentication]
     serializer_class = BountySerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [
