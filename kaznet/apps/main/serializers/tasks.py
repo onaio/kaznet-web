@@ -119,7 +119,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         Object level validation method for TaskSerializer
         """
         if not self.instance:
-            attrs = self.validate_new(attrs)
+            attrs = self._validate_new(attrs)
 
         # If end date is present we validate that it is greater than start_date
         if attrs.get('end') is not None:
@@ -169,7 +169,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
 
         return super().validate(attrs)
 
-    def validate_new(self, attrs):
+    def _validate_new(self, attrs):
         """
         Object level validation method run on New
         Task Instances
