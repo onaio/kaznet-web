@@ -39,6 +39,7 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     search_fields = ['name']
     ordering_fields = [
         'created',
+        'modified',
         'status',
         'estimated_time',
         'submission_count',

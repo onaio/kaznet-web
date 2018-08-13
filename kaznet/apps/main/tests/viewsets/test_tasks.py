@@ -849,6 +849,25 @@ class TestKaznetTaskViewSet(MainTestBase):
             task2.created)
         self.assertEqual(response.data['results'][-1]['id'], task2.id)
 
+        # order by modified descending
+        request = self.factory.get('/tasks', {'ordering': '-modified'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(
+            parse(response.data['results'][-1]['created']).astimezone(
+                pytz.utc),
+            task1.created)
+        self.assertEqual(response.data['results'][-1]['id'], task1.id)
+        self.assertEqual(
+            parse(
+                response.data['results'][0]['created']).astimezone(pytz.utc),
+            task2.created)
+        self.assertEqual(response.data['results'][0]['id'], task2.id)
+        self.assertTrue(
+            response.data['results'][-1]['modified'] <
+            response.data['results'][0]['modified']
+            )
+
         # order by name ascending
         request = self.factory.get('/tasks', {'ordering': 'name'})
         force_authenticate(request, user=user)
