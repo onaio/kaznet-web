@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
+from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 
 
 class TestUserProfileSerializer(TestCase):
@@ -20,6 +21,7 @@ class TestUserProfileSerializer(TestCase):
             'first_name': 'Bob',
             'last_name': 'Doe',
             'email': 'bobbie@example.com',
+            'password': 'amalusceaNDb',
             'gender': UserProfile.MALE,
             'role': UserProfile.ADMIN,
             'expertise': UserProfile.EXPERT,
@@ -38,6 +40,10 @@ class TestUserProfileSerializer(TestCase):
         serializer_instance.save()
         self.assertTrue(
             UserProfile.objects.filter(user__username='bobbie').exists())
+
+        # We remove password field Since password is write-only
+        data.pop('password')
+
         self.assertDictContainsSubset(data, serializer_instance.data)
 
         return serializer_instance.data
@@ -84,7 +90,9 @@ class TestUserProfileSerializer(TestCase):
 
     def test_update(self):
         """
-        Test that you can update a user with the serializer
+        Test:
+            - you can update a user with the serializer
+            - doesnt create an Ona user
         """
         initial_user_data = self._create_user()
 
@@ -165,6 +173,28 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(
             str(serializer_instance.errors['payment_number'][0]),
             'The phone number entered is not valid.')
+
+        # test can't create userprofile without password
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Doe',
+            'email': 'bobbie@example.com',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'payment_number': '+254722222222',
+            'phone_number': '+254722222222',
+            'ona_pk': 1337,
+            'ona_username': 'bobbie'
+        }
+
+        serializer_instance = UserProfileSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            serializer_instance.errors['password'][0],
+            NEED_PASSWORD_ON_CREATE
+        )
 
         # test that national_id, ona_pk, and ona_username are unique
         self._create_user()

@@ -3,10 +3,13 @@ Serializers for users app
 """
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import (password_changed,
+                                                     validate_password)
 
 from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
+from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 
 
@@ -40,7 +43,13 @@ class UserSerializer(serializers.ModelSerializer):
         """
         model = User
         fields = (
-            'username', 'first_name', 'last_name', 'email', 'last_login')
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'last_login',
+            'password'
+            )
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -50,6 +59,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
+    password = serializers.CharField(
+        source='user.password',
+        validators=[validate_password, password_changed],
+        required=False,
+        write_only=True)
     last_login = serializers.DateTimeField(
         source='user.last_login', read_only=True)
     submission_count = serializers.SerializerMethodField()
@@ -70,6 +84,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'expertise_display',
             'first_name',
             'last_name',
+            'password',
             'email',
             'ona_pk',
             'ona_username',
@@ -98,6 +113,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         Get the submission count
         """
         return obj.user.submission_set.count()
+
+    def validate(self, attrs):
+        """
+        Custom Validation For Password Field
+        """
+        password = attrs.get('user').get('password')
+        if not self.instance:
+            # On Create of a new User. Password Shouldn't be None
+            if password is None:
+                raise serializers.ValidationError(
+                    {'password': NEED_PASSWORD_ON_CREATE}
+                )
+
+        return super().validate(attrs)
 
     def create(self, validated_data):
         """
