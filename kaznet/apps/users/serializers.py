@@ -3,8 +3,8 @@ Serializers for users app
 """
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import (password_changed,
-                                                     validate_password)
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions
 
 from rest_framework_json_api import serializers
 
@@ -61,7 +61,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
     password = serializers.CharField(
         source='user.password',
-        validators=[validate_password, password_changed],
         required=False,
         write_only=True)
     last_login = serializers.DateTimeField(
@@ -124,6 +123,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             if password is None:
                 raise serializers.ValidationError(
                     {'password': NEED_PASSWORD_ON_CREATE}
+                )
+        if password is not None:
+            try:
+                validate_password(password)
+            except exceptions.ValidationError as e:
+                raise serializers.ValidationError(
+                    {'password': list(e.messages)}
                 )
 
         return super().validate(attrs)

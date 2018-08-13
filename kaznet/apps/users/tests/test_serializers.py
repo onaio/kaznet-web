@@ -223,3 +223,30 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(
             str(serializer_instance.errors['ona_username'][0]),
             'Profile with this Ona Username already exists.')
+
+    def test_password_validate(self):
+        """
+        Test Validates Password
+        """
+
+        data = {
+            'first_name': 'Mosh',
+            'last_name': 'Pitt',
+            'password': 'ama',
+            'email': 'mosh@example.com',
+            'role': UserProfile.CONTRIBUTOR,
+            'expertise': UserProfile.INTERMEDIATE,
+            'national_id': '1337',
+            'payment_number': '+254722111111',
+            'ona_pk': 9999,
+            'ona_username': 'mosh'
+        }
+
+        serializer_instance = UserProfileSerializer(
+            data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            str(serializer_instance.errors['password'][0]),
+            'This password is too short. It must contain '
+            'at least 8 characters.'
+        )
