@@ -380,10 +380,10 @@ Returns a list of all tasks filtered by time if given `end_time` query parameter
 curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?end_time=21:00"
 ```
 
-Returns a list of all tasks ordered by either creation date, task status, number of submissions or name of task if given a `ordering` query parameter. The `ordering` query parameter takes either `created`, `status`, `submission_count`, `estimated_time`, `project__id`, `bounty__amount` or `name` for ascending order and either `-created`, `-status`, `-submission_count`, `-project_id`, `-estimated_time`, `-bounty__amount` or `-name` for descending order.
+Returns a list of all tasks ordered by either creation date, task status, number of submissions or name of task if given a `ordering` query parameter. The `ordering` query parameter takes either `created`, `status`, `submission_count`, `estimated_time`, `project__id`, `bounty__amount`, `modified` or `name` for ascending order and either `-created`, `-status`, `-modified`, `-submission_count`, `-project_id`, `-estimated_time`, `-bounty__amount` or `-name` for descending order.
 
 ```console
-curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?ordering=-created,status,name,submission_count,-project__id,-submission_count,-bounty__amount"
+curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/tasks/?ordering=-created,status,name,submission_count,-project__id,-submission_count,modified,-bounty__amount"
 ```
 
 ### GET /api/v1/tasks/[pk]/
