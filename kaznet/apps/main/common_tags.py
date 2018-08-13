@@ -14,3 +14,7 @@ MISSING_START_DATE = _('Cannot determine the start date.  Please provide '
                        'either the start date or timing rule(s)')
 AUTH_USER_DOESNT_EXIST = _('Invalid User. User does not exist.')
 AUTH_USER_NOT_LOGGED_IN = _('User not logged into Ona.')
+INVALID_TOKEN_CREDENTIALS_MISSING = _('Invalid token header. No credentials'
+                                      ' provided.')
+INVALID_TOKEN_SPACES_CONTAINED = _('Invalid token header. Token string should'
+                                   ' not contain spaces')

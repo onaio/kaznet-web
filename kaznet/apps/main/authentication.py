@@ -5,14 +5,15 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.translation import ugettext as _
 
 from rest_framework import exceptions
 from rest_framework.authentication import (TokenAuthentication,
                                            get_authorization_header)
 
 from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
-                                          AUTH_USER_NOT_LOGGED_IN)
+                                          AUTH_USER_NOT_LOGGED_IN,
+                                          INVALID_TOKEN_CREDENTIALS_MISSING,
+                                          INVALID_TOKEN_SPACES_CONTAINED)
 from kaznet.apps.ona.api import request_session
 from kaznet.apps.users.models import UserProfile
 
@@ -30,12 +31,11 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             return None
 
         if len(auth) == 1:
-            message = _('Invalid token header. No credentials provided.')
-            raise exceptions.AuthenticationFailed(message)
+            raise exceptions.AuthenticationFailed(
+                INVALID_TOKEN_CREDENTIALS_MISSING)
         elif len(auth) > 2:
-            message = _('Invalid token header. '
-                        'Token string should not contain spaces.')
-            raise exceptions.AuthenticationFailed(message)
+            raise exceptions.AuthenticationFailed(
+                INVALID_TOKEN_SPACES_CONTAINED)
 
         return self.authenticate_credentials(auth[1])
 
