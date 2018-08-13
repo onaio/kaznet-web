@@ -167,6 +167,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Authentication
 TEMP_TOKEN_TIMEOUT = 14400
+ONA_CROSS_AUTHENTICATION_URL = 'https://stage-api.ona.io/api/v1/user'
 
 # Onadata
 ONA_BASE_URL = 'https://stage-api.ona.io'

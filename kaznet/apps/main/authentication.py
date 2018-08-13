@@ -40,14 +40,12 @@ class OnaTempTokenAuthentication(TokenAuthentication):
         return self.authenticate_credentials(auth[1])
 
     def authenticate_credentials(self, key):
-        validation_endpoint = urljoin(
-            settings.ONA_BASE_URL, 'api/v1/user')
         username = cache.get(key)
         cached = False
 
         if username is None:
             response = request_session(
-                validation_endpoint,
+                settings.ONA_CROSS_AUTHENTICATION_URL,
                 'GET',
                 headers={'Authorization': f'TempToken ${key}'}
                 )
