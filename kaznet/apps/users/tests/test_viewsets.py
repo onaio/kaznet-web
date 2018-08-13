@@ -270,7 +270,7 @@ class TestUserProfileViewSet(TestCase):
     @requests_mock.Mocker()
     def test_create_user_ona(self, mocked):
         """
-        Test that create_user_ona 
+        Test that create_user_ona
             - Creates User and Userprofile for Valid Ona
               Users
         """

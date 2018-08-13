@@ -127,9 +127,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if password is not None:
             try:
                 validate_password(password)
-            except exceptions.ValidationError as e:
+            except exceptions.ValidationError as exc:
                 raise serializers.ValidationError(
-                    {'password': list(e.messages)}
+                    {'password': list(exc.messages)}
                 )
 
         return super().validate(attrs)
