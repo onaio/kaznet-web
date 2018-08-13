@@ -30,7 +30,7 @@ def create_ona_user(
         }
     )
 
-    if response.status_code != 200:
+    if response.status_code == 400:
         errors = response.json()
         created = False
     else:
