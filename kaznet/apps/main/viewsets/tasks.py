@@ -3,12 +3,13 @@ Main Tasks viewset module
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
-from rest_framework.decorators import action
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.common_tags import INCORRECT_CLONE_DATA
 from kaznet.apps.main.filters import KaznetTaskFilterSet
 from kaznet.apps.main.models import Task, TaskLocation
@@ -23,7 +24,11 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     Main Task Viewset class
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        SessionAuthentication,
+        TokenAuthentication,
+        OnaTempTokenAuthentication
+        ]
     serializer_class = KaznetTaskSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [

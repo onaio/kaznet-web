@@ -7,6 +7,7 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.filters import KaznetTaskOccurrenceFilterSet
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.serializers import KaznetTaskOccurrenceSerializer
@@ -18,7 +19,11 @@ class KaznetTaskOccurrenceViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Viewset for occurrence
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        OnaTempTokenAuthentication,
+        TokenAuthentication,
+        SessionAuthentication
+        ]
     serializer_class = KaznetTaskOccurrenceSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]

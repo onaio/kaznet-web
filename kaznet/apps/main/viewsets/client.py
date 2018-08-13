@@ -7,6 +7,7 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.models import Client
 from kaznet.apps.main.serializers import ClientSerializer
 from kaznet.apps.users.permissions import IsAdmin
@@ -19,7 +20,11 @@ class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     Client ViewSet
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        SessionAuthentication,
+        OnaTempTokenAuthentication,
+        TokenAuthentication
+        ]
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [

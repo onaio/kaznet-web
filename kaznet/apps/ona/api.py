@@ -20,6 +20,7 @@ def request_session(
         url: str,
         method: str,
         payload: dict = None,
+        headers: dict = None,
         retries=3,
         backoff_factor=1,
         status_forcelist=(500, 502, 504),
@@ -45,13 +46,17 @@ def request_session(
     if method == 'GET':
         response = session.get(
             url, auth=(
-                settings.ONA_USERNAME, settings.ONA_PASSWORD), params=payload
+                settings.ONA_USERNAME, settings.ONA_PASSWORD),
+            params=payload,
+            headers=headers
             )
         return response
     if method == 'POST':
         response = session.post(
             url, auth=(
-                settings.ONA_USERNAME, settings.ONA_PASSWORD), data=payload
+                settings.ONA_USERNAME, settings.ONA_PASSWORD),
+            data=payload,
+            headers=headers
             )
         return response
 
