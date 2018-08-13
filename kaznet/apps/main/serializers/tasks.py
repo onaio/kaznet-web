@@ -8,7 +8,8 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
                                  INVALID_TIMING_RULE)
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.common_tags import MISSING_START_DATE, SAME_PARENT
+from kaznet.apps.main.common_tags import (MISSING_START_DATE, PAST_END_DATE,
+                                          SAME_PARENT)
 from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers.base import (GenericForeignKeySerializer,
                                                validate_parent_field)
@@ -118,42 +119,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         Object level validation method for TaskSerializer
         """
         if not self.instance:
-            # this is a new object
-
-            # get timing_rule from input
-            timing_rule_from_input = attrs.get('timing_rule')
-
-            # get start from input
-            start_from_input = attrs.get('start')
-
-            # get timing rules from task locations
-            tasklocation_timing_rules = []
-            for location_input in attrs.get('locations_input', []):
-                tasklocation_timing_rules.append(location_input['timing_rule'])
-
-            # get start and end from timing rules
-            timing_rules = [timing_rule_from_input] +\
-                tasklocation_timing_rules
-            timing_rule_start, timing_rule_end =\
-                get_start_end_from_timing_rules(timing_rules)
-
-            if not start_from_input:
-                # start was not input by user, we try and generate it from
-                # timing rules
-                if not timing_rule_start:
-                    # we cannot determine a start time
-                    raise serializers.ValidationError(
-                        {
-                            'timing_rule': MISSING_START_DATE,
-                            'start': MISSING_START_DATE,
-                            'locations_input': MISSING_START_DATE
-                        }
-                    )
-
-                attrs['start'] = timing_rule_start
-
-            # get end
-            attrs['end'] = attrs.get('end', timing_rule_end)
+            attrs = self._validate_new(attrs)
 
         # If end date is present we validate that it is greater than start_date
         if attrs.get('end') is not None:
@@ -170,6 +136,14 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             if attrs['end'] < the_start:
                 raise serializers.ValidationError(
                     {'end': INVALID_END_DATE}
+                )
+
+            # if status is active and end date is in the past raise an
+            # error
+            if attrs['end'] < timezone.now() and\
+                    attrs.get('status') == Task.ACTIVE:
+                raise serializers.ValidationError(
+                    {'end': PAST_END_DATE}
                 )
 
         # If start date is present and this is an existing object, we validate
@@ -194,6 +168,49 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             attrs['status'] = Task.DRAFT
 
         return super().validate(attrs)
+
+    def _validate_new(self, attrs):
+        """
+        Object level validation method run on New
+        Task Instances
+        """
+
+        # get timing_rule from input
+        timing_rule_from_input = attrs.get('timing_rule')
+
+        # get start from input
+        start_from_input = attrs.get('start')
+
+        # get timing rules from task locations
+        tasklocation_timing_rules = []
+        for location_input in attrs.get('locations_input', []):
+            tasklocation_timing_rules.append(location_input['timing_rule'])
+
+        # get start and end from timing rules
+        timing_rules = [timing_rule_from_input] +\
+            tasklocation_timing_rules
+        timing_rule_start, timing_rule_end =\
+            get_start_end_from_timing_rules(timing_rules)
+
+        if not start_from_input:
+            # start was not input by user, we try and generate it from
+            # timing rules
+            if not timing_rule_start:
+                # we cannot determine a start time
+                raise serializers.ValidationError(
+                    {
+                        'timing_rule': MISSING_START_DATE,
+                        'start': MISSING_START_DATE,
+                        'locations_input': MISSING_START_DATE
+                    }
+                )
+
+            attrs['start'] = timing_rule_start
+
+        # get end
+        attrs['end'] = attrs.get('end', timing_rule_end)
+
+        return attrs
 
     def get_task_locations(self, obj):
         """
