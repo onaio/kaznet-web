@@ -40,12 +40,10 @@ class OnaTempTokenAuthentication(TokenAuthentication):
     def authenticate_credentials(self, key):
         validation_endpoint = urljoin(
             settings.ONA_BASE_URL, 'api/v1/user')
-        user = cache.get(key)
+        username = cache.get(key)
         cached = False
 
-        # We add the cached_user result to "user_list" list
-
-        if user is None:
+        if username is None:
             response = request_session(
                 validation_endpoint,
                 'GET',
@@ -56,13 +54,13 @@ class OnaTempTokenAuthentication(TokenAuthentication):
                 raise exceptions.AuthenticationFailed(
                     _('User not logged into Ona.'))
 
-            user = response.json().get('username')
+            username = response.json().get('username')
         else:
             cached = True
 
         try:
             # Returns a username from the user_list
-            profile = UserProfile.objects.get(ona_username=user)
+            profile = UserProfile.objects.get(ona_username=username)
         except UserProfile.DoesNotExist:  # pylint: disable=no-member
             raise exceptions.AuthenticationFailed(
                 _('Invalid User.')
@@ -71,9 +69,9 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             # Cache the key and username for a set amount of time
             # Only if the user is not already cached
             if not cached:
-                cache.set(key, user, settings.TEMP_TOKEN_TIMEOUT)
+                cache.set(key, username, settings.TEMP_TOKEN_TIMEOUT)
 
-            return (profile, None)
+            return (profile.user, None)
 
     def authenticate_header(self, request):
         return 'TempToken'

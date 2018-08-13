@@ -59,11 +59,11 @@ class TestOnaTempTokenAuthentication(TestCase):
             json=self.ona_response,
             )
 
-        returned_profile = self.auth.authenticate_credentials(
+        returned_user = self.auth.authenticate_credentials(
             'token'
         )[0]
 
-        self.assertEqual(self.user_profile, returned_profile)
+        self.assertEqual(self.user, returned_user)
 
         # Test it doesn't authenticate  if User doesn't exist
         mocked.get(
