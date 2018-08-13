@@ -854,14 +854,14 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(
-            parse(response.data['results'][-1]['created']).astimezone(
+            parse(response.data['results'][-1]['modified']).astimezone(
                 pytz.utc),
-            task1.created)
+            task1.modified)
         self.assertEqual(response.data['results'][-1]['id'], task1.id)
         self.assertEqual(
             parse(
-                response.data['results'][0]['created']).astimezone(pytz.utc),
-            task2.created)
+                response.data['results'][0]['modified']).astimezone(pytz.utc),
+            task2.modified)
         self.assertEqual(response.data['results'][0]['id'], task2.id)
         self.assertTrue(
             response.data['results'][-1]['modified'] <
