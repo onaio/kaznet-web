@@ -47,7 +47,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         A Kaznet User
         """
         serializer_instance = self.get_serializer(data=request.data)
-        username = request.data.get('username')
+        username = request.data.get('ona_username')
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         email = request.data.get('email')
@@ -64,7 +64,9 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 
             if created:
                 serializer_instance.save()
-                return serializer_instance.data
+                return Response(
+                    serializer_instance.data,
+                    status=status.HTTP_201_CREATED)
 
             return Response(
                 errors,

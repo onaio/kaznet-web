@@ -1,7 +1,10 @@
 """
 Test for users viewset
 """
+import requests_mock
+
 from django.test import TestCase
+from django.conf import settings
 
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
@@ -263,6 +266,49 @@ class TestUserProfileViewSet(TestCase):
         # pylint: disable=no-member
         self.assertFalse(
             UserProfile.objects.filter(id=bob_userprofile.id).exists())
+
+    @requests_mock.Mocker()
+    def test_create_user_ona(self, mocked):
+        """
+        Test that create_user_ona 
+            - Creates User and Userprofile for Valid Ona
+              Users
+        """
+        user = create_admin_user()
+        user_data = {
+            'first_name': 'Dave',
+            'last_name': 'Test',
+            'email': 'davie@example.com',
+            'password': 'amalusceaNDb',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'payment_number': '+254722222222',
+            'phone_number': '+254722222222',
+            'ona_pk': 1337,
+            'ona_username': 'dave'
+        }
+        mocked.post(
+            settings.ONA_CREATE_USER_URL,
+            status_code=201
+        )
+
+        # Creates User on Successfull Ona User Creation
+        view = UserProfileViewSet.as_view({'post': 'create_user_ona'})
+        request = self.factory.post(
+            '/tasks/create_user_ona',
+            data=user_data
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(
+            UserProfile.objects.filter(ona_username='dave').exists())
+        self.assertTrue(
+            UserProfile.objects.filter(user__username='dave').exists()
+        )
 
     def test_authentication_required(self):
         """
