@@ -18,3 +18,5 @@ INVALID_TOKEN_CREDENTIALS_MISSING = _('Invalid token header. No credentials'
                                       ' provided.')
 INVALID_TOKEN_SPACES_CONTAINED = _('Invalid token header. Token string should'
                                    ' not contain spaces')
+PAST_END_DATE = _(
+    'Cannot create an active task with an end date from the past.')
