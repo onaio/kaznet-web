@@ -14,6 +14,8 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.test import APIRequestFactory
 
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
+from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
+                                          AUTH_USER_NOT_LOGGED_IN)
 
 
 class TestOnaTempTokenAuthentication(TestCase):
@@ -75,7 +77,7 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         self.assertRaisesMessage(
             AuthenticationFailed,
-            'Invalid User.',
+            f'{AUTH_USER_DOESNT_EXIST}',
             self.auth.authenticate_credentials,
             'token'
         )
@@ -88,7 +90,7 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         self.assertRaisesMessage(
             AuthenticationFailed,
-            'User not logged into Ona.',
+            f'{AUTH_USER_NOT_LOGGED_IN}',
             self.auth.authenticate_credentials,
             'token'
         )

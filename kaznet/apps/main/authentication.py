@@ -11,6 +11,8 @@ from rest_framework import exceptions
 from rest_framework.authentication import (TokenAuthentication,
                                            get_authorization_header)
 
+from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
+                                          AUTH_USER_NOT_LOGGED_IN)
 from kaznet.apps.ona.api import request_session
 from kaznet.apps.users.models import UserProfile
 
@@ -52,7 +54,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
 
             if response.status_code != 200:
                 raise exceptions.AuthenticationFailed(
-                    _('User not logged into Ona.'))
+                    AUTH_USER_NOT_LOGGED_IN)
 
             username = response.json().get('username')
         else:
@@ -63,7 +65,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             profile = UserProfile.objects.get(ona_username=username)
         except UserProfile.DoesNotExist:  # pylint: disable=no-member
             raise exceptions.AuthenticationFailed(
-                _('Invalid User.')
+                AUTH_USER_DOESNT_EXIST
             )
         else:
             # Cache the key and username for a set amount of time
