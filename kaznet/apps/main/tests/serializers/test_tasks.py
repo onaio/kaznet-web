@@ -16,6 +16,7 @@ from tasking.utils import get_rrule_end, get_rrule_start
 from kaznet.apps.main.models import Bounty, Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.main.tests.base import MainTestBase
+from kaznet.apps.main.common_tags import PAST_END_DATE
 
 
 class TestKaznetTaskSerializer(MainTestBase):
@@ -843,4 +844,28 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(
             'Cate Doe',
             serializer_instance2.data['created_by_name']
+        )
+
+    def test_task_end(self):
+        """
+        Test:
+            - If end_date is in the past and Task is Active
+              raise validation error
+        """
+        data = {
+            "type": "Task",
+            'name': 'Cow price',
+            'status': Task.ACTIVE,
+            'target_content_type': self.xform_type.id,
+            'start': '2018-07-20T17:48:34+03:00',
+            'end': '2018-07-29T17:48:34+03:00',
+        }
+        serializer_instance = KaznetTaskSerializer(
+            data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            PAST_END_DATE,
+            str(
+                serializer_instance.errors['end'][0]
+            )
         )

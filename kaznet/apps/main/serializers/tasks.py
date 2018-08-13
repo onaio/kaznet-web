@@ -8,7 +8,8 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
                                  INVALID_TIMING_RULE)
 from tasking.validators import validate_rrule
 
-from kaznet.apps.main.common_tags import MISSING_START_DATE, SAME_PARENT
+from kaznet.apps.main.common_tags import (MISSING_START_DATE, PAST_END_DATE,
+                                          SAME_PARENT)
 from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers.base import (GenericForeignKeySerializer,
                                                validate_parent_field)
@@ -170,6 +171,14 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             if attrs['end'] < the_start:
                 raise serializers.ValidationError(
                     {'end': INVALID_END_DATE}
+                )
+
+            # if status is active and end date is in the past raise an
+            # error
+            if attrs['end'] < timezone.now() and\
+                    attrs.get('status') == Task.ACTIVE:
+                raise serializers.ValidationError(
+                    {'end': PAST_END_DATE}
                 )
 
         # If start date is present and this is an existing object, we validate
