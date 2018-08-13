@@ -30,6 +30,7 @@ class TestUserProfileViewSet(TestCase):
             'first_name': 'Bob',
             'last_name': 'Doe',
             'email': 'bobbie@example.com',
+            'password': 'amalusceaNDb',
             'gender': UserProfile.MALE,
             'role': UserProfile.ADMIN,
             'expertise': UserProfile.EXPERT,
@@ -48,6 +49,10 @@ class TestUserProfileViewSet(TestCase):
 
         # assert that we get the right status_code and data back
         self.assertEqual(response.status_code, 201)
+
+        # We remove password field since password is write-only
+        data.pop('password')
+
         self.assertDictContainsSubset(data, response.data)
 
         return response.data
