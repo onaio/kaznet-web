@@ -90,9 +90,7 @@ class TestUserProfileSerializer(TestCase):
 
     def test_update(self):
         """
-        Test:
-            - you can update a user with the serializer
-            - doesnt create an Ona user
+        Test you can update a user with the serializer
         """
         initial_user_data = self._create_user()
 
