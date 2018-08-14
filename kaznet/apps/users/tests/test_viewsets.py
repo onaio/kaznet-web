@@ -286,12 +286,14 @@ class TestUserProfileViewSet(TestCase):
             'national_id': '123456789',
             'payment_number': '+254722222222',
             'phone_number': '+254722222222',
-            'ona_pk': 1337,
             'ona_username': 'dave'
         }
         mocked.post(
             settings.ONA_CREATE_USER_URL,
-            status_code=201
+            status_code=201,
+            json={
+                'id': 1337
+            }
         )
 
         # Creates User on Successfull Ona User Creation
@@ -309,6 +311,8 @@ class TestUserProfileViewSet(TestCase):
         self.assertTrue(
             UserProfile.objects.filter(user__username='dave').exists()
         )
+        userprofile = UserProfile.objects.get(ona_username='dave')
+        self.assertTrue(userprofile.ona_pk, 1337)
 
     def test_authentication_required(self):
         """
