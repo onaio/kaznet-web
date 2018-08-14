@@ -288,6 +288,7 @@ class TestUserProfileViewSet(TestCase):
             'phone_number': '+254722222222',
             'ona_username': 'dave'
         }
+
         mocked.post(
             settings.ONA_CREATE_USER_URL,
             status_code=201,
@@ -296,6 +297,10 @@ class TestUserProfileViewSet(TestCase):
             }
         )
 
+        mocked.post(
+            settings.ONA_ORG_TEAM_MEMBERS_URL,
+            status_code=201
+        )
         # Creates User on Successfull Ona User Creation
         view = UserProfileViewSet.as_view({'post': 'create_user_ona'})
         request = self.factory.post(

@@ -13,7 +13,7 @@ from kaznet.apps.users.filters import UserProfileOrderingFilter
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.permissions import IsAdmin, IsOwnUserProfileOrAdmin
 from kaznet.apps.users.serializers import UserProfileSerializer
-from kaznet.apps.users.api import create_ona_user
+from kaznet.apps.users.api import create_ona_user, add_team_member
 
 
 # pylint: disable=too-many-ancestors
@@ -70,6 +70,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             )
 
             if created:
+                add_team_member(username)
                 userprofile = serializer_instance.save()
                 userprofile.ona_pk = data.get('id')
                 userprofile.save()
