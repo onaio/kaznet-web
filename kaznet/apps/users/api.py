@@ -37,3 +37,28 @@ def create_ona_user(
         created = True
 
     return (created, data)
+
+
+def add_team_member(
+        username: str
+):
+    """
+    Custom Method that adds a User to the Projects
+    Org Members List
+    """
+    data = None
+    response = request_session(
+        settings.ONA_ORG_TEAM_MEMBERS_URL,
+        'POST',
+        payload={
+            'username': username
+        }
+    )
+
+    if response.status_code == 400:
+        data = response.json()
+        added = False
+    else:
+        added = True
+
+    return (added, data)
