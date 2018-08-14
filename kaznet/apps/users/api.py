@@ -17,7 +17,6 @@ def create_ona_user(
     Custom Method that creates an Ona User
     and returns Errors That Occur.
     """
-    errors = None
     response = request_session(
         settings.ONA_CREATE_USER_URL,
         'POST',
@@ -31,9 +30,10 @@ def create_ona_user(
     )
 
     if response.status_code == 400:
-        errors = response.json()
+        data = response.json()
         created = False
     else:
+        data = response.json()
         created = True
 
-    return (created, errors)
+    return (created, data)
