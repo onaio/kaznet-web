@@ -46,15 +46,22 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         Action that creates a user on Ona and then creates
         A Kaznet User
         """
-        serializer_instance = self.get_serializer(data=request.data)
-        username = request.data.get('ona_username')
-        first_name = request.data.get('first_name')
-        last_name = request.data.get('last_name')
-        email = request.data.get('email')
-        password = request.data.get('password')
+        data = request.data.copy()
+        serializer_instance = self.get_serializer(data=data)
+        username = data.get('ona_username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        email = data.get('email')
+        password = data.get('password')
+
+        # We do not take the ona_pk the user inputs
+        try:
+            data.pop('ona_pk')
+        except KeyError:
+            pass
 
         if serializer_instance.is_valid():
-            created, errors = create_ona_user(
+            created, data = create_ona_user(
                 username,
                 first_name,
                 last_name,
@@ -63,13 +70,15 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             )
 
             if created:
-                serializer_instance.save()
+                userprofile = serializer_instance.save()
+                userprofile.ona_pk = data.get('id')
+                userprofile.save()
                 return Response(
                     serializer_instance.data,
                     status=status.HTTP_201_CREATED)
 
             return Response(
-                errors,
+                data,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
