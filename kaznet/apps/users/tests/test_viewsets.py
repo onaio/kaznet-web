@@ -20,45 +20,58 @@ class TestUserProfileViewSet(TestCase):
     """
 
     def setUp(self):
-        super().setUp()
         self.factory = APIRequestFactory()
 
     def _create(self):
         """
         Helper to create userprofiles with viewset
         """
-        user = create_admin_user()
+        with requests_mock.Mocker() as mocked:
+            mocked.post(
+                settings.ONA_CREATE_USER_URL,
+                status_code=201,
+                json={
+                    'id': 1337
+                }
+            )
 
-        data = {
-            'first_name': 'Bob',
-            'last_name': 'Doe',
-            'email': 'bobbie@example.com',
-            'password': 'amalusceaNDb',
-            'gender': UserProfile.MALE,
-            'role': UserProfile.ADMIN,
-            'expertise': UserProfile.EXPERT,
-            'national_id': '123456789',
-            'payment_number': '+254722222222',
-            'phone_number': '+254722222222',
-            'ona_pk': 1337,
-            'ona_username': 'bobbie'
-        }
+            mocked.post(
+                settings.ONA_ORG_TEAM_MEMBERS_URL,
+                status_code=201
+            )
 
-        view = UserProfileViewSet.as_view({'post': 'create'})
-        request = self.factory.post('/userprofiles', data)
-        # need to authenticate
-        force_authenticate(request, user=user)
-        response = view(request=request)
+            user = create_admin_user()
 
-        # assert that we get the right status_code and data back
-        self.assertEqual(response.status_code, 201)
+            data = {
+                'first_name': 'Bob',
+                'last_name': 'Doe',
+                'email': 'bobbie@example.com',
+                'password': 'amalusceaNDb',
+                'gender': UserProfile.MALE,
+                'role': UserProfile.ADMIN,
+                'expertise': UserProfile.EXPERT,
+                'national_id': '123456789',
+                'payment_number': '+254722222222',
+                'phone_number': '+254722222222',
+                'ona_pk': 1337,
+                'ona_username': 'bobbie'
+            }
 
-        # We remove password field since password is write-only
-        data.pop('password')
+            view = UserProfileViewSet.as_view({'post': 'create'})
+            request = self.factory.post('/userprofiles', data)
+            # need to authenticate
+            force_authenticate(request, user=user)
+            response = view(request=request)
 
-        self.assertDictContainsSubset(data, response.data)
+            # assert that we get the right status_code and data back
+            self.assertEqual(response.status_code, 201)
 
-        return response.data
+            # We remove password field since password is write-only
+            data.pop('password')
+
+            self.assertDictContainsSubset(data, response.data)
+
+            return response.data
 
     def test_create(self):
         """
@@ -266,58 +279,6 @@ class TestUserProfileViewSet(TestCase):
         # pylint: disable=no-member
         self.assertFalse(
             UserProfile.objects.filter(id=bob_userprofile.id).exists())
-
-    @requests_mock.Mocker()
-    def test_create_user_ona(self, mocked):
-        """
-        Test that create_user_ona
-            - Creates User and Userprofile for Valid Ona
-              Users
-        """
-        user = create_admin_user()
-        user_data = {
-            'first_name': 'Dave',
-            'last_name': 'Test',
-            'email': 'davie@example.com',
-            'password': 'amalusceaNDb',
-            'gender': UserProfile.MALE,
-            'role': UserProfile.ADMIN,
-            'expertise': UserProfile.EXPERT,
-            'national_id': '123456789',
-            'payment_number': '+254722222222',
-            'phone_number': '+254722222222',
-            'ona_username': 'dave'
-        }
-
-        mocked.post(
-            settings.ONA_CREATE_USER_URL,
-            status_code=201,
-            json={
-                'id': 1337
-            }
-        )
-
-        mocked.post(
-            settings.ONA_ORG_TEAM_MEMBERS_URL,
-            status_code=201
-        )
-        # Creates User on Successfull Ona User Creation
-        view = UserProfileViewSet.as_view({'post': 'create_user_ona'})
-        request = self.factory.post(
-            '/tasks/create_user_ona',
-            data=user_data
-        )
-        force_authenticate(request, user=user)
-        response = view(request=request)
-
-        self.assertEqual(response.status_code, 201)
-        self.assertTrue(
-            UserProfile.objects.filter(ona_username='dave').exists())
-        self.assertTrue(
-            UserProfile.objects.filter(user__username='dave').exists()
-        )
-        userprofile = UserProfile.objects.get(ona_username='dave')
-        self.assertTrue(userprofile.ona_pk, 1337)
 
     def test_authentication_required(self):
         """

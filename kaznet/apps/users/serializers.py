@@ -194,7 +194,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         else:
-            # TODO: Update password on Ona
+            # Update password on Ona
             pass
 
         # you can't change username

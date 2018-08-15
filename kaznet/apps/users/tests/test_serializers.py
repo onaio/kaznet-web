@@ -2,10 +2,13 @@
 Tests for UserProfile serializers
 """
 from django.test import TestCase
+from django.conf import settings
 
+import requests_mock
+
+from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
-from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 
 
 class TestUserProfileSerializer(TestCase):
@@ -17,36 +20,54 @@ class TestUserProfileSerializer(TestCase):
         """
         Utility to create users
         """
-        data = {
-            'first_name': 'Bob',
-            'last_name': 'Doe',
-            'email': 'bobbie@example.com',
-            'password': 'amalusceaNDb',
-            'gender': UserProfile.MALE,
-            'role': UserProfile.ADMIN,
-            'expertise': UserProfile.EXPERT,
-            'national_id': '123456789',
-            'payment_number': '+254722222222',
-            'phone_number': '+254722222222',
-            'ona_pk': 1337,
-            'ona_username': 'bobbie'
-        }
-        # pylint: disable=no-member
-        self.assertFalse(
-            UserProfile.objects.filter(user__username='bobbie').exists())
-        serializer_instance = UserProfileSerializer(data=data)
-        self.assertTrue(serializer_instance.is_valid())
+        with requests_mock.Mocker() as mocked:
+            mocked.post(
+                settings.ONA_CREATE_USER_URL,
+                status_code=201,
+                json={
+                    'id': 1337
+                }
+            )
 
-        serializer_instance.save()
-        self.assertTrue(
-            UserProfile.objects.filter(user__username='bobbie').exists())
+            mocked.post(
+                settings.ONA_ORG_TEAM_MEMBERS_URL,
+                status_code=201
+            )
 
-        # We remove password field Since password is write-only
-        data.pop('password')
+            data = {
+                'first_name': 'Bob',
+                'last_name': 'Doe',
+                'email': 'bobbie@example.com',
+                'password': 'amalusceaNDb',
+                'gender': UserProfile.MALE,
+                'role': UserProfile.ADMIN,
+                'expertise': UserProfile.EXPERT,
+                'national_id': '123456789',
+                'payment_number': '+254722222222',
+                'phone_number': '+254722222222',
+                'ona_pk': 1337,
+                'ona_username': 'bobbie'
+            }
+            # pylint: disable=no-member
+            self.assertFalse(
+                UserProfile.objects.filter(user__username='bobbie').exists())
+            serializer_instance = UserProfileSerializer(data=data)
+            self.assertTrue(serializer_instance.is_valid())
 
-        self.assertDictContainsSubset(data, serializer_instance.data)
+            serializer_instance.save()
+            self.assertTrue(
+                UserProfile.objects.filter(user__username='bobbie').exists())
 
-        return serializer_instance.data
+            # Uses Primary Key from Ona
+            userprofile = UserProfile.objects.get(ona_username='bobbie')
+            self.assertTrue(userprofile.ona_pk, 1337)
+
+            # We remove password field Since password is write-only
+            data.pop('password')
+
+            self.assertDictContainsSubset(data, serializer_instance.data)
+
+            return serializer_instance.data
 
     def test_create(self):
         """
@@ -189,6 +210,7 @@ class TestUserProfileSerializer(TestCase):
 
         serializer_instance = UserProfileSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
+
         self.assertEqual(
             serializer_instance.errors['password'][0],
             NEED_PASSWORD_ON_CREATE
