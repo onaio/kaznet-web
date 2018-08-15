@@ -117,20 +117,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
         """
         Custom Validation For Password Field
         """
-        password = attrs.get('user').get('password')
-        if not self.instance:
-            # On Create of a new User. Password Shouldn't be None
-            if password is None:
-                raise serializers.ValidationError(
-                    {'password': NEED_PASSWORD_ON_CREATE}
-                )
-        if password is not None:
-            try:
-                validate_password(password)
-            except exceptions.ValidationError as exc:
-                raise serializers.ValidationError(
-                    {'password': list(exc.messages)}
-                )
+        user_data = attrs.get('user')
+        if user_data is not None:
+            password = user_data.get('password')
+
+            if not self.instance:
+                # On Create of a new User. Password Shouldn't be None
+                if password is None:
+                    raise serializers.ValidationError(
+                        {'password': NEED_PASSWORD_ON_CREATE}
+                    )
+            if password is not None:
+                try:
+                    validate_password(password)
+                except exceptions.ValidationError as exc:
+                    raise serializers.ValidationError(
+                        {'password': list(exc.messages)}
+                    )
 
         return super().validate(attrs)
 
