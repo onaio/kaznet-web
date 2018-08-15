@@ -76,7 +76,8 @@ class TestUserProfileSerializer(TestCase):
             'expertise',
             'gender',
             'national_id',
-            'submission_count'
+            'submission_count',
+            'address'
         ]
 
         self.assertEqual(set(fields), set(serializer_instance.keys()))
