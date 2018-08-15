@@ -8,7 +8,8 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
-from kaznet.apps.users.api import add_team_member, create_ona_user
+from kaznet.apps.users.api import (add_team_member, change_password,
+                                   create_ona_user, update_details)
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 
@@ -184,6 +185,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         user = instance.user
         user_data = validated_data.pop('user')
+        username = user_data.get('username')
+        first_name = user_data.get('first_name')
+        last_name = user_data.get('last_name')
+        email = user_data.get('email')
         password = user_data.get('password')
         # username = user_data.get('username')
 
@@ -194,14 +199,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         else:
-            # Update password on Ona
-            pass
+            change_password(username, user.password, password)
 
         # you can't change username
         try:
             del user_data['username']
         except KeyError:
             pass
+
+        updated, data = update_details(
+            username, first_name, last_name, email, password)
+
+        if not updated:
+            raise serializers.ValidationError(
+                data
+            )
 
         UserSerializer().update(instance=user, validated_data=user_data)
 
