@@ -29,7 +29,7 @@ def create_ona_user(
         }
     )
 
-    if response.status_code == 400:
+    if response.status_code != 201:
         data = response.json()
         created = False
     else:
@@ -55,7 +55,7 @@ def add_team_member(
         }
     )
 
-    if response.status_code == 400:
+    if response.status_code != 201:
         data = response.json()
         added = False
     else:
