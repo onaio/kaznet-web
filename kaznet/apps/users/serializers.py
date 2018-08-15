@@ -4,11 +4,11 @@ Serializers for users app
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
-from django.core import exceptions
 
 from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
+from kaznet.apps.users.api import add_team_member, create_ona_user
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 
@@ -61,6 +61,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email')
     password = serializers.CharField(
         source='user.password',
+        allow_null=True,
+        default=None,
         required=False,
         write_only=True)
     last_login = serializers.DateTimeField(
@@ -113,42 +115,56 @@ class UserProfileSerializer(serializers.ModelSerializer):
         """
         return obj.user.submission_set.count()
 
-    def validate(self, attrs):
+    def validate_password(self, value):
         """
-        Custom Validation For Password Field
+        Custom validation for Password Field
         """
-        user_data = attrs.get('user')
-        if user_data is not None:
-            password = user_data.get('password')
+        if not self.instance:
+            # On create of a new user Password shouldn't be none
+            if value is None:
+                raise serializers.ValidationError(
+                    NEED_PASSWORD_ON_CREATE
+                )
 
-            if not self.instance:
-                # On Create of a new User. Password Shouldn't be None
-                if password is None:
-                    raise serializers.ValidationError(
-                        {'password': NEED_PASSWORD_ON_CREATE}
-                    )
-            if password is not None:
-                try:
-                    validate_password(password)
-                except exceptions.ValidationError as exc:
-                    raise serializers.ValidationError(
-                        {'password': list(exc.messages)}
-                    )
+        if value is not None:
+            validate_password(value)
 
-        return super().validate(attrs)
+        return value
 
     def create(self, validated_data):
         """
         Custom create method to create User object then UserProfile object
         """
-        # create the User object
         user_data = validated_data.pop('user')
         user_data['username'] = validated_data.get('ona_username')
+        username = user_data.get('ona_username')
+        first_name = user_data.get('first_name')
+        last_name = user_data.get('last_name')
+        email = user_data.get('email')
+        password = user_data.get('password')
+
+        created, data = create_ona_user(
+            username,
+            first_name,
+            last_name,
+            email,
+            password
+        )
+
+        if not created:
+            raise serializers.ValidationError(
+                data
+            )
+
+        ona_pk = data.get('id')
+
+        add_team_member(username)
+        # create the User object
         user = UserSerializer.create(UserSerializer(),
                                      validated_data=user_data)
         # populate the UserProfile object
         userprofile = user.userprofile
-        userprofile.ona_pk = validated_data.get('ona_pk')
+        userprofile.ona_pk = ona_pk
         userprofile.ona_username = user.username
         userprofile.payment_number = validated_data.get('payment_number')
         userprofile.phone_number = validated_data.get('phone_number')
@@ -168,6 +184,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         user = instance.user
         user_data = validated_data.pop('user')
+        password = user_data.get('password')
+        # username = user_data.get('username')
+
+        if password is None:
+            # If password is None we Delete it From the user_data
+            try:
+                del user_data['password']
+            except KeyError:
+                pass
+        else:
+            # TODO: Update password on Ona
+            pass
 
         # you can't change username
         try:
