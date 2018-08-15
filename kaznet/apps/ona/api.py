@@ -59,6 +59,13 @@ def request_session(
             headers=headers
             )
         return response
+    if method == 'PATCH':
+        response = session.patch(
+            url, auth=(settings.ONA_USERNAME, settings.ONA_PASSWORD),
+            data=payload,
+            headers=headers
+        )
+        return response
 
     return None
 
