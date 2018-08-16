@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from kaznet.apps.ona.api import request_session
 
 
-def create_ona_user(
+def create_ona_user(  # pylint: disable=too-many-arguments
         api_root: str,
         username: str,
         first_name: str,
@@ -67,7 +67,7 @@ def add_team_member(
     return (added, data)
 
 
-def update_details(
+def update_details(  # pylint: disable=too-many-arguments
         api_root: str,
         username: str,
         first_name: str = None,
