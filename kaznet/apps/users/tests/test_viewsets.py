@@ -29,7 +29,7 @@ class TestUserProfileViewSet(TestCase):
         """
         with requests_mock.Mocker() as mocked:
             mocked.post(
-                settings.ONA_CREATE_USER_URL,
+                urljoin(settings.ONA_BASE_URL, 'api/v1/profiles'),
                 status_code=201,
                 json={
                     'id': 1337
@@ -37,7 +37,9 @@ class TestUserProfileViewSet(TestCase):
             )
 
             mocked.post(
-                settings.ONA_ORG_TEAM_MEMBERS_URL,
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
                 status_code=201
             )
 

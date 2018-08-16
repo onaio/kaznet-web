@@ -145,6 +145,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         password = user_data.get('password')
 
         created, data = create_ona_user(
+            settings.ONA_BASE_URL,
             username,
             first_name,
             last_name,
@@ -159,7 +160,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         ona_pk = data.get('id')
 
-        add_team_member(username)
+        add_team_member(
+            settings.ONA_BASE_URL,
+            username,
+            settings.ONA_MEMBERS_TEAM_ID)
         # create the User object
         user = UserSerializer.create(UserSerializer(),
                                      validated_data=user_data)
@@ -197,7 +201,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         else:
-            change_password(username, user.password, password)
+            change_password(
+                settings.ONA_BASE_URL,
+                username,
+                user.password,
+                password)
 
         # you can't change username
         try:
@@ -206,7 +214,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             pass
 
         updated, data = update_details(
-            username, first_name, last_name, email, password)
+            settings.ONA_BASE_URL,
+            username,
+            first_name,
+            last_name,
+            email,
+            password)
 
         if not updated:
             raise serializers.ValidationError(
