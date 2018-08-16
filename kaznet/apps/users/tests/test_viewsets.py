@@ -1,11 +1,12 @@
 """
 Test for users viewset
 """
-import requests_mock
+from urllib.parse import urljoin
 
-from django.test import TestCase
 from django.conf import settings
+from django.test import TestCase
 
+import requests_mock
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -244,21 +245,29 @@ class TestUserProfileViewSet(TestCase):
         user_data = self._create()
         user = create_admin_user()
 
-        data = {
-            'first_name': 'Peter',
-            'phone_number': '+254722111111',
-            'role': UserProfile.CONTRIBUTOR
-        }
+        with requests_mock.Mocker() as mocked:
+            mocked.patch(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/profiles/{user_data["ona_username"]}'),
+                status_code=200,
+            )
 
-        view = UserProfileViewSet.as_view({'patch': 'partial_update'})
-        request = self.factory.patch(f'/userprofiles/{user_data["id"]}',
-                                     data=data)
-        force_authenticate(request, user=user)
-        response = view(request=request, pk=user_data['id'])
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual('Peter', response.data['first_name'])
-        self.assertEqual('+254722111111', response.data['phone_number'])
-        self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
+            data = {
+                'first_name': 'Peter',
+                'phone_number': '+254722111111',
+                'role': UserProfile.CONTRIBUTOR
+            }
+
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{user_data["id"]}', data=data)
+            force_authenticate(request, user=user)
+            response = view(request=request, pk=user_data['id'])
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual('Peter', response.data['first_name'])
+            self.assertEqual('+254722111111', response.data['phone_number'])
+            self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
 
     def test_delete(self):
         """
@@ -363,85 +372,95 @@ class TestUserProfileViewSet(TestCase):
         or Update request
         """
         # cant create
-        data = {
-            'first_name': 'Bob',
-            'last_name': 'Doe',
-            'email': 'bobbie@example.com',
-            'gender': UserProfile.MALE,
-            'role': UserProfile.ADMIN,
-            'expertise': UserProfile.EXPERT,
-            'national_id': '123456789',
-            'payment_number': '+254722222222',
-            'phone_number': '+254722222222',
-            'ona_pk': 1337,
-            'ona_username': 'bobbie'
-        }
+        with requests_mock.Mocker() as mocked:
+            data = {
+                'first_name': 'Bob',
+                'last_name': 'Doe',
+                'email': 'bobbie@example.com',
+                'gender': UserProfile.MALE,
+                'role': UserProfile.ADMIN,
+                'expertise': UserProfile.EXPERT,
+                'national_id': '123456789',
+                'payment_number': '+254722222222',
+                'phone_number': '+254722222222',
+                'ona_pk': 1337,
+                'ona_username': 'bobbie'
+            }
 
-        mocked_user = mommy.make('auth.User')
-        mocked_user2 = mommy.make('auth.User')
-        userprofile = mocked_user2.userprofile
+            mocked_user = mommy.make('auth.User')
+            mocked_user2 = mommy.make('auth.User')
+            userprofile = mocked_user2.userprofile
 
-        view = UserProfileViewSet.as_view({'post': 'create'})
-        request = self.factory.post('/userprofiles', data)
-        force_authenticate(request, mocked_user)
-        response = view(request=request)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            response.data[0]['detail']
-        )
+            view = UserProfileViewSet.as_view({'post': 'create'})
+            request = self.factory.post('/userprofiles', data)
+            force_authenticate(request, mocked_user)
+            response = view(request=request)
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(
+                'You shall not pass.',
+                response.data[0]['detail']
+            )
 
-        # cant update userprofile if Requester is not the User linked to it
-        data = {
-            'first_name': 'Peter',
-            'phone_number': '+254722111111',
-            'role': UserProfile.CONTRIBUTOR
-        }
-        view = UserProfileViewSet.as_view({'patch': 'partial_update'})
-        request = self.factory.patch(f'/userprofiles/{userprofile.id}',
-                                     data=data)
-        force_authenticate(request, mocked_user)
-        response = view(request=request, pk=userprofile.id)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            response.data[0]['detail']
-        )
+            # cant update userprofile if Requester is not the User linked to it
+            data = {
+                'first_name': 'Peter',
+                'phone_number': '+254722111111',
+                'role': UserProfile.CONTRIBUTOR
+            }
 
-        # cant delete
-        view = UserProfileViewSet.as_view({'delete': 'destroy'})
-        request = self.factory.delete(f'/userprofiles/{userprofile.id}')
-        force_authenticate(request, mocked_user)
-        response = view(request=request, pk=userprofile.id)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            response.data[0]['detail']
-        )
+            mocked.patch(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/profiles/{userprofile.user.username}'),
+                status_code=200,
+            )
 
-        # Cant delete own userprofile
-        view = UserProfileViewSet.as_view({'delete': 'destroy'})
-        request = self.factory.delete(f'/userprofiles/{userprofile.id}')
-        force_authenticate(request, mocked_user2)
-        response = view(request=request, pk=userprofile.id)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'You shall not pass.',
-            response.data[0]['detail']
-        )
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{userprofile.id}',
+                data=data)
+            force_authenticate(request, mocked_user)
+            response = view(request=request, pk=userprofile.id)
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(
+                'You shall not pass.',
+                response.data[0]['detail']
+            )
 
-        # Can update userprofile if Requester is the User linked to it
-        data = {
-            'first_name': 'Peter',
-            'phone_number': '+254722111111',
-            'role': UserProfile.CONTRIBUTOR
-        }
-        view = UserProfileViewSet.as_view({'patch': 'partial_update'})
-        request = self.factory.patch(f'/userprofiles/{userprofile.id}',
-                                     data=data)
-        force_authenticate(request, mocked_user2)
-        response = view(request=request, pk=userprofile.id)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual('Peter', response.data['first_name'])
-        self.assertEqual('+254722111111', response.data['phone_number'])
-        self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
+            # cant delete
+            view = UserProfileViewSet.as_view({'delete': 'destroy'})
+            request = self.factory.delete(f'/userprofiles/{userprofile.id}')
+            force_authenticate(request, mocked_user)
+            response = view(request=request, pk=userprofile.id)
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(
+                'You shall not pass.',
+                response.data[0]['detail']
+            )
+
+            # Cant delete own userprofile
+            view = UserProfileViewSet.as_view({'delete': 'destroy'})
+            request = self.factory.delete(f'/userprofiles/{userprofile.id}')
+            force_authenticate(request, mocked_user2)
+            response = view(request=request, pk=userprofile.id)
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(
+                'You shall not pass.',
+                response.data[0]['detail']
+            )
+
+            # Can update userprofile if Requester is the User linked to it
+            data = {
+                'first_name': 'Peter',
+                'phone_number': '+254722111111',
+                'role': UserProfile.CONTRIBUTOR
+            }
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{userprofile.id}', data=data)
+            force_authenticate(request, mocked_user2)
+            response = view(request=request, pk=userprofile.id)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual('Peter', response.data['first_name'])
+            self.assertEqual('+254722111111', response.data['phone_number'])
+            self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])

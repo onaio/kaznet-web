@@ -1,8 +1,10 @@
 """
 Tests for UserProfile serializers
 """
-from django.test import TestCase
+from urllib.parse import urljoin
+
 from django.conf import settings
+from django.test import TestCase
 
 import requests_mock
 
@@ -115,54 +117,63 @@ class TestUserProfileSerializer(TestCase):
         """
         initial_user_data = self._create_user()
 
-        data = {
-            'first_name': 'Mosh',
-            'last_name': 'Pitt',
-            'email': 'mosh@example.com',
-            'role': UserProfile.CONTRIBUTOR,
-            'expertise': UserProfile.INTERMEDIATE,
-            'national_id': '1337',
-            'payment_number': '+254722111111',
-            'ona_pk': 9999,
-            'ona_username': 'mosh'
-        }
+        with requests_mock.Mocker() as mocked:
+            data = {
+                'first_name': 'Mosh',
+                'last_name': 'Pitt',
+                'email': 'mosh@example.com',
+                'role': UserProfile.CONTRIBUTOR,
+                'expertise': UserProfile.INTERMEDIATE,
+                'national_id': '1337',
+                'payment_number': '+254722111111',
+                'ona_pk': 9999,
+            }
 
-        # pylint: disable=no-member
-        userprofile = UserProfile.objects.get(user__username='bobbie')
-        serializer_instance = UserProfileSerializer(
-            instance=userprofile,
-            data=data)
-        self.assertTrue(serializer_instance.is_valid())
-        serializer_instance.save()
+            # pylint: disable=no-member
+            userprofile = UserProfile.objects.get(user__username='bobbie')
+            mocked.patch(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/profiles/bobbie'),
+                status_code=200,
+            )
 
-        expected_data = dict(initial_user_data).copy()
-        expected_data['first_name'] = 'Mosh'
-        expected_data['last_name'] = 'Pitt'
-        expected_data['email'] = 'mosh@example.com'
-        expected_data['role'] = UserProfile.CONTRIBUTOR
-        expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
-        expected_data[
-            'expertise_display'] = UserProfile.EXPERTISE_CHOICES[1][1]
-        expected_data['expertise'] = UserProfile.INTERMEDIATE
-        expected_data['national_id'] = '1337'
-        expected_data['payment_number'] = '+254722111111'
+            serializer_instance = UserProfileSerializer(
+                instance=userprofile,
+                data=data)
+            self.assertTrue(serializer_instance.is_valid())
+            serializer_instance.save()
 
-        # remove the modified field because it cannot be the same
-        del expected_data['modified']
+            expected_data = dict(initial_user_data).copy()
+            expected_data['first_name'] = 'Mosh'
+            expected_data['last_name'] = 'Pitt'
+            expected_data['email'] = 'mosh@example.com'
+            expected_data['role'] = UserProfile.CONTRIBUTOR
+            expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
+            expected_data[
+                'expertise_display'] = UserProfile.EXPERTISE_CHOICES[1][1]
+            expected_data['expertise'] = UserProfile.INTERMEDIATE
+            expected_data['national_id'] = '1337'
+            expected_data['payment_number'] = '+254722111111'
 
-        self.assertDictContainsSubset(expected_data, serializer_instance.data)
+            # remove the modified field because it cannot be the same
+            del expected_data['modified']
 
-        userprofile.refresh_from_db()
+            self.assertDictContainsSubset(
+                expected_data, serializer_instance.data)
 
-        self.assertEqual('Mosh', userprofile.user.first_name)
-        self.assertEqual('Pitt', userprofile.user.last_name)
-        self.assertEqual('mosh@example.com', userprofile.user.email)
-        self.assertEqual(
-            UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
-        self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
-        self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
-        self.assertEqual('1337', userprofile.national_id)
-        self.assertEqual('+254722111111', userprofile.payment_number.as_e164)
+            userprofile.refresh_from_db()
+
+            self.assertEqual('Mosh', userprofile.user.first_name)
+            self.assertEqual('Pitt', userprofile.user.last_name)
+            self.assertEqual('mosh@example.com', userprofile.user.email)
+            self.assertEqual(
+                UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
+            self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
+            self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
+            self.assertEqual('1337', userprofile.national_id)
+            self.assertEqual(
+                '+254722111111', userprofile.payment_number.as_e164)
 
     def test_bad_data(self):
         """

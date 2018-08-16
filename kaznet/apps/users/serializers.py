@@ -184,7 +184,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # deal with the user object
         user = instance.user
         user_data = validated_data.pop('user')
-        ona_username = user.userprofile.ona_username
+        username = user.username
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
@@ -197,7 +197,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         else:
-            change_password(ona_username, user.password, password)
+            change_password(username, user.password, password)
 
         # you can't change username
         try:
@@ -206,7 +206,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             pass
 
         updated, data = update_details(
-            ona_username, first_name, last_name, email, password)
+            username, first_name, last_name, email, password)
 
         if not updated:
             raise serializers.ValidationError(
