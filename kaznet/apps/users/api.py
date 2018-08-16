@@ -76,7 +76,7 @@ def update_details(
     """
     Custom Method that Updates User Details
     """
-    data = None
+    errors = None
 
     response = request_session(
         urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}'),
@@ -90,13 +90,12 @@ def update_details(
     )
 
     if response.status_code != 200:
-        data = response.json()
+        errors = response.json()
         updated = False
     else:
-        data = response.json()
         updated = True
 
-    return (updated, data)
+    return (updated, errors)
 
 
 def change_password(
