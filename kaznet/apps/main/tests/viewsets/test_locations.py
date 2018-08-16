@@ -372,6 +372,21 @@ class TestKaznetLocationViewSet(MainTestBase):
                 pytz.timezone('Africa/Nairobi')).isoformat())
         self.assertEqual(response.data['results'][-1]['id'], project2.id)
 
+        # order by modified descending
+        request = self.factory.get('/locations', {'ordering': '-modifed'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(
+            response.data['results'][-1]['modified'],
+            project1.modified.astimezone(
+                pytz.timezone('Africa/Nairobi')).isoformat())
+        self.assertEqual(response.data['results'][-1]['id'], project1.id)
+        self.assertEqual(
+            response.data['results'][0]['modified'],
+            project2.modified.astimezone(
+                pytz.timezone('Africa/Nairobi')).isoformat())
+        self.assertEqual(response.data['results'][0]['id'], project2.id)
+
     # pylint: disable=too-many-locals
     def test_authentication_required(self):
         """
