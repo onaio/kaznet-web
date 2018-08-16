@@ -35,10 +35,10 @@ class TestXFormSerializer(MainTestBase):
             'ona.XForm',
             id=45,
             ona_pk=596,
-            project_id=54,
+            ona_project_id=54,
             title='Solar Flare',
             id_string=mocked_idstring,
-            kaznet_project=mocked_project
+            project=mocked_project
         )
 
         serializer_instance = XFormSerializer(xform)
@@ -46,7 +46,7 @@ class TestXFormSerializer(MainTestBase):
         expected_fields = {
             'id',
             'ona_pk',
-            'project_id',
+            'ona_project_id',
             'last_updated',
             'id_string',
             'deleted_at',
@@ -54,7 +54,7 @@ class TestXFormSerializer(MainTestBase):
             'has_task',
             'created',
             'modified',
-            'kaznet_project'
+            'project'
         }
 
         self.assertEqual(set(expected_fields),
@@ -65,7 +65,7 @@ class TestXFormSerializer(MainTestBase):
         self.assertEqual(54, serializer_data['project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
-        self.assertEqual('10', serializer_data['kaznet_project']['id'])
+        self.assertEqual('10', serializer_data['project']['id'])
 
     def test_has_task(self):
         """
@@ -75,7 +75,7 @@ class TestXFormSerializer(MainTestBase):
             'ona.XForm',
             id=45,
             ona_pk=596,
-            project_id=54,
+            ona_project_id=54,
             title='Coconut',
             id_string='coconut'
         )

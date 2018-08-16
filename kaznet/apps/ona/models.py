@@ -64,12 +64,11 @@ class XForm(TimeStampedModel, models.Model):
         db_index=True,
         unique=True,
         blank=False)
-    project_id = models.PositiveIntegerField(
+    ona_project_id = models.PositiveIntegerField(
         _("Project ID"),
         db_index=True,
         unique=False,
-        blank=False,
-        help_text=_('References the Project ID from Ona Data'))
+        blank=False)
     title = models.CharField(
         _('Title'),
         editable=False,
@@ -88,8 +87,11 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
-    kaznet_project = models.ForeignKey(
+    # db_column='project_custom' is provided to handle problems associated with project
+    # field and the move from project_id to ona_project_id
+    project = models.ForeignKey(
         Project,
+        db_column='project_custom',
         verbose_name=_('Kaznet Project'),
         on_delete=models.SET_NULL,
         null=True,
@@ -105,7 +107,7 @@ class XForm(TimeStampedModel, models.Model):
         Meta Options for XForm
         """
         ordering = ['title', 'id_string']
-        unique_together = ('project_id', 'id_string')
+        unique_together = ('ona_project_id', 'id_string')
 
     def __str__(self):
         return self.title
