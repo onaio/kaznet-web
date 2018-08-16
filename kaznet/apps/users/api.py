@@ -3,12 +3,11 @@ API Methods For Kaznet User App
 """
 from urllib.parse import urljoin
 
-from django.conf import settings
-
 from kaznet.apps.ona.api import request_session
 
 
 def create_ona_user(
+        api_root: str,
         username: str,
         first_name: str,
         last_name: str,
@@ -20,7 +19,7 @@ def create_ona_user(
     and returns Errors That Occur.
     """
     response = request_session(
-        settings.ONA_CREATE_USER_URL,
+        urljoin(api_root, 'api/v1/profiles'),
         'POST',
         payload={
             'username': username,
@@ -42,7 +41,9 @@ def create_ona_user(
 
 
 def add_team_member(
-        username: str
+        api_root: str,
+        username: str,
+        team_id: int
 ):
     """
     Custom Method that adds a User to the Projects
@@ -50,7 +51,7 @@ def add_team_member(
     """
     data = None
     response = request_session(
-        settings.ONA_ORG_TEAM_MEMBERS_URL,
+        urljoin(api_root, f'api/v1/teams/{team_id}/members'),
         'POST',
         payload={
             'username': username
@@ -67,6 +68,7 @@ def add_team_member(
 
 
 def update_details(
+        api_root: str,
         username: str,
         first_name: str = None,
         last_name: str = None,
@@ -79,7 +81,7 @@ def update_details(
     errors = None
 
     response = request_session(
-        urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}'),
+        urljoin(api_root, f'api/v1/profiles/{username}'),
         'PATCH',
         payload={
             'first_name': first_name,
@@ -99,6 +101,7 @@ def update_details(
 
 
 def change_password(
+        api_root: str,
         username: str,
         old_password: str,
         password: str
@@ -108,7 +111,7 @@ def change_password(
     """
     response = request_session(
         urljoin(
-            settings.ONA_BASE_URL,
+            api_root,
             f'api/v1/profiles/{username}/change_password'),
         'POST',
         payload={
