@@ -15,6 +15,46 @@ from kaznet.apps.ona.constants import MAX_ID_LENGTH, XFORM_TITLE_LENGTH
 from kaznet.apps.ona.managers import GenericSoftDeleteManager
 
 
+class Project(TimeStampedModel, models.Model):
+    """
+    Project model from onadata
+    """
+    ona_pk = models.PositiveIntegerField(
+        _("Onadata Primary Key"),
+        db_index=True,
+        unique=True,
+        blank=False)
+    organization = models.PositiveIntegerField(
+        _("Organization ID"),
+        blank=True,
+        null=True,
+        default=None
+        )
+    name = models.CharField(max_length=255)
+    deleted_at = models.DateTimeField(
+        _('Deleted at'),
+        null=True,
+        blank=True,
+        default=None)
+    last_updated = models.DateTimeField(
+        _('Last Updated'),
+        null=True,
+        blank=True,
+        default=None)
+
+    objects = GenericSoftDeleteManager()
+
+    # pylint: disable=too-few-public-methods
+    class Meta:
+        """
+        Meta Options for Project
+        """
+        ordering = ['name', 'ona_pk']
+
+    def __str__(self):
+        return self.name
+
+
 class XForm(TimeStampedModel, models.Model):
     """
     XForm model from onadata
@@ -28,7 +68,8 @@ class XForm(TimeStampedModel, models.Model):
         _("Project ID"),
         db_index=True,
         unique=False,
-        blank=False)
+        blank=False,
+        help_text=_('References the Project ID from Ona Data'))
     title = models.CharField(
         _('Title'),
         editable=False,
@@ -47,6 +88,14 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
+    kaznet_project = models.ForeignKey(
+        Project,
+        verbose_name=_('Kaznet Project'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_('This references the Kaznet Project.')
+    )
 
     objects = GenericSoftDeleteManager()
 
@@ -135,43 +184,3 @@ class Instance(TimeStampedModel, models.Model):
         This might return None or might return a task
         """
         return self.xform.task.first()  # pylint: disable=no-member
-
-
-class Project(TimeStampedModel, models.Model):
-    """
-    Project model from onadata
-    """
-    ona_pk = models.PositiveIntegerField(
-        _("Onadata Primary Key"),
-        db_index=True,
-        unique=True,
-        blank=False)
-    organization = models.PositiveIntegerField(
-        _("Organization ID"),
-        blank=True,
-        null=True,
-        default=None
-        )
-    name = models.CharField(max_length=255)
-    deleted_at = models.DateTimeField(
-        _('Deleted at'),
-        null=True,
-        blank=True,
-        default=None)
-    last_updated = models.DateTimeField(
-        _('Last Updated'),
-        null=True,
-        blank=True,
-        default=None)
-
-    objects = GenericSoftDeleteManager()
-
-    # pylint: disable=too-few-public-methods
-    class Meta:
-        """
-        Meta Options for Project
-        """
-        ordering = ['name', 'ona_pk']
-
-    def __str__(self):
-        return self.name

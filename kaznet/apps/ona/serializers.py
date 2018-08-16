@@ -28,7 +28,8 @@ class XFormSerializer(serializers.ModelSerializer):
             'created',
             'modified',
             'deleted_at',
-            'has_task'
+            'has_task',
+            'kaznet_project'
         ]
 
 
