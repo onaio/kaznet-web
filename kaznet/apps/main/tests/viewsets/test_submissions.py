@@ -6,13 +6,14 @@ from datetime import timedelta
 from django.utils import timezone
 
 import pytz
+from dateutil.parser import parse
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.main.models import Submission
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import KaznetSubmissionsViewSet
 from kaznet.apps.users.tests.base import create_admin_user
-from kaznet.apps.main.tests.base import MainTestBase
 
 
 class TestKaznetSubmissionViewSet(MainTestBase):
@@ -328,6 +329,44 @@ class TestKaznetSubmissionViewSet(MainTestBase):
             response.data['results'][0]['id'],
             submission.id)
         self.assertEqual(response.data['results'][-1]['id'], submission1.id)
+
+    def test_submission_modified_sorting(self):
+        """
+        Test that we can Order By Modified
+        """
+        user = create_admin_user()
+
+        submission1 = mommy.make('main.Submission')
+
+        # make a bunch of Submissions
+        mommy.make('main.Submission', _quantity=7)
+
+        submission2 = mommy.make('main.Submission')
+
+        view = KaznetSubmissionsViewSet.as_view({'get': 'list'})
+
+        # test sorting in descending order by modified
+        request = self.factory.get(
+            '/submissions', {'ordering': '-modified'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 9)
+
+        self.assertEqual(
+            parse(response.data['results'][-1]['modified']).astimezone(
+                pytz.utc),
+            submission1.modified)
+        self.assertEqual(response.data['results'][-1]['id'], submission1.id)
+        self.assertEqual(
+            parse(
+                response.data['results'][0]['modified']).astimezone(pytz.utc),
+            submission2.modified)
+        self.assertEqual(response.data['results'][0]['id'], submission2.id)
+        self.assertTrue(
+            response.data['results'][-1]['modified'] <
+            response.data['results'][0]['modified']
+            )
 
     def test_authentication_required(self):
         """

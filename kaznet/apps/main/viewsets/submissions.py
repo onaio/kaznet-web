@@ -36,6 +36,7 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = [
         'bounty__amount',
         'submission_time',
-        'task__id'
+        'task__id',
+        'modified'
     ]
     queryset = Submission.objects.all()  # pylint: disable=no-member
