@@ -77,8 +77,8 @@ class UserProfile(TimeStampedModel, models.Model):
     gender = models.CharField(
         _('Gender'), max_length=1, choices=GENDER_CHOICES, default=OTHER,
         blank=True)
-    address = models.CharField(
-        _('Address'), max_length=255, null=True, blank=True)
+    address = models.TextField(
+        _('Address'), null=True, blank=True)
 
     # custom manager
     objects = UserProfileManager()
