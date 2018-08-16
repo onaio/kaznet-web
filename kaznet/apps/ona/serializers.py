@@ -21,7 +21,7 @@ class XFormSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'ona_pk',
-            'project_id',
+            'ona_project_id',
             'last_updated',
             'title',
             'id_string',
@@ -29,7 +29,7 @@ class XFormSerializer(serializers.ModelSerializer):
             'modified',
             'deleted_at',
             'has_task',
-            'kaznet_project'
+            'project'
         ]
 
 
