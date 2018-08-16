@@ -182,15 +182,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         Custom update method for UserProfiles
         """
         # deal with the user object
-
         user = instance.user
         user_data = validated_data.pop('user')
-        username = user_data.get('username')
+        ona_username = user.userprofile.ona_username
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
         password = user_data.get('password')
-        # username = user_data.get('username')
 
         if password is None:
             # If password is None we Delete it From the user_data
@@ -199,7 +197,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             except KeyError:
                 pass
         else:
-            change_password(username, user.password, password)
+            change_password(ona_username, user.password, password)
 
         # you can't change username
         try:
@@ -208,7 +206,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             pass
 
         updated, data = update_details(
-            username, first_name, last_name, email, password)
+            ona_username, first_name, last_name, email, password)
 
         if not updated:
             raise serializers.ValidationError(
