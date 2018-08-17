@@ -373,9 +373,10 @@ class TestKaznetLocationViewSet(MainTestBase):
         self.assertEqual(response.data['results'][-1]['id'], project2.id)
 
         # order by modified descending
-        request = self.factory.get('/locations', {'ordering': '-modifed'})
+        request = self.factory.get('/locations', {'ordering': '-modified'})
         force_authenticate(request, user=user)
         response = view(request=request)
+
         self.assertEqual(
             response.data['results'][-1]['modified'],
             project1.modified.astimezone(
