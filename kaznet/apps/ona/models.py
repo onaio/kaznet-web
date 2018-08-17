@@ -87,8 +87,8 @@ class XForm(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
-    # db_column='project_custom' is provided to handle problems associated with project
-    # field and the move from project_id to ona_project_id
+    # db_column='project_custom' is provided to handle problems associated
+    # with project field and the move from project_id to ona_project_id
     project = models.ForeignKey(
         Project,
         db_column='project_custom',
