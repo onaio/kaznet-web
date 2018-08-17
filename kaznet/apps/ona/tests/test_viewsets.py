@@ -128,7 +128,7 @@ class TestXFormViewSet(TestCase):
         xform = mommy.make(
             'ona.XForm',
             ona_pk=596,
-            project_id=54,
+            ona_project_id=54,
             title='Coconut',
             id_string='coconut'
         )

@@ -174,7 +174,7 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
         """
         xform = self.get_xform()
         if xform is not None:
-            return xform.project_id
+            return xform.ona_project_id
         return None
 
     @property

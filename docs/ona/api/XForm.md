@@ -35,7 +35,7 @@ This request returns a response containing the specific XForm.
         "id": "1",
         "attributes": {
             "ona_pk": 53,
-            "project_id": 1,
+            "ona_project_id": 1,
             "last_updated": "2018-05-30T09:47:23.196149+03:00",
             "title": "Form",
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",

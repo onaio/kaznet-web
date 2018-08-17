@@ -24,13 +24,21 @@ class TestXFormSerializer(MainTestBase):
         Test that we get fields we are exprecting
         """
         mocked_idstring = slugify('Solar Flare')
+        mocked_project = mommy.make(
+            'ona.Project',
+            id=10,
+            ona_pk=59,
+            organization=12,
+            name='Project Zero'
+        )
         xform = mommy.make(
             'ona.XForm',
             id=45,
             ona_pk=596,
-            project_id=54,
+            ona_project_id=54,
             title='Solar Flare',
-            id_string=mocked_idstring
+            id_string=mocked_idstring,
+            project=mocked_project
         )
 
         serializer_instance = XFormSerializer(xform)
@@ -38,14 +46,15 @@ class TestXFormSerializer(MainTestBase):
         expected_fields = {
             'id',
             'ona_pk',
-            'project_id',
+            'ona_project_id',
             'last_updated',
             'id_string',
             'deleted_at',
             'title',
             'has_task',
             'created',
-            'modified'
+            'modified',
+            'project'
         }
 
         self.assertEqual(set(expected_fields),
@@ -53,9 +62,10 @@ class TestXFormSerializer(MainTestBase):
 
         self.assertEqual(596, serializer_data['ona_pk'])
         self.assertEqual(False, serializer_data['has_task'])
-        self.assertEqual(54, serializer_data['project_id'])
+        self.assertEqual(54, serializer_data['ona_project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
+        self.assertEqual('10', serializer_data['project']['id'])
 
     def test_has_task(self):
         """
@@ -65,7 +75,7 @@ class TestXFormSerializer(MainTestBase):
             'ona.XForm',
             id=45,
             ona_pk=596,
-            project_id=54,
+            ona_project_id=54,
             title='Coconut',
             id_string='coconut'
         )

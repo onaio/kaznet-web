@@ -21,14 +21,15 @@ class XFormSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'ona_pk',
-            'project_id',
+            'ona_project_id',
             'last_updated',
             'title',
             'id_string',
             'created',
             'modified',
             'deleted_at',
-            'has_task'
+            'has_task',
+            'project'
         ]
 
 
