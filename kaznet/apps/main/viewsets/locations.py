@@ -37,5 +37,5 @@ class KaznetLocationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     ]
     filter_class = KaznetLocationFilterSet
     search_fields = ['name']
-    ordering_fields = ['name', 'created']
+    ordering_fields = ['name', 'created', 'modified']
     queryset = Location.objects.all()
