@@ -62,7 +62,7 @@ class TestXFormSerializer(MainTestBase):
 
         self.assertEqual(596, serializer_data['ona_pk'])
         self.assertEqual(False, serializer_data['has_task'])
-        self.assertEqual(54, serializer_data['project_id'])
+        self.assertEqual(54, serializer_data['ona_project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
         self.assertEqual('10', serializer_data['project']['id'])

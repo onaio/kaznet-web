@@ -299,7 +299,7 @@ class TestApiMethods(TestCase):
 
         self.assertEqual("aFEjJKzULJbQYsmQzKcpL9", the_xform.id_string)
         self.assertEqual("Changed", the_xform.title)
-        self.assertEqual(18, the_xform.project_id)
+        self.assertEqual(18, the_xform.ona_project_id)
         self.assertEqual(53, the_xform.ona_pk)
 
         # Doesnt create a project if present
@@ -486,7 +486,7 @@ class TestApiMethods(TestCase):
         }
 
         mommy.make('ona.Project', ona_pk=49)
-        mommy.make('ona.XForm', ona_pk=25, project_id=49)
+        mommy.make('ona.XForm', ona_pk=25, ona_project_id=49)
 
         self.assertEqual(Instance.objects.all().count(), 2)
         self.assertEqual(XForm.objects.all().count(), 3)
