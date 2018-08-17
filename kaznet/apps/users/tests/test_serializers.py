@@ -1,8 +1,14 @@
 """
 Tests for UserProfile serializers
 """
+from urllib.parse import urljoin
+
+from django.conf import settings
 from django.test import TestCase
 
+import requests_mock
+
+from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
 
@@ -16,31 +22,56 @@ class TestUserProfileSerializer(TestCase):
         """
         Utility to create users
         """
-        data = {
-            'first_name': 'Bob',
-            'last_name': 'Doe',
-            'email': 'bobbie@example.com',
-            'gender': UserProfile.MALE,
-            'role': UserProfile.ADMIN,
-            'expertise': UserProfile.EXPERT,
-            'national_id': '123456789',
-            'payment_number': '+254722222222',
-            'phone_number': '+254722222222',
-            'ona_pk': 1337,
-            'ona_username': 'bobbie'
-        }
-        # pylint: disable=no-member
-        self.assertFalse(
-            UserProfile.objects.filter(user__username='bobbie').exists())
-        serializer_instance = UserProfileSerializer(data=data)
-        self.assertTrue(serializer_instance.is_valid())
+        with requests_mock.Mocker() as mocked:
+            mocked.post(
+                urljoin(settings.ONA_BASE_URL, 'api/v1/profiles'),
+                status_code=201,
+                json={
+                    'id': 1337
+                }
+            )
 
-        serializer_instance.save()
-        self.assertTrue(
-            UserProfile.objects.filter(user__username='bobbie').exists())
-        self.assertDictContainsSubset(data, serializer_instance.data)
+            mocked.post(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
+                status_code=201
+            )
 
-        return serializer_instance.data
+            data = {
+                'first_name': 'Bob',
+                'last_name': 'Doe',
+                'email': 'bobbie@example.com',
+                'password': 'amalusceaNDb',
+                'gender': UserProfile.MALE,
+                'role': UserProfile.ADMIN,
+                'expertise': UserProfile.EXPERT,
+                'national_id': '123456789',
+                'payment_number': '+254722222222',
+                'phone_number': '+254722222222',
+                'ona_pk': 1337,
+                'ona_username': 'bobbie'
+            }
+            # pylint: disable=no-member
+            self.assertFalse(
+                UserProfile.objects.filter(user__username='bobbie').exists())
+            serializer_instance = UserProfileSerializer(data=data)
+            self.assertTrue(serializer_instance.is_valid())
+
+            serializer_instance.save()
+            self.assertTrue(
+                UserProfile.objects.filter(user__username='bobbie').exists())
+
+            # Uses Primary Key from Ona
+            userprofile = UserProfile.objects.get(ona_username='bobbie')
+            self.assertTrue(userprofile.ona_pk, 1337)
+
+            # We remove password field Since password is write-only
+            data.pop('password')
+
+            self.assertDictContainsSubset(data, serializer_instance.data)
+
+            return serializer_instance.data
 
     def test_create(self):
         """
@@ -84,58 +115,67 @@ class TestUserProfileSerializer(TestCase):
 
     def test_update(self):
         """
-        Test that you can update a user with the serializer
+        Test you can update a user with the serializer
         """
         initial_user_data = self._create_user()
 
-        data = {
-            'first_name': 'Mosh',
-            'last_name': 'Pitt',
-            'email': 'mosh@example.com',
-            'role': UserProfile.CONTRIBUTOR,
-            'expertise': UserProfile.INTERMEDIATE,
-            'national_id': '1337',
-            'payment_number': '+254722111111',
-            'ona_pk': 9999,
-            'ona_username': 'mosh'
-        }
+        with requests_mock.Mocker() as mocked:
+            data = {
+                'first_name': 'Mosh',
+                'last_name': 'Pitt',
+                'email': 'mosh@example.com',
+                'role': UserProfile.CONTRIBUTOR,
+                'expertise': UserProfile.INTERMEDIATE,
+                'national_id': '1337',
+                'payment_number': '+254722111111',
+                'ona_pk': 9999,
+            }
 
-        # pylint: disable=no-member
-        userprofile = UserProfile.objects.get(user__username='bobbie')
-        serializer_instance = UserProfileSerializer(
-            instance=userprofile,
-            data=data)
-        self.assertTrue(serializer_instance.is_valid())
-        serializer_instance.save()
+            # pylint: disable=no-member
+            userprofile = UserProfile.objects.get(user__username='bobbie')
+            mocked.patch(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/profiles/bobbie'),
+                status_code=200,
+            )
 
-        expected_data = dict(initial_user_data).copy()
-        expected_data['first_name'] = 'Mosh'
-        expected_data['last_name'] = 'Pitt'
-        expected_data['email'] = 'mosh@example.com'
-        expected_data['role'] = UserProfile.CONTRIBUTOR
-        expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
-        expected_data[
-            'expertise_display'] = UserProfile.EXPERTISE_CHOICES[1][1]
-        expected_data['expertise'] = UserProfile.INTERMEDIATE
-        expected_data['national_id'] = '1337'
-        expected_data['payment_number'] = '+254722111111'
+            serializer_instance = UserProfileSerializer(
+                instance=userprofile,
+                data=data)
+            self.assertTrue(serializer_instance.is_valid())
+            serializer_instance.save()
 
-        # remove the modified field because it cannot be the same
-        del expected_data['modified']
+            expected_data = dict(initial_user_data).copy()
+            expected_data['first_name'] = 'Mosh'
+            expected_data['last_name'] = 'Pitt'
+            expected_data['email'] = 'mosh@example.com'
+            expected_data['role'] = UserProfile.CONTRIBUTOR
+            expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
+            expected_data[
+                'expertise_display'] = UserProfile.EXPERTISE_CHOICES[1][1]
+            expected_data['expertise'] = UserProfile.INTERMEDIATE
+            expected_data['national_id'] = '1337'
+            expected_data['payment_number'] = '+254722111111'
 
-        self.assertDictContainsSubset(expected_data, serializer_instance.data)
+            # remove the modified field because it cannot be the same
+            del expected_data['modified']
 
-        userprofile.refresh_from_db()
+            self.assertDictContainsSubset(
+                expected_data, serializer_instance.data)
 
-        self.assertEqual('Mosh', userprofile.user.first_name)
-        self.assertEqual('Pitt', userprofile.user.last_name)
-        self.assertEqual('mosh@example.com', userprofile.user.email)
-        self.assertEqual(
-            UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
-        self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
-        self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
-        self.assertEqual('1337', userprofile.national_id)
-        self.assertEqual('+254722111111', userprofile.payment_number.as_e164)
+            userprofile.refresh_from_db()
+
+            self.assertEqual('Mosh', userprofile.user.first_name)
+            self.assertEqual('Pitt', userprofile.user.last_name)
+            self.assertEqual('mosh@example.com', userprofile.user.email)
+            self.assertEqual(
+                UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
+            self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
+            self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
+            self.assertEqual('1337', userprofile.national_id)
+            self.assertEqual(
+                '+254722111111', userprofile.payment_number.as_e164)
 
     def test_bad_data(self):
         """
@@ -166,6 +206,29 @@ class TestUserProfileSerializer(TestCase):
             str(serializer_instance.errors['payment_number'][0]),
             'The phone number entered is not valid.')
 
+        # test can't create userprofile without password
+        data = {
+            'first_name': 'Bob',
+            'last_name': 'Doe',
+            'email': 'bobbie@example.com',
+            'gender': UserProfile.MALE,
+            'role': UserProfile.ADMIN,
+            'expertise': UserProfile.EXPERT,
+            'national_id': '123456789',
+            'payment_number': '+254722222222',
+            'phone_number': '+254722222222',
+            'ona_pk': 1337,
+            'ona_username': 'bobbie'
+        }
+
+        serializer_instance = UserProfileSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+
+        self.assertEqual(
+            serializer_instance.errors['password'][0],
+            NEED_PASSWORD_ON_CREATE
+        )
+
         # test that national_id, ona_pk, and ona_username are unique
         self._create_user()
 
@@ -193,3 +256,30 @@ class TestUserProfileSerializer(TestCase):
         self.assertEqual(
             str(serializer_instance.errors['ona_username'][0]),
             'Profile with this Ona Username already exists.')
+
+    def test_password_validate(self):
+        """
+        Test Validates Password
+        """
+
+        data = {
+            'first_name': 'Mosh',
+            'last_name': 'Pitt',
+            'password': 'ama',
+            'email': 'mosh@example.com',
+            'role': UserProfile.CONTRIBUTOR,
+            'expertise': UserProfile.INTERMEDIATE,
+            'national_id': '1337',
+            'payment_number': '+254722111111',
+            'ona_pk': 9999,
+            'ona_username': 'mosh'
+        }
+
+        serializer_instance = UserProfileSerializer(
+            data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            str(serializer_instance.errors['password'][0]),
+            'This password is too short. It must contain '
+            'at least 8 characters.'
+        )

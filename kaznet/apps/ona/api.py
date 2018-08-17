@@ -21,6 +21,8 @@ def request_session(
         method: str,
         payload: dict = None,
         headers: dict = None,
+        username: str = settings.ONA_USERNAME,
+        password: str = settings.ONA_PASSWORD,
         retries=3,
         backoff_factor=1,
         status_forcelist=(500, 502, 504),
@@ -39,25 +41,31 @@ def request_session(
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist
     )
+    basic_auth = (username, password)
     adapter = HTTPAdapter(max_retries=retries)
     session.mount('https://', adapter)
     session.mount('http://', adapter)
 
     if method == 'GET':
         response = session.get(
-            url, auth=(
-                settings.ONA_USERNAME, settings.ONA_PASSWORD),
+            url, auth=basic_auth,
             params=payload,
             headers=headers
             )
         return response
     if method == 'POST':
         response = session.post(
-            url, auth=(
-                settings.ONA_USERNAME, settings.ONA_PASSWORD),
+            url, auth=basic_auth,
             data=payload,
             headers=headers
             )
+        return response
+    if method == 'PATCH':
+        response = session.patch(
+            url, auth=basic_auth,
+            data=payload,
+            headers=headers
+        )
         return response
 
     return None

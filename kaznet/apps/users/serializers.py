@@ -3,10 +3,14 @@ Serializers for users app
 """
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
 from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
+from kaznet.apps.users.api import (add_team_member, change_password,
+                                   create_ona_user, update_details)
+from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 
 
@@ -40,7 +44,13 @@ class UserSerializer(serializers.ModelSerializer):
         """
         model = User
         fields = (
-            'username', 'first_name', 'last_name', 'email', 'last_login')
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'last_login',
+            'password'
+            )
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -50,6 +60,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.EmailField(source='user.email')
+    password = serializers.CharField(
+        source='user.password',
+        allow_null=True,
+        default=None,
+        required=False,
+        write_only=True)
     last_login = serializers.DateTimeField(
         source='user.last_login', read_only=True)
     submission_count = serializers.SerializerMethodField()
@@ -70,6 +86,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'expertise_display',
             'first_name',
             'last_name',
+            'password',
             'email',
             'ona_pk',
             'ona_username',
@@ -99,18 +116,60 @@ class UserProfileSerializer(serializers.ModelSerializer):
         """
         return obj.user.submission_set.count()
 
+    def validate_password(self, value):
+        """
+        Custom validation for Password Field
+        """
+        if not self.instance:
+            # On create of a new user Password shouldn't be none
+            if value is None:
+                raise serializers.ValidationError(
+                    NEED_PASSWORD_ON_CREATE
+                )
+
+        if value is not None:
+            validate_password(value)
+
+        return value
+
     def create(self, validated_data):
         """
         Custom create method to create User object then UserProfile object
         """
-        # create the User object
         user_data = validated_data.pop('user')
         user_data['username'] = validated_data.get('ona_username')
+        username = user_data.get('ona_username')
+        first_name = user_data.get('first_name')
+        last_name = user_data.get('last_name')
+        email = user_data.get('email')
+        password = user_data.get('password')
+
+        created, data = create_ona_user(
+            settings.ONA_BASE_URL,
+            username,
+            first_name,
+            last_name,
+            email,
+            password
+        )
+
+        if not created:
+            raise serializers.ValidationError(
+                data
+            )
+
+        ona_pk = data.get('id')
+
+        add_team_member(
+            settings.ONA_BASE_URL,
+            username,
+            settings.ONA_MEMBERS_TEAM_ID)
+        # create the User object
         user = UserSerializer.create(UserSerializer(),
                                      validated_data=user_data)
         # populate the UserProfile object
         userprofile = user.userprofile
-        userprofile.ona_pk = validated_data.get('ona_pk')
+        userprofile.ona_pk = ona_pk
         userprofile.ona_username = user.username
         userprofile.payment_number = validated_data.get('payment_number')
         userprofile.phone_number = validated_data.get('phone_number')
@@ -127,15 +186,45 @@ class UserProfileSerializer(serializers.ModelSerializer):
         Custom update method for UserProfiles
         """
         # deal with the user object
-
         user = instance.user
         user_data = validated_data.pop('user')
+        username = user.username
+        first_name = user_data.get('first_name')
+        last_name = user_data.get('last_name')
+        email = user_data.get('email')
+        password = user_data.get('password')
+
+        if password is None:
+            # If password is None we Delete it From the user_data
+            try:
+                del user_data['password']
+            except KeyError:
+                pass
+        else:
+            change_password(
+                settings.ONA_BASE_URL,
+                username,
+                user.password,
+                password)
 
         # you can't change username
         try:
             del user_data['username']
         except KeyError:
             pass
+
+        updated, data = update_details(
+            settings.ONA_BASE_URL,
+            username,
+            first_name,
+            last_name,
+            email,
+            password)
+
+        if not updated:
+            raise serializers.ValidationError(
+                data
+            )
 
         UserSerializer().update(instance=user, validated_data=user_data)
 

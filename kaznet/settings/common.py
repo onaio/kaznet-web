@@ -167,12 +167,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Authentication
 TEMP_TOKEN_TIMEOUT = 14400
-ONA_CROSS_AUTHENTICATION_URL = 'https://stage-api.ona.io/api/v1/user'
 
 # Onadata
 ONA_BASE_URL = 'https://stage-api.ona.io'
+ONA_CROSS_AUTHENTICATION_URL = 'https://stage-api.ona.io/api/v1/user'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
+ONA_MEMBERS_TEAM_ID = 102
 ONA_STATUS_FIELD = 'status'
 ONA_COMMENTS_FIELD = 'comments'
 
