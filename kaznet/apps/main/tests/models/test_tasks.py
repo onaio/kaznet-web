@@ -67,7 +67,7 @@ class TestTasks(TestCase):
             title='Coconut',
             id_string='coconut828',
             ona_pk=200,
-            project_id=12389)
+            ona_project_id=12389)
         # test when no xform
         task_no_xform = mommy.make('main.Task')
         self.assertEqual(None, task_no_xform.get_xform())

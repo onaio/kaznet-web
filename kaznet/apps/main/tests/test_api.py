@@ -38,7 +38,7 @@ class TestAPIMethods(MainTestBase):
         """
         mommy.make('auth.User', username='dave')
         mommy.make('ona.Project', ona_pk=49)
-        form = mommy.make('ona.XForm', ona_pk=25, project_id=49)
+        form = mommy.make('ona.XForm', ona_pk=25, ona_project_id=49)
 
         data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
