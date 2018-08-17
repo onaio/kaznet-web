@@ -89,7 +89,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'expertise',
             'gender',
             'national_id',
-            'submission_count'
+            'submission_count',
+            'address'
         ]
 
     def get_submission_count(self, obj):  # pylint: disable=no-self-use
