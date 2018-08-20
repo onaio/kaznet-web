@@ -41,6 +41,12 @@ Returns a list of User Profiles with specific role if given a `role` query param
 curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?role=1
 ```
 
+Returns a profile tied to a specific Ona user if given `ona_username` query parameter. The `user` query parameter takes a *String*.
+
+```console
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/userprofiles/?ona_username=lee
+```
+
 Returns a list of User Profiles with specific expertise if given a `expertise` query parameter. The `expertise` takes an *Integer* which has to be either  1 for BEGINNER, 2 for INTERMEDIATE, 3 for ADVANCED or 4 for EXPERT.
 
 ```console
