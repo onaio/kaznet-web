@@ -7,6 +7,7 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
+from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.users.filters import UserProfileOrderingFilter
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.permissions import IsOwnUserProfileOrAdmin
@@ -20,19 +21,21 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     """
     ViewSet class for UserProfiles
     """
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [
+        SessionAuthentication, TokenAuthentication, OnaTempTokenAuthentication
+    ]
     serializer_class = UserProfileSerializer
-    permission_classes = [
-        IsAuthenticated, IsOwnUserProfileOrAdmin]
+    permission_classes = [IsAuthenticated, IsOwnUserProfileOrAdmin]
     filter_backends = [
-        DjangoFilterBackend,
-        UserProfileOrderingFilter,
-        filters.SearchFilter]
+        DjangoFilterBackend, UserProfileOrderingFilter, filters.SearchFilter
+    ]
     filter_fields = ['role', 'expertise']
     search_fields = [
-        'user__first_name', 'user__last_name', 'ona_username',
-        'user__email', 'national_id']
+        'user__first_name', 'user__last_name', 'ona_username', 'user__email',
+        'national_id'
+    ]
     ordering_fields = [
         'user__first_name', 'user__last_name', 'submission_count', 'created',
-        'national_id']
+        'national_id'
+    ]
     queryset = UserProfile.objects.all()  # pylint: disable=no-member
