@@ -24,6 +24,8 @@ class OnaTempTokenAuthentication(TokenAuthentication):
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
 
+        # We test for b'temptoken' since get_authorization_header
+        # returns the auth in byte
         if not auth or auth[0].lower() != b'temptoken':
             return None
 
