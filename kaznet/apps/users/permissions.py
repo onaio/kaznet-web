@@ -58,7 +58,7 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
         """
         Checks if the user is an Admin when trying to list
         """
-        if view.action in ['retrieve', 'partial_update']:
+        if view.action in ['retrieve', 'partial_update', 'profile']:
             return True
 
         if view.action == 'list':
@@ -74,6 +74,8 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
         Checks if the user in the request object is linked to the
         Object
         """
+        import ipdb
+        ipdb.set_trace()
         return request.user == obj.user or check_admin_permission(request)
 
 
