@@ -24,7 +24,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     ViewSet class for UserProfiles
     """
     authentication_classes = [
-        SessionAuthentication, TokenAuthentication, OnaTempTokenAuthentication
+        SessionAuthentication, OnaTempTokenAuthentication, TokenAuthentication
     ]
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated, IsOwnUserProfileOrAdmin]
