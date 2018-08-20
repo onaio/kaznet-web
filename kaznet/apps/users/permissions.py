@@ -58,8 +58,15 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
         """
         Checks if the user is an Admin when trying to list
         """
-        if view.action in ['retrieve', 'partial_update']:
+        if view.action in ['retrieve', 'partial_update', 'profile']:
             return True
+
+        if view.action == 'list':
+            ona_username = request.query_params.get('ona_username')
+            if ona_username is not None:
+                return (ona_username == request.user.userprofile.ona_username
+                        or check_admin_permission(request))
+
         return check_admin_permission(request)
 
     def has_object_permission(self, request, view, obj):
@@ -84,10 +91,8 @@ class IsOwnSubmissionOrAdmin(permissions.BasePermission):
             user_params = request.query_params.get('user')
             if user_params is not None:
                 user_params = int(user_params)
-                return(
-                    user_params == request.user.id or
-                    check_admin_permission(request)
-                    )
+                return (user_params == request.user.id
+                        or check_admin_permission(request))
         if view.action == 'retrieve':
             return True
 

@@ -14,8 +14,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.test import APIRequestFactory
 
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
-from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
-                                          AUTH_USER_NOT_LOGGED_IN)
+from kaznet.apps.main.common_tags import AUTH_USER_DOESNT_EXIST
 
 
 class TestOnaTempTokenAuthentication(TestCase):
@@ -59,53 +58,38 @@ class TestOnaTempTokenAuthentication(TestCase):
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
             json=self.ona_response,
-            )
+        )
 
-        returned_user = self.auth.authenticate_credentials(
-            'token'
-        )[0]
+        returned_user = self.auth.authenticate_credentials('token')[0]
 
         self.assertEqual(self.user, returned_user)
 
         # Test it doesn't authenticate  if User doesn't exist
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
-            json={
-                'username': 'intruder'
-                }
-            )
+            json={'username': 'intruder'})
 
-        self.assertRaisesMessage(
-            AuthenticationFailed,
-            f'{AUTH_USER_DOESNT_EXIST}',
-            self.auth.authenticate_credentials,
-            'token'
-        )
+        self.assertRaisesMessage(AuthenticationFailed,
+                                 f'{AUTH_USER_DOESNT_EXIST}',
+                                 self.auth.authenticate_credentials, 'token')
 
-        # Test it doesn't authenticate if User isn't logged onto Ona
+        # Test returns the proper error message from Ona
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
-            status_code=401
-            )
+            status_code=401,
+            json={'detail': 'Invalid Token'})
 
-        self.assertRaisesMessage(
-            AuthenticationFailed,
-            f'{AUTH_USER_NOT_LOGGED_IN}',
-            self.auth.authenticate_credentials,
-            'token'
-        )
+        self.assertRaisesMessage(AuthenticationFailed, 'Invalid Token',
+                                 self.auth.authenticate_credentials, 'token')
 
-    @override_settings(
-        CACHES={
-            'default': {
-                'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-            }
+    @override_settings(CACHES={
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         }
-        )
+    })
     @patch('django.core.cache.cache.set')
     @requests_mock.Mocker()
-    def test_authenticate_credentials_caches(
-            self, mockedSet, mocked):
+    def test_authenticate_credentials_caches(self, mockedSet, mocked):
         """
         Test:
             - Caches a Users Profile after authentication
@@ -115,20 +99,18 @@ class TestOnaTempTokenAuthentication(TestCase):
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
             json=self.ona_response,
-            )
-
-        self.auth.authenticate_credentials(
-            'token'
         )
 
-        mockedSet.assert_called_with(
-            'token', self.user_profile.ona_username, 14400)
+        self.auth.authenticate_credentials('token')
+
+        mockedSet.assert_called_with('token', self.user_profile.ona_username,
+                                     14400)
 
     @patch('kaznet.apps.ona.api.request_session')
     @patch('django.core.cache.cache.get')
     @patch('django.core.cache.cache.set')
-    def test_authenticate_credentials_reads_cache(
-            self, mockedSet, mockedGet, mockedRequest):
+    def test_authenticate_credentials_reads_cache(self, mockedSet, mockedGet,
+                                                  mockedRequest):
         """
         Test:
             - Doesn't authenticate with Ona if User is already
@@ -138,9 +120,7 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         mockedGet.return_value = self.user_profile.ona_username
 
-        self.auth.authenticate_credentials(
-            'token'
-        )
+        self.auth.authenticate_credentials('token')
 
         self.assertFalse(mockedSet.called)
         self.assertFalse(mockedRequest.called)
