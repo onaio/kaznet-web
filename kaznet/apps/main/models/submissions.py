@@ -7,6 +7,27 @@ from django.utils.translation import ugettext as _
 from tasking.models import BaseSubmission
 
 
+class SubmissionManager(models.Manager):
+    """
+    Manager to help in filtering submissions
+    """
+    def approved(self):
+        """Return approved submissions"""
+        return self.filter(status='a')
+
+    def rejected(self):
+        """Return rejected submissions"""
+        return self.filter(status='b')
+
+    def under_review(self):
+        """Return submissions under review"""
+        return self.filter(status='c')
+
+    def pending(self):
+        """Return pending submissions"""
+        return self.filter(status='d')
+
+
 class Submission(BaseSubmission):
     """
     Submission model class
@@ -33,6 +54,7 @@ class Submission(BaseSubmission):
         on_delete=models.PROTECT,
         help_text=_('This represents the Location.')
     )
+    objects = SubmissionManager()
 
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods
