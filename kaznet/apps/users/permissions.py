@@ -74,8 +74,6 @@ class IsOwnUserProfileOrAdmin(permissions.BasePermission):
         Checks if the user in the request object is linked to the
         Object
         """
-        import ipdb
-        ipdb.set_trace()
         return request.user == obj.user or check_admin_permission(request)
 
 
