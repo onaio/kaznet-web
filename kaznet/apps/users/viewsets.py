@@ -29,7 +29,7 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     filter_backends = [
         DjangoFilterBackend, UserProfileOrderingFilter, filters.SearchFilter
     ]
-    filter_fields = ['role', 'expertise']
+    filter_fields = ['role', 'expertise', 'ona_username']
     search_fields = [
         'user__first_name', 'user__last_name', 'ona_username', 'user__email',
         'national_id'
