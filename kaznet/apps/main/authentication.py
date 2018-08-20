@@ -8,10 +8,9 @@ from rest_framework import exceptions
 from rest_framework.authentication import (TokenAuthentication,
                                            get_authorization_header)
 
-from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
-                                          AUTH_USER_NOT_LOGGED_IN,
-                                          INVALID_TOKEN_CREDENTIALS_MISSING,
-                                          INVALID_TOKEN_SPACES_CONTAINED)
+from kaznet.apps.main.common_tags import (
+    AUTH_USER_DOESNT_EXIST, AUTH_USER_NOT_LOGGED_IN,
+    INVALID_TOKEN_CREDENTIALS_MISSING, INVALID_TOKEN_SPACES_CONTAINED)
 from kaznet.apps.ona.api import request_session
 from kaznet.apps.users.models import UserProfile
 
@@ -25,7 +24,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
 
-        if not auth or auth[0].lower() != 'temptoken':
+        if not auth or auth[0].lower() != b'temptoken':
             return None
 
         if len(auth) == 1:
@@ -42,15 +41,21 @@ class OnaTempTokenAuthentication(TokenAuthentication):
         cached = False
 
         if username is None:
+            try:
+                # Request is usually encoded in utf-8
+                auth_key = key.decode('utf-8')
+            except AttributeError:
+                auth_key = key
+
             response = request_session(
                 settings.ONA_CROSS_AUTHENTICATION_URL,
                 'GET',
-                headers={'Authorization': f'TempToken ${key}'}
-                )
+                username=None,
+                password=None,
+                headers={'Authorization': f'TempToken {auth_key}'})
 
             if response.status_code != 200:
-                raise exceptions.AuthenticationFailed(
-                    AUTH_USER_NOT_LOGGED_IN)
+                raise exceptions.AuthenticationFailed(AUTH_USER_NOT_LOGGED_IN)
 
             username = response.json().get('username')
         else:
@@ -60,9 +65,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             # Returns a username from the user_list
             profile = UserProfile.objects.get(ona_username=username)
         except UserProfile.DoesNotExist:  # pylint: disable=no-member
-            raise exceptions.AuthenticationFailed(
-                AUTH_USER_DOESNT_EXIST
-            )
+            raise exceptions.AuthenticationFailed(AUTH_USER_DOESNT_EXIST)
         else:
             # Cache the key and username for a set amount of time
             # Only if the user is not already cached
