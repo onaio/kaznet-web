@@ -26,7 +26,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
 
         # We test for b'temptoken' since get_authorization_header
         # returns the auth in byte
-        if not auth or auth[0].lower() != self.keyword.lower().encode():
+        if not auth or auth[0].lower() != b'temptoken':
             return None
 
         if len(auth) == 1:
