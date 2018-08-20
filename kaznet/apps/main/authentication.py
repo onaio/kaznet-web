@@ -8,9 +8,9 @@ from rest_framework import exceptions
 from rest_framework.authentication import (TokenAuthentication,
                                            get_authorization_header)
 
-from kaznet.apps.main.common_tags import (
-    AUTH_USER_DOESNT_EXIST, AUTH_USER_NOT_LOGGED_IN,
-    INVALID_TOKEN_CREDENTIALS_MISSING, INVALID_TOKEN_SPACES_CONTAINED)
+from kaznet.apps.main.common_tags import (AUTH_USER_DOESNT_EXIST,
+                                          INVALID_TOKEN_CREDENTIALS_MISSING,
+                                          INVALID_TOKEN_SPACES_CONTAINED)
 from kaznet.apps.ona.api import request_session
 from kaznet.apps.users.models import UserProfile
 
@@ -55,7 +55,8 @@ class OnaTempTokenAuthentication(TokenAuthentication):
                 headers={'Authorization': f'TempToken {auth_key}'})
 
             if response.status_code != 200:
-                raise exceptions.AuthenticationFailed(AUTH_USER_NOT_LOGGED_IN)
+                error = response.json()
+                raise exceptions.AuthenticationFailed(error['detail'])
 
             username = response.json().get('username')
         else:
