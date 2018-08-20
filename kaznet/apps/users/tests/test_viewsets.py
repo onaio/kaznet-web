@@ -31,17 +31,13 @@ class TestUserProfileViewSet(TestCase):
             mocked.post(
                 urljoin(settings.ONA_BASE_URL, 'api/v1/profiles'),
                 status_code=201,
-                json={
-                    'id': 1337
-                }
-            )
+                json={'id': 1337})
 
             mocked.post(
                 urljoin(
                     settings.ONA_BASE_URL,
                     f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
-                status_code=201
-            )
+                status_code=201)
 
             user = create_admin_user()
 
@@ -125,16 +121,19 @@ class TestUserProfileViewSet(TestCase):
         ben = mommy.make('auth.User', first_name='ben')
         ben.userprofile.role = UserProfile.CONTRIBUTOR
         ben.userprofile.expertise = UserProfile.ADVANCED
+        ben.userprofile.ona_username = 'ben'
         ben.userprofile.save()
 
         alice = mommy.make('auth.User', first_name='alice')
         alice.userprofile.role = UserProfile.CONTRIBUTOR
         alice.userprofile.expertise = UserProfile.ADVANCED
+        alice.userprofile.ona_username = 'alice'
         alice.userprofile.save()
 
         joe = mommy.make('auth.User', first_name='joe')
         joe.userprofile.role = UserProfile.CONTRIBUTOR
         joe.userprofile.expertise = UserProfile.BEGINNER
+        joe.userprofile.ona_username = 'joe'
         joe.userprofile.save()
 
         view = UserProfileViewSet.as_view({'get': 'list'})
@@ -146,20 +145,44 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual(4, len(response.data['results']))
 
         # role filter: there is only one admin
-        request2 = self.factory.get(
-            '/userprofiles', {'role': UserProfile.ADMIN})
+        request2 = self.factory.get('/userprofiles',
+                                    {'role': UserProfile.ADMIN})
         force_authenticate(request=request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(1, len(response2.data['results']))
 
         # expertise filter: there are two asvanced users
-        request = self.factory.get(
-            '/userprofiles', {'expertise': UserProfile.ADVANCED})
+        request = self.factory.get('/userprofiles',
+                                   {'expertise': UserProfile.ADVANCED})
         force_authenticate(request=request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(2, len(response.data['results']))
+
+        # ona_username filter: test that we get correct profile
+        request = self.factory.get('/userprofiles', {'ona_username': 'joe'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], joe.userprofile.id)
+
+        # test joe can filter for his own profile
+        request = self.factory.get('/userprofile', {'ona_username': 'joe'})
+        force_authenticate(request, user=joe)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], joe.userprofile.id)
+
+        # test random users can't filter for joes profile
+        request = self.factory.get('/submissions', {'ona_username': 'joe'})
+        force_authenticate(request, user=alice)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            str(response.data[0]['detail']), 'You shall not pass.')
 
     def test_list_searching(self):
         """
@@ -181,8 +204,7 @@ class TestUserProfileViewSet(TestCase):
         view = UserProfileViewSet.as_view({'get': 'list'})
 
         # search by national_id
-        request = self.factory.get(
-            '/userprofiles', {'search': 1337})
+        request = self.factory.get('/userprofiles', {'search': 1337})
         force_authenticate(request=request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
@@ -190,8 +212,7 @@ class TestUserProfileViewSet(TestCase):
         self.assertEqual('joe', response.data['results'][0]['first_name'])
 
         # search by last name
-        request2 = self.factory.get(
-            '/userprofiles', {'search': 'alice'})
+        request2 = self.factory.get('/userprofiles', {'search': 'alice'})
         force_authenticate(request=request2, user=user)
         response2 = view(request=request2)
         self.assertEqual(response2.status_code, 200)
@@ -215,30 +236,24 @@ class TestUserProfileViewSet(TestCase):
         view = UserProfileViewSet.as_view({'get': 'list'})
 
         # sort by submission count
-        request1 = self.factory.get(
-            '/userprofiles', {'ordering': '-submission_count'})
+        request1 = self.factory.get('/userprofiles',
+                                    {'ordering': '-submission_count'})
         force_authenticate(request=request1, user=user)
         response1 = view(request=request1)
         self.assertEqual(response1.status_code, 200)
-        self.assertEqual(
-            'mosh', response1.data['results'][0]['first_name'])
-        self.assertEqual(
-            'kyle', response1.data['results'][1]['first_name'])
-        self.assertEqual(
-            'ben', response1.data['results'][2]['first_name'])
+        self.assertEqual('mosh', response1.data['results'][0]['first_name'])
+        self.assertEqual('kyle', response1.data['results'][1]['first_name'])
+        self.assertEqual('ben', response1.data['results'][2]['first_name'])
 
         # sort by first_name
-        request1 = self.factory.get(
-            '/userprofiles', {'ordering': 'user__first_name'})
+        request1 = self.factory.get('/userprofiles',
+                                    {'ordering': 'user__first_name'})
         force_authenticate(request=request1, user=user)
         response1 = view(request=request1)
         self.assertEqual(response1.status_code, 200)
-        self.assertEqual(
-            'ben', response1.data['results'][0]['first_name'])
-        self.assertEqual(
-            'kyle', response1.data['results'][1]['first_name'])
-        self.assertEqual(
-            'mosh', response1.data['results'][2]['first_name'])
+        self.assertEqual('ben', response1.data['results'][0]['first_name'])
+        self.assertEqual('kyle', response1.data['results'][1]['first_name'])
+        self.assertEqual('mosh', response1.data['results'][2]['first_name'])
 
     def test_update(self):
         """
@@ -249,9 +264,8 @@ class TestUserProfileViewSet(TestCase):
 
         with requests_mock.Mocker() as mocked:
             mocked.patch(
-                urljoin(
-                    settings.ONA_BASE_URL,
-                    f'api/v1/profiles/{user_data["ona_username"]}'),
+                urljoin(settings.ONA_BASE_URL,
+                        f'api/v1/profiles/{user_data["ona_username"]}'),
                 status_code=200,
             )
 
@@ -314,10 +328,8 @@ class TestUserProfileViewSet(TestCase):
         request = self.factory.post('/userprofiles', data)
         response = view(request=request)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'Authentication credentials were not provided.',
-            response.data[0]['detail']
-        )
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
 
         user = mommy.make('auth.User')
         userprofile = user.userprofile
@@ -327,20 +339,16 @@ class TestUserProfileViewSet(TestCase):
         request = self.factory.get(f'/userprofiles/{userprofile.id}')
         response = view(request=request, pk=userprofile.id)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'Authentication credentials were not provided.',
-            response.data[0]['detail']
-        )
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
 
         # cant list
         view = UserProfileViewSet.as_view({'get': 'list'})
         request = self.factory.get(f'/userprofiles')
         response = view(request=request)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'Authentication credentials were not provided.',
-            response.data[0]['detail']
-        )
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
 
         # cant update
         data = {
@@ -349,24 +357,20 @@ class TestUserProfileViewSet(TestCase):
             'role': UserProfile.CONTRIBUTOR
         }
         view = UserProfileViewSet.as_view({'patch': 'partial_update'})
-        request = self.factory.patch(f'/userprofiles/{userprofile.id}',
-                                     data=data)
+        request = self.factory.patch(
+            f'/userprofiles/{userprofile.id}', data=data)
         response = view(request=request, pk=userprofile.id)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'Authentication credentials were not provided.',
-            response.data[0]['detail']
-        )
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
 
         # cant delete
         view = UserProfileViewSet.as_view({'delete': 'destroy'})
         request = self.factory.delete(f'/userprofiles/{userprofile.id}')
         response = view(request=request, pk=userprofile.id)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(
-            'Authentication credentials were not provided.',
-            response.data[0]['detail']
-        )
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
 
     def test_permissions_required(self):
         """
@@ -398,10 +402,7 @@ class TestUserProfileViewSet(TestCase):
             force_authenticate(request, mocked_user)
             response = view(request=request)
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(
-                'You shall not pass.',
-                response.data[0]['detail']
-            )
+            self.assertEqual('You shall not pass.', response.data[0]['detail'])
 
             # cant update userprofile if Requester is not the User linked to it
             data = {
@@ -411,23 +412,18 @@ class TestUserProfileViewSet(TestCase):
             }
 
             mocked.patch(
-                urljoin(
-                    settings.ONA_BASE_URL,
-                    f'api/v1/profiles/{userprofile.user.username}'),
+                urljoin(settings.ONA_BASE_URL,
+                        f'api/v1/profiles/{userprofile.user.username}'),
                 status_code=200,
             )
 
             view = UserProfileViewSet.as_view({'patch': 'partial_update'})
             request = self.factory.patch(
-                f'/userprofiles/{userprofile.id}',
-                data=data)
+                f'/userprofiles/{userprofile.id}', data=data)
             force_authenticate(request, mocked_user)
             response = view(request=request, pk=userprofile.id)
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(
-                'You shall not pass.',
-                response.data[0]['detail']
-            )
+            self.assertEqual('You shall not pass.', response.data[0]['detail'])
 
             # cant delete
             view = UserProfileViewSet.as_view({'delete': 'destroy'})
@@ -435,10 +431,7 @@ class TestUserProfileViewSet(TestCase):
             force_authenticate(request, mocked_user)
             response = view(request=request, pk=userprofile.id)
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(
-                'You shall not pass.',
-                response.data[0]['detail']
-            )
+            self.assertEqual('You shall not pass.', response.data[0]['detail'])
 
             # Cant delete own userprofile
             view = UserProfileViewSet.as_view({'delete': 'destroy'})
@@ -446,10 +439,7 @@ class TestUserProfileViewSet(TestCase):
             force_authenticate(request, mocked_user2)
             response = view(request=request, pk=userprofile.id)
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(
-                'You shall not pass.',
-                response.data[0]['detail']
-            )
+            self.assertEqual('You shall not pass.', response.data[0]['detail'])
 
             # Can update userprofile if Requester is the User linked to it
             data = {
