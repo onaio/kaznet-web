@@ -25,27 +25,18 @@ class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     Main Task Viewset class
     """
     authentication_classes = [
-        SessionAuthentication,
-        TokenAuthentication,
-        OnaTempTokenAuthentication
-        ]
+        SessionAuthentication, TokenAuthentication, OnaTempTokenAuthentication
+    ]
     serializer_class = KaznetTaskSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [
-        DjangoFilterBackend,
-        filters.OrderingFilter,
-        filters.SearchFilter]
+        DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter
+    ]
     filter_class = KaznetTaskFilterSet
     search_fields = ['name']
     ordering_fields = [
-        'created',
-        'modified',
-        'status',
-        'estimated_time',
-        'submission_count',
-        'project__id',
-        'name',
-        'bounty__amount'
+        'created', 'modified', 'status', 'estimated_time', 'submission_count',
+        'project__id', 'name', 'bounty__amount'
     ]
     queryset = Task.with_submission_count.all()
 
