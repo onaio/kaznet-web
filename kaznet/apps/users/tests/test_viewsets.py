@@ -305,6 +305,23 @@ class TestUserProfileViewSet(TestCase):
         self.assertFalse(
             UserProfile.objects.filter(id=bob_userprofile.id).exists())
 
+    def test_profile(self):
+        """
+        Test that the profile endpoint returns authenticated
+        users profile
+        """
+        user = create_admin_user()
+
+        view = UserProfileViewSet.as_view({'get': 'profile'})
+
+        request = self.factory.get('/userprofiles/profile')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['id'], user.userprofile.id)
+
     def test_authentication_required(self):
         """
         Test that authentication is required for all endpoints
@@ -368,6 +385,14 @@ class TestUserProfileViewSet(TestCase):
         view = UserProfileViewSet.as_view({'delete': 'destroy'})
         request = self.factory.delete(f'/userprofiles/{userprofile.id}')
         response = view(request=request, pk=userprofile.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual('Authentication credentials were not provided.',
+                         response.data[0]['detail'])
+
+        # cant access profile endpoint
+        view = UserProfileViewSet.as_view({'get': 'profile'})
+        request = self.factory.get('/userprofiles/profile')
+        response = view(request=request)
         self.assertEqual(response.status_code, 403)
         self.assertEqual('Authentication credentials were not provided.',
                          response.data[0]['detail'])

@@ -55,4 +55,4 @@ class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             userprofile_data = self.get_serializer(userprofile).data
             return Response(userprofile_data)
 
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response({})
