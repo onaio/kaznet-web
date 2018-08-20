@@ -4,6 +4,7 @@ with the OnaData API
 """
 from urllib.parse import urljoin
 
+from django.conf import settings
 from django.contrib.auth.models import User
 
 import dateutil.parser
@@ -13,7 +14,6 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import Instance, Project, XForm
-from django.conf import settings
 
 
 def request_session(
@@ -39,43 +39,34 @@ def request_session(
         read=retries,
         connect=retries,
         backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist
-    )
-    basic_auth = (username, password)
+        status_forcelist=status_forcelist)
+
+    if username is not None:
+        basic_auth = (username, password)
+    else:
+        basic_auth = None
+
     adapter = HTTPAdapter(max_retries=retries)
     session.mount('https://', adapter)
     session.mount('http://', adapter)
 
     if method == 'GET':
         response = session.get(
-            url, auth=basic_auth,
-            params=payload,
-            headers=headers
-            )
+            url, auth=basic_auth, params=payload, headers=headers)
         return response
     if method == 'POST':
         response = session.post(
-            url, auth=basic_auth,
-            data=payload,
-            headers=headers
-            )
+            url, auth=basic_auth, data=payload, headers=headers)
         return response
     if method == 'PATCH':
         response = session.patch(
-            url, auth=basic_auth,
-            data=payload,
-            headers=headers
-        )
+            url, auth=basic_auth, data=payload, headers=headers)
         return response
 
     return None
 
 
-def request(
-        url: str,
-        args: dict = None,
-        method: str = 'GET'
-):
+def request(url: str, args: dict = None, method: str = 'GET'):
     """
     Custom Method that requests data from requests_session
     and confirms it has a valid JSON return
@@ -135,8 +126,7 @@ def process_project(project_data: dict):
                 'name': project_data.get('name'),
                 'deleted_at': project_data.get('deleted_at'),
                 'last_updated': project_data.get('date_modified')
-                }
-            )
+            })
 
         if not created:
             # If object was not created this means it exists so we check
@@ -144,8 +134,8 @@ def process_project(project_data: dict):
 
             # Turns the project_data['date_modified'] into a datetime object
             # for easier comparison
-            last_updated_ona = dateutil.parser.parse(project_data.get(
-                'date_modified'))
+            last_updated_ona = dateutil.parser.parse(
+                project_data.get('date_modified'))
             if last_updated_ona is not None:
                 if obj.last_updated != last_updated_ona:
                     obj.name = project_data.get('name')
@@ -158,8 +148,7 @@ def get_xform(xform_id: int):
     """
     Custom Method that return a specific Form
     """
-    return request(urljoin(
-        settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
+    return request(urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
 
 
 def process_xforms(forms_data: list, project_id: int):
@@ -198,8 +187,7 @@ def process_xform(xform_data: dict, project_id: int = None):
                 'id_string': xform_data.get('id_string'),
                 'ona_project_id': project.ona_pk,
                 'last_updated': xform_data.get('last_updated_at')
-            }
-            )
+            })
 
         if not created:
             date_modified = xform_data.get('date_modified')
@@ -224,10 +212,8 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
             return Project.objects.get(ona_pk=ona_project_id)
         except Project.DoesNotExist:  # pylint: disable=no-member
             project_data = get_project(
-                urljoin(
-                    settings.ONA_BASE_URL, f'api/v1/projects/{ona_project_id}'
-                )
-            )
+                urljoin(settings.ONA_BASE_URL,
+                        f'api/v1/projects/{ona_project_id}'))
             process_project(project_data)
             return Project.objects.get(ona_pk=ona_project_id)
     else:
@@ -246,8 +232,7 @@ def get_instances(xform_id: int):
     start = 0
 
     while end_page is None:
-        url = urljoin(
-            settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
+        url = urljoin(settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
@@ -263,8 +248,8 @@ def get_instance(xform_id: int, instance_id: int):
     and retrieves instance data
     """
     return request(
-        urljoin(
-            settings.ONA_BASE_URL, f'api/v1/data/{xform_id}/{instance_id}'))
+        urljoin(settings.ONA_BASE_URL,
+                f'api/v1/data/{xform_id}/{instance_id}'))
 
 
 def process_instances(instances_data: iter, xform: object = None):
@@ -309,8 +294,7 @@ def process_instance(instance_data: dict, xform: object = None):
                         xform=xform,
                         user=user,
                         last_updated=instance_data.get('_last_edited'),
-                        json=instance_data
-                    )
+                        json=instance_data)
                     obj.save()
 
                     return obj
@@ -329,8 +313,7 @@ def process_instance(instance_data: dict, xform: object = None):
                         last_updated_ona = dateutil.parser.parse(last_updated)
 
                     if (edited is not True and data_edited is True) or (
-                            obj.last_updated != last_updated_ona
-                    ):
+                            obj.last_updated != last_updated_ona):
                         obj.last_updated = instance_data.get('_last_edited')
                         obj.json = instance_data
                         obj.save()
