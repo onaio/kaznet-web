@@ -19,7 +19,9 @@ from kaznet.apps.ona.api import (get_instance, get_instances, get_project,
                                  get_xform_obj, process_instance,
                                  process_instances, process_project,
                                  process_projects, process_xform,
-                                 process_xforms, request, request_session)
+                                 process_xforms, request, request_session,
+                                 get_ona_profile_data,
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from django.conf import settings
 
@@ -703,3 +705,39 @@ class TestApiMethods(TestCase):
         project = get_xform_obj(876)
 
         self.assertTrue(mocked_xform, project)
+
+    @requests_mock.Mocker()
+    def test_get_and_update_profile_metadata(self, mocked):
+        mocked_user_profile_data = {
+            'id': self.user.pk,
+            'url': 'http://testserver/api/v1/profiles/bob',
+            'username': u'bob',
+            'first_name': u'Bob',
+            'last_name': 'erama',
+            'email': u'bob@columbia.edu',
+            'city': u'Bobville',
+            'country': u'US',
+            'organization': u'Bob Inc.',
+            'website': u'bob.com',
+            'twitter': u'boberama',
+            'require_auth': False,
+            'user': 'http://testserver/api/v1/users/bob',
+            'is_org': False,
+            'metadata': {},
+            'joined_on': self.user.date_joined.isoformat(),
+            'name': u'Bob erama'
+        }
+
+        mocked.get(urljoin(
+            settings.ONA_BASE_URL, 'api/v1/profiles/{username}/'.format(
+                username=mocked_user_profile_data['username'])),
+            json=mocked_user_profile_data
+        )
+        response = get_ona_profile_data(
+            username=mocked_user_profile_data['username'])
+        self.assertEqual(response, mocked_user_profile_data)
+
+        username = self.user.userprofile.user.username
+        profile = update_user_profile_metadata(
+            username=username, profile_data=response)
+        self.assertEqual(self.user.userprofile, profile)

@@ -8,6 +8,7 @@ from django.db.models import Value as V
 from django.db.models import Avg, Count, Sum
 from django.db.models.functions import Coalesce, ExtractMonth
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.postgres.fields import JSONField
 
 from phonenumber_field.modelfields import PhoneNumberField
 from tasking.models.base import TimeStampedModel
@@ -79,6 +80,7 @@ class UserProfile(TimeStampedModel, models.Model):
         blank=True)
     address = models.TextField(
         _('Address'), null=True, blank=True)
+    metadata = JSONField(default=dict, blank=True)
 
     # custom manager
     objects = UserProfileManager()
