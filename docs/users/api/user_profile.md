@@ -106,7 +106,7 @@ This request will return a response containing the specific User Profile.
     }
 }
 ```
-
+The UserProfile owner gets an extra metadata field in attributes ```"metadata": {}```
 ### DELETE /api/v1/userprofiles/[pk]/ : **User must be Admin to perform this request**
 
 Deletes a specific User Profile with matching pk.
