@@ -14,6 +14,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.users.models import UserProfile
 
 
 def request_session(
@@ -344,3 +345,35 @@ def process_ona_webhook(instance_data: dict):
     if instance_obj is None:
         return False
     return True
+
+
+def get_ona_profile_data(username: str = settings.ONA_USERNAME):
+    """
+    Custom method that fetches the user's profile data from OnaData API
+    """
+    args = {'owner': username}
+    url = urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}/')
+    user_profile_data = request(url, args)
+
+    return user_profile_data
+
+
+def update_user_profile_metadata(username: str = settings.ONA_USERNAME,
+                                 profile_data: dict = None):
+    """
+    Custom method that updates the user's profile with that at OnaData
+    """
+    try:
+        profile = UserProfile.objects.get(user__username=username)
+    except UserProfile.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        if profile_data:
+            ona_profile_data = profile_data
+        else:
+            ona_profile_data = get_ona_profile_data(username=username)
+        if profile and ona_profile_data:
+            if profile.metadata != ona_profile_data['metadata']:
+                profile.metadata = ona_profile_data['metadata']
+        profile.save()
+        return profile

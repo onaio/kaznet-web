@@ -4,6 +4,7 @@ Serializers for users app
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.db.models.query import QuerySet
 
 from rest_framework_json_api import serializers
 
@@ -71,6 +72,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     submission_count = serializers.SerializerMethodField()
     amount_earned = SerializableAmountField(read_only=True)
     avg_amount_earned = SerializableAvgAmountEarnedField(read_only=True)
+    metadata = serializers.JSONField(read_only=True)
 
     class Meta:  # pylint:  disable=too-few-public-methods
         """
@@ -107,8 +109,24 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'gender',
             'national_id',
             'submission_count',
-            'address'
+            'address',
+            'metadata'
         ]
+
+    owner_only_fields = ('metadata',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and hasattr(self.Meta, 'owner_only_fields'):
+            request = self.context.get('request')
+            is_permitted = (
+                request and request.user and
+                request.user == self.instance.user)
+            if isinstance(self.instance, QuerySet) or not is_permitted or \
+                    not request:
+                for field in getattr(self.Meta, 'owner_only_fields'):
+                    self.fields.pop(field)
 
     def get_submission_count(self, obj):  # pylint: disable=no-self-use
         """

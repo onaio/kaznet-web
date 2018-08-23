@@ -31,6 +31,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
         'kwargs': {'username': 'the one username'}
     },
+    'update_user_profiles': {
+        'task': 'task_fetch_all_user_profiles',
+        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
+    },
 }
 
 # Emails
