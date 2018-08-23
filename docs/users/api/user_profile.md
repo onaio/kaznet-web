@@ -69,7 +69,7 @@ curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v
 
 This request will return a response containing the specific User Profile.
 
-```json
+```py
 {
     "data": {
         "type": "UserProfile",
@@ -102,7 +102,7 @@ This request will return a response containing the specific User Profile.
             "gender": "0",
             "national_id": "2342343",
             "submission_count": 0,
-            "metadata": {} # The user profile owner only gets to view this
+            "metadata": {}  # The user profile owner only gets to view this
         }
     }
 }
