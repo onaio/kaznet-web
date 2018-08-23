@@ -121,8 +121,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if self.instance and hasattr(self.Meta, 'owner_only_fields'):
             request = self.context.get('request')
             is_permitted = (
-                    request and request.user and
-                    request.user == self.instance.user)
+                request and request.user and
+                request.user == self.instance.user)
             if isinstance(self.instance, QuerySet) or not is_permitted or \
                     not request:
                 for field in getattr(self.Meta, 'owner_only_fields'):

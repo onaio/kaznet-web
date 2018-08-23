@@ -352,8 +352,7 @@ def get_ona_profile_data(username: str = settings.ONA_USERNAME):
     Custom method that fetches the user's profile data from OnaData API
     """
     args = {'owner': username}
-    url = urljoin(settings.ONA_BASE_URL, 'api/v1/profiles/{username}/'.format(
-        username=username))
+    url = urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}/')
     user_profile_data = request(url, args)
 
     return user_profile_data
@@ -366,14 +365,15 @@ def update_user_profile_metadata(username: str = settings.ONA_USERNAME,
     """
     try:
         profile = UserProfile.objects.get(user__username=username)
-    except UserProfile.DoesNotExist:
-        profile = None
-    if profile_data:
-        ona_profile_data = profile_data
+    except UserProfile.DoesNotExist:  # pylint: disable=no-member
+        pass
     else:
-        ona_profile_data = get_ona_profile_data(username=username)
-    if profile and ona_profile_data:
-        if profile.metadata != ona_profile_data['metadata']:
-            profile.metadata = ona_profile_data['metadata']
-    profile.save()
-    return profile
+        if profile_data:
+            ona_profile_data = profile_data
+        else:
+            ona_profile_data = get_ona_profile_data(username=username)
+        if profile and ona_profile_data:
+            if profile.metadata != ona_profile_data['metadata']:
+                profile.metadata = ona_profile_data['metadata']
+        profile.save()
+        return profile

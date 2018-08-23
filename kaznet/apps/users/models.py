@@ -80,7 +80,7 @@ class UserProfile(TimeStampedModel, models.Model):
         blank=True)
     address = models.TextField(
         _('Address'), null=True, blank=True)
-    metadata = JSONField(default=dict, blank=True)
+    metadata = JSONField(_('Metadata'), default=dict, blank=True)
 
     # custom manager
     objects = UserProfileManager()

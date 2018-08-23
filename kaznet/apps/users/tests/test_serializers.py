@@ -6,7 +6,6 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.test import TestCase
 
-from rest_framework.test import APIRequestFactory
 import requests_mock
 
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE

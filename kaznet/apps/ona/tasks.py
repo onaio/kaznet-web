@@ -69,7 +69,7 @@ def task_fetch_all_instances():
                 task_fetch_form_instances.delay(xform_id=form.id)
 
 
-@celery_task(name="task_update_user_profile")
+@celery_task(name="task_update_user_profile")  # pylint: disable=not-callable
 def task_update_user_profile(username: str):
     """
     Updates user profile
@@ -77,6 +77,7 @@ def task_update_user_profile(username: str):
     update_user_profile_metadata(username=username)
 
 
+# pylint: disable=not-callable
 @celery_task(name="task_fetch_all_user_profiles")
 def task_fetch_all_user_profiles():
     """
@@ -84,4 +85,4 @@ def task_fetch_all_user_profiles():
     """
     profiles = UserProfile.objects.all()
     for profile in profiles:
-        task_update_user_profile(username=profile.user.username)
+        task_update_user_profile.delay(username=profile.user.username)

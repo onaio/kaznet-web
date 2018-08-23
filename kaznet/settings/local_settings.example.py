@@ -33,7 +33,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'update_user_profiles': {
         'task': 'task_fetch_all_user_profiles',
-        'schedule': crontab(hour='6', minute='*'),  # every 6 hours
+        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
     },
 }
 

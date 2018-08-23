@@ -255,7 +255,7 @@ class TestCeleryTasks(TestCase):
         task_fetch_all_instances()
         mock.assert_called_once_with(xform_id=7)
 
-    @patch('kaznet.apps.ona.tasks.task_update_user_profile')
+    @patch('kaznet.apps.ona.tasks.task_update_user_profile.delay')
     def test_task_fetch_all_user_profiles(self, mock):
         """
         Test update user profiles
