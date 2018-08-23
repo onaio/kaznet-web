@@ -116,7 +116,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     owner_only_fields = ('metadata',)
 
     def __init__(self, *args, **kwargs):
-        super(UserProfileSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.instance and hasattr(self.Meta, 'owner_only_fields'):
             request = self.context.get('request')

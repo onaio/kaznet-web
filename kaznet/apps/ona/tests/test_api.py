@@ -7,6 +7,7 @@ from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
 import requests_mock
 from model_mommy import mommy
@@ -723,7 +724,7 @@ class TestApiMethods(TestCase):
             'require_auth': False,
             'user': 'http://testserver/api/v1/users/bob',
             'is_org': False,
-            'metadata': {},
+            'metadata': {'last_password_edit': timezone.now().isoformat()},
             'joined_on': self.user.date_joined.isoformat(),
             'name': u'Bob erama'
         }
@@ -741,3 +742,6 @@ class TestApiMethods(TestCase):
         profile = update_user_profile_metadata(
             username=username, profile_data=response)
         self.assertEqual(self.user.userprofile, profile)
+        self.assertEqual(
+            mocked_user_profile_data['metadata']['last_password_edit'],
+            profile.metadata['last_password_edit'])
