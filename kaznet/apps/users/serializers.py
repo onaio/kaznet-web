@@ -156,7 +156,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         """
         user_data = validated_data.pop('user')
         user_data['username'] = validated_data.get('ona_username')
-        username = user_data.get('ona_username')
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
@@ -164,7 +163,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         created, data = create_ona_user(
             settings.ONA_BASE_URL,
-            username,
+            user_data['username'],
             first_name,
             last_name,
             email,
@@ -180,7 +179,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         add_team_member(
             settings.ONA_BASE_URL,
-            username,
+            user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
         # create the User object
         user = UserSerializer.create(UserSerializer(),
