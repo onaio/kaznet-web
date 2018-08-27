@@ -7,6 +7,7 @@ from django.test import TestCase
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from kaznet.apps.ona.models import XForm
 from kaznet.apps.ona.viewsets import XFormViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
@@ -22,13 +23,13 @@ class TestXFormViewSet(TestCase):
 
     def test_list_xform(self):
         """
-        Test that GET /xforms returns a list of all xforms
+        Test that GET /forms returns a list of all xforms
         """
         user = create_admin_user()
         mommy.make('ona.XForm', _quantity=4)
         view = XFormViewSet.as_view({'get': 'list'})
 
-        request = self.factory.get('/xforms')
+        request = self.factory.get('/forms')
         force_authenticate(request, user=user)
         response = view(request=request)
 
@@ -37,7 +38,7 @@ class TestXFormViewSet(TestCase):
 
     def test_retrieve_xform(self):
         """
-        Test that GET /xforms/[id] returns a specific item
+        Test that GET /forms/[id] returns a specific item
         matching pk
         """
         user = create_admin_user()
@@ -45,7 +46,7 @@ class TestXFormViewSet(TestCase):
         mommy.make('ona.XForm', _quantity=4)
         view = XFormViewSet.as_view({'get': 'retrieve'})
 
-        request = self.factory.get('/xforms/{id}'.format(id=form.id))
+        request = self.factory.get('/forms/{id}'.format(id=form.id))
         force_authenticate(request, user=user)
         response = view(request=request, pk=form.id)
 
@@ -62,7 +63,7 @@ class TestXFormViewSet(TestCase):
         mommy.make('ona.XForm', ona_pk=7)
         view = XFormViewSet.as_view({'get': 'list'})
 
-        request = self.factory.get('/xforms')
+        request = self.factory.get('/forms')
         response = view(request=request)
 
         self.assertEqual(response.status_code, 403)
@@ -76,7 +77,7 @@ class TestXFormViewSet(TestCase):
         mommy.make('ona.XForm', ona_pk=77)
         view = XFormViewSet.as_view({'get': 'retrieve'})
 
-        request = self.factory.get('/xforms/{id}'.format(id=form.id))
+        request = self.factory.get('/forms/{id}'.format(id=form.id))
         response = view(request=request, pk=form.id)
 
         self.assertEqual(response.status_code, 403)
@@ -94,7 +95,7 @@ class TestXFormViewSet(TestCase):
         mommy.make('ona.XForm', ona_pk=777)
         view = XFormViewSet.as_view({'get': 'list'})
 
-        request = self.factory.get('/xforms')
+        request = self.factory.get('/forms')
         force_authenticate(request, user)
         response = view(request=request)
 
@@ -109,7 +110,7 @@ class TestXFormViewSet(TestCase):
         mommy.make('ona.XForm', ona_pk=7999)
         view = XFormViewSet.as_view({'get': 'retrieve'})
 
-        request = self.factory.get('/xforms/{id}'.format(id=form.id))
+        request = self.factory.get('/forms/{id}'.format(id=form.id))
         force_authenticate(request, user)
         response = view(request=request, pk=form.id)
 
@@ -136,7 +137,7 @@ class TestXFormViewSet(TestCase):
         view = XFormViewSet.as_view({'get': 'list'})
 
         # assert that there are no XForms which have a task
-        request = self.factory.get('/xforms', {'has_task': 1})
+        request = self.factory.get('/forms', {'has_task': 1})
         force_authenticate(request, user=user)
         response = view(request=request)
 
@@ -144,7 +145,7 @@ class TestXFormViewSet(TestCase):
         self.assertEqual(len(response.data['results']), 0)
 
         # assert that there are 6 XForms which dont have a task
-        request = self.factory.get('/xforms', {'has_task': 0})
+        request = self.factory.get('/forms', {'has_task': 0})
         force_authenticate(request, user=user)
         response = view(request=request)
 
@@ -153,10 +154,49 @@ class TestXFormViewSet(TestCase):
 
         # Add a task to mocked_xform and assert when we filter we get it back
         mommy.make('main.Task', target_content_object=xform)
-        request = self.factory.get('/xforms', {'has_task': 1})
+        request = self.factory.get('/forms', {'has_task': 1})
         force_authenticate(request, user=user)
         response = view(request=request)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], xform.id)
+
+    def test_title_search(self):
+        """
+        Test that you can search by title
+        """
+        user = create_admin_user()
+        mommy.make('ona.XForm', title='Coconut')
+        mommy.make('ona.XForm', title='Generic', _quantity=7)
+
+        view = XFormViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/forms', {'search': 'Coconut'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(
+            # pylint: disable=no-member
+            XForm.objects.filter(title='Coconut').count(), 1)
+
+    def test_title_ordering(self):
+        """
+        Test that we can order list by title
+        """
+        user = create_admin_user()
+        form1 = mommy.make('ona.XForm', title='Andalite Sunrise')
+        mommy.make('ona.XForm', title='Generic', _quantity=7)
+        form2 = mommy.make('ona.XForm', title='Zerg Conquest')
+
+        # Test we can sort by title in ascending order
+        view = XFormViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/forms', {'ordering': 'title'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 9)
+        self.assertEqual(response.data['results'][0]['title'], form1.title)
+        self.assertEqual(response.data['results'][0]['id'], form1.id)
+        self.assertEqual(response.data['results'][-1]['title'], form2.title)
+        self.assertEqual(response.data['results'][-1]['id'], form2.id)
