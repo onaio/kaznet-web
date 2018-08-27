@@ -82,14 +82,17 @@ class TestOnaTempTokenAuthentication(TestCase):
         self.assertRaisesMessage(AuthenticationFailed, 'Invalid Token',
                                  self.auth.authenticate_credentials, 'token')
 
-    @override_settings(CACHES={
-        'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        }
-    })
+    @override_settings(
+        CACHES={
+            'default': {
+                'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+            }
+        },
+        ONA_BASE_URL='https://stage-api.ona.io'
+    )
     @patch('django.core.cache.cache.set')
     @requests_mock.Mocker()
-    def test_authenticate_credentials_caches(self, mockedSet, mocked):
+    def test_authenticate_credentials_caches(self, cache_mock, mocked):
         """
         Test:
             - Caches a Users Profile after authentication
@@ -103,8 +106,8 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         self.auth.authenticate_credentials('token')
 
-        mockedSet.assert_called_with('token', self.user_profile.ona_username,
-                                     14400)
+        cache_mock.assert_called_with(
+            'token', self.user_profile.ona_username, 14400)
 
     @patch('kaznet.apps.ona.api.request_session')
     @patch('django.core.cache.cache.get')
