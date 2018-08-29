@@ -80,8 +80,6 @@ class UserProfile(TimeStampedModel, models.Model):
         blank=True)
     address = models.TextField(
         _('Address'), null=True, blank=True)
-    gravatar = models.URLField(
-        _('Gravatar Link'), default=None, blank=True, null=True)
     metadata = JSONField(_('Metadata'), default=dict, blank=True)
 
     # custom manager
