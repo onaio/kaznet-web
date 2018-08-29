@@ -74,6 +74,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             # Only if the user is not already cached
             if not cached:
                 cache.set(key, username, settings.TEMP_TOKEN_TIMEOUT)
+                cache.set(username, key, settings.TEMP_TOKEN_TIMEOUT)
 
             return (profile.user, None)
 
