@@ -22,7 +22,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
     """
 
     def setUp(self):
-        super(TestKaznetSubmissionViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def test_list_submissions(self):
