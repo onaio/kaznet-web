@@ -176,6 +176,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             )
 
         ona_pk = data.get('id')
+        gravatar = data.get('gravatar')
 
         add_team_member(
             settings.ONA_BASE_URL,
@@ -194,6 +195,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         userprofile.gender = validated_data.get('gender')
         userprofile.national_id = validated_data.get('national_id')
         userprofile.expertise = validated_data.get('expertise')
+        userprofile.gravatar = gravatar
         userprofile.save()
 
         return userprofile
@@ -243,11 +245,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 data
             )
 
+        gravatar = data.get('gravatar')
+
         UserSerializer().update(instance=user, validated_data=user_data)
 
         # deal with the userprofile object
         instance.payment_number = validated_data.get(
             'payment_number', instance.payment_number)
+        instance.gravatar = gravatar
         instance.phone_number = validated_data.get('phone_number',
                                                    instance.phone_number)
         instance.role = validated_data.get('role', instance.role)
