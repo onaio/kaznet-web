@@ -22,6 +22,11 @@ class TestUserProfileViewSet(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
+        self.ona_json = {
+            'id': 1337,
+            'metadata': {},
+            'gravatar': ""
+        }
 
     def _create(self):
         """
@@ -31,7 +36,7 @@ class TestUserProfileViewSet(TestCase):
             mocked.post(
                 urljoin(settings.ONA_BASE_URL, 'api/v1/profiles'),
                 status_code=201,
-                json={'id': 1337})
+                json=self.ona_json)
 
             mocked.post(
                 urljoin(
@@ -266,6 +271,7 @@ class TestUserProfileViewSet(TestCase):
             mocked.patch(
                 urljoin(settings.ONA_BASE_URL,
                         f'api/v1/profiles/{user_data["ona_username"]}'),
+                json=self.ona_json,
                 status_code=200,
             )
 
@@ -440,6 +446,7 @@ class TestUserProfileViewSet(TestCase):
                 urljoin(settings.ONA_BASE_URL,
                         f'api/v1/profiles/{userprofile.user.username}'),
                 status_code=200,
+                json=self.ona_json
             )
 
             view = UserProfileViewSet.as_view({'patch': 'partial_update'})

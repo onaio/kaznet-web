@@ -83,7 +83,8 @@ def task_process_user_profiles():
     user_list = User.objects.filter(last_login__gt=time)
 
     for user in user_list:
-        task_update_user_profile(user.userprofile.ona_username)
+        task_update_user_profile.delay(
+            ona_username=user.userprofile.ona_username)
 
 
 @celery_task(name="task_update_user_profile")  # pylint: disable=not-callable

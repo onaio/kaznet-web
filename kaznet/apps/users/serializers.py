@@ -196,7 +196,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         userprofile.gender = validated_data.get('gender')
         userprofile.national_id = validated_data.get('national_id')
         userprofile.expertise = validated_data.get('expertise')
-        userprofile.metadata = metadata
+
+        if metadata:
+            userprofile.metadata['last_password_edit'] = metadata.get(
+                settings.ONA_LAST_PASSWORD_EDIT_FIELD)
         userprofile.metadata['gravatar'] = gravatar
         userprofile.save()
 
@@ -263,7 +266,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
                                                   instance.national_id)
         instance.expertise = validated_data.get('expertise',
                                                 instance.expertise)
-        instance.metadata = metadata
+
+        if metadata:
+            instance.metadata['last_password_edit'] = metadata.get(
+                settings.ONA_LAST_PASSWORD_EDIT_FIELD)
+
         instance.metadata['gravatar'] = gravatar
         instance.save()
 
