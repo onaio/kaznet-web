@@ -371,6 +371,8 @@ def update_user_profile_metadata(ona_username):
     """
     Custom method that updates the user's profile with that at OnaData
     """
+    profile = None
+
     try:
         profile = UserProfile.objects.get(ona_username=ona_username)
     except UserProfile.DoesNotExist:  # pylint: disable=no-member
@@ -380,7 +382,9 @@ def update_user_profile_metadata(ona_username):
         key = cache.get(ona_username)
         profile_data = get_ona_profile_data(key=key, username=ona_username)
         if profile_data is not None:
-            profile.metadata = profile_data.get('metadata')
+            metadata = profile_data.get('metadata')
+            profile.metadata['last_password_edit'] = metadata.get(
+                'last_password_edit')
             profile.metadata['gravatar'] = profile_data.get('gravatar')
 
             profile.save()
