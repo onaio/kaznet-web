@@ -18,3 +18,12 @@ INVALID_TOKEN_SPACES_CONTAINED = _('Invalid token header. Token string should'
                                    ' not contain spaces')
 PAST_END_DATE = _(
     'Cannot create an active task with an end date from the past.')
+
+LABEL_USER = _('User')
+LABEL_TASK = _('Task')
+LABEL_LOCATION = _('Location')
+LABEL_SUBMISSION_TIME = _('Submission Time')
+LABEL_AMOUNT = _('Amount')
+LABEL_PHONE = _('Phone Number')
+LABEL_PAYMENT_PHONE = _('Payment Phone Number')
+LABEL_STATUS = _('Status')
