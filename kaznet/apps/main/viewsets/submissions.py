@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.models import Submission
+from kaznet.apps.main.filters import KaznetSubmissionFilterSet
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 from kaznet.apps.users.permissions import IsOwnSubmissionOrAdmin
 
@@ -26,13 +27,7 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = KaznetSubmissionSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
-    filter_fields = [
-        'task',
-        'user',
-        'location',
-        'valid',
-        'status'
-    ]
+    filter_class = KaznetSubmissionFilterSet
     ordering_fields = [
         'bounty__amount',
         'submission_time',
