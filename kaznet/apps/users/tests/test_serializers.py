@@ -26,17 +26,13 @@ class TestUserProfileSerializer(TestCase):
             mocked.post(
                 urljoin(settings.ONA_BASE_URL, 'api/v1/profiles'),
                 status_code=201,
-                json={
-                    'id': 1337
-                }
-            )
+                json={'id': 1337})
 
             mocked.post(
                 urljoin(
                     settings.ONA_BASE_URL,
                     f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
-                status_code=201
-            )
+                status_code=201)
 
             data = {
                 'first_name': 'Bob',
@@ -80,36 +76,15 @@ class TestUserProfileSerializer(TestCase):
         serializer_instance = self._create_user()
 
         fields = [
-            'id',
-            'created',
-            'modified',
-            'first_name',
-            'last_name',
-            'role_display',
-            'email',
-            'ona_pk',
-            'gender_display',
-            'expertise_display',
-            'ona_username',
-            'payment_number',
-            'phone_number',
-            'approval_rate',
-            'last_login',
-            'avg_submissions',
-            'avg_rejected_submissions',
-            'avg_amount_earned',
-            'avg_approval_rate',
-            'avg_approved_submissions',
-            'rejected_submissions',
-            'amount_earned',
-            'approved_submissions',
-            'role',
-            'expertise',
-            'gender',
-            'national_id',
-            'submission_count',
-            'address',
-            'metadata'
+            'id', 'created', 'modified', 'first_name', 'last_name',
+            'role_display', 'email', 'ona_pk', 'gender_display',
+            'expertise_display', 'ona_username', 'payment_number',
+            'phone_number', 'approval_rate', 'last_login', 'avg_submissions',
+            'avg_rejected_submissions', 'avg_amount_earned',
+            'avg_approval_rate', 'avg_approved_submissions',
+            'rejected_submissions', 'amount_earned', 'approved_submissions',
+            'role', 'expertise', 'gender', 'national_id', 'submission_count',
+            'address', 'metadata'
         ]
 
         self.assertEqual(set(fields), set(serializer_instance.keys()))
@@ -135,15 +110,17 @@ class TestUserProfileSerializer(TestCase):
             # pylint: disable=no-member
             userprofile = UserProfile.objects.get(user__username='bobbie')
             mocked.patch(
-                urljoin(
-                    settings.ONA_BASE_URL,
-                    f'api/v1/profiles/bobbie'),
+                urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/bobbie'),
                 status_code=200,
-            )
+                json={
+                    'metadata': {
+                        'last_password_edit': ''
+                    },
+                    'gravatar': ''
+                })
 
             serializer_instance = UserProfileSerializer(
-                instance=userprofile,
-                data=data)
+                instance=userprofile, data=data)
             self.assertTrue(serializer_instance.is_valid())
             serializer_instance.save()
 
@@ -153,30 +130,34 @@ class TestUserProfileSerializer(TestCase):
             expected_data['email'] = 'mosh@example.com'
             expected_data['role'] = UserProfile.CONTRIBUTOR
             expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
-            expected_data[
-                'expertise_display'] = UserProfile.EXPERTISE_CHOICES[1][1]
+            expected_data['expertise_display'] = UserProfile.EXPERTISE_CHOICES[
+                1][1]
             expected_data['expertise'] = UserProfile.INTERMEDIATE
             expected_data['national_id'] = '1337'
             expected_data['payment_number'] = '+254722111111'
+            expected_data['metadata'] = {
+                'gravatar': '',
+                'last_password_edit': ''
+            }
 
             # remove the modified field because it cannot be the same
             del expected_data['modified']
 
-            self.assertDictContainsSubset(
-                expected_data, serializer_instance.data)
+            self.assertDictContainsSubset(expected_data,
+                                          serializer_instance.data)
 
             userprofile.refresh_from_db()
 
             self.assertEqual('Mosh', userprofile.user.first_name)
             self.assertEqual('Pitt', userprofile.user.last_name)
             self.assertEqual('mosh@example.com', userprofile.user.email)
-            self.assertEqual(
-                UserProfile.ROLE_CHOICES[1][1], userprofile.role_display)
+            self.assertEqual(UserProfile.ROLE_CHOICES[1][1],
+                             userprofile.role_display)
             self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
             self.assertEqual(UserProfile.INTERMEDIATE, userprofile.expertise)
             self.assertEqual('1337', userprofile.national_id)
-            self.assertEqual(
-                '+254722111111', userprofile.payment_number.as_e164)
+            self.assertEqual('+254722111111',
+                             userprofile.payment_number.as_e164)
 
     def test_bad_data(self):
         """
@@ -225,10 +206,8 @@ class TestUserProfileSerializer(TestCase):
         serializer_instance = UserProfileSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
 
-        self.assertEqual(
-            serializer_instance.errors['password'][0],
-            NEED_PASSWORD_ON_CREATE
-        )
+        self.assertEqual(serializer_instance.errors['password'][0],
+                         NEED_PASSWORD_ON_CREATE)
 
         # test that national_id, ona_pk, and ona_username are unique
         self._create_user()
@@ -276,11 +255,9 @@ class TestUserProfileSerializer(TestCase):
             'ona_username': 'mosh'
         }
 
-        serializer_instance = UserProfileSerializer(
-            data=data)
+        serializer_instance = UserProfileSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
         self.assertEqual(
             str(serializer_instance.errors['password'][0]),
             'This password is too short. It must contain '
-            'at least 8 characters.'
-        )
+            'at least 8 characters.')
