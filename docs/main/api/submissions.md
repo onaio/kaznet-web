@@ -42,6 +42,12 @@ Returns a list of all valid or invalid submissions if given `valid` query parame
 curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/submissions/?valid=0
 ```
 
+Returns a list of all submissions filtered by modified if given `modified` query parameter. The `modified` query parameter takes a _datetime_ formatted as "YYYY-MM-DD HH:MM[:ss[.uuuuuu]][tz]". You can use [standard Django lookups](https://docs.djangoproject.com/en/2.0/ref/models/querysets/#field-lookups) when filtering by modified.
+
+```console
+curl -X GET -H "Content-type:application/vnd.api+json" "https://example.com/api/v1/submissions/?modified__gt=2018-06-15 06:00:00.000000"
+```
+
 Returns a list of all submissions ordered by either creation date, valid status, submission status, time of submission or task if given `ordering` query parameter. The `ordering` can be done in ascending order using either `bounty__amount`, `submission_time` or `task__id` and in descending order using either `-bounty__amount`, `-submission_time` or `-task__id`
 
 ```console

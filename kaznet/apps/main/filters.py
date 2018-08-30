@@ -3,7 +3,7 @@ Filters module for main Kaznet app
 """
 from django_filters import rest_framework as filters
 
-from kaznet.apps.main.models import Task, TaskOccurrence, Location
+from kaznet.apps.main.models import Task, TaskOccurrence, Location, Submission
 
 DATE_LOOKUPS = [
     'exact', 'gt', 'lt', 'gte', 'lte', 'year', 'year__gt', 'year__lt',
@@ -81,7 +81,7 @@ class KaznetLocationFilterSet(KaznetFilterSet):
     # pylint: disable=too-few-public-methods
     class Meta:
         """
-        Meta options for TaskOccurrenceFilterSet
+        Meta options for KaznetLocationFilterSet
         """
         model = Location
         fields = [
@@ -168,3 +168,29 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
+
+
+class KaznetSubmissionFilterSet(KaznetFilterSet):
+    """
+    Filterset for submissions
+    """
+    modified = filters.DateTimeFilter(
+        name='modified',
+        lookup_expr=DATETIME_LOOKUPS,
+        method='filter_modified'
+    )
+
+    # pylint: disable=too-few-public-methods
+    class Meta:
+        """
+        Meta options for KaznetSubmissionFilterSet
+        """
+        model = Submission
+        fields = [
+            'task',
+            'user',
+            'status',
+            'location',
+            'valid',
+            'modified',
+        ]
