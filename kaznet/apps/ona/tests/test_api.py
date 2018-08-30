@@ -663,7 +663,7 @@ class TestApiMethods(TestCase):
 
     @requests_mock.Mocker()
     @patch('kaznet.apps.ona.api.cache')
-    def test_update_user_profile_metadata(self, mocked, mockedCache):
+    def test_update_user_profile_metadata(self, mocked, mocked_cache):
         """
         Test that update_user_profile_metadata updates
         with correct data
@@ -697,7 +697,7 @@ class TestApiMethods(TestCase):
             'name': 'Bob erama'
         }
 
-        mockedCache.get.side_effect = 'token'
+        mocked_cache.get.return_value = 'token'
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/profiles/bob/'),
             json=mocked_user_profile_data)
