@@ -226,6 +226,38 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], submission.id)
 
+    def test_modified_filter(self):
+        """
+        Test that you can filter by modified
+        """
+        user = create_admin_user()
+        task = mommy.make('main.Task')
+
+        the_one_submission = mommy.make('main.Submission', task=task)
+
+        # make a bunch of submissions
+        mommy.make('main.Submission', _quantity=10, task=task)
+
+        view = KaznetSubmissionsViewSet.as_view({'get': 'list'})
+
+        # test that we get the submission with our unique modified datetime
+        request = self.factory.get(
+            '/submissions', {'modified': str(the_one_submission.modified)})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(
+            response.data['results'][0]['id'], the_one_submission.id)
+
+        # test we can get submissions modified after a certain time
+        request = self.factory.get(
+            '/submissions', {'modified__gt': str(the_one_submission.modified)})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 10)
+
     def test_submission_time_sorting(self):
         """
         Test that you can sort by submission_time
