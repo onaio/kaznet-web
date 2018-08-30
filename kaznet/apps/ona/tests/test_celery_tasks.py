@@ -14,7 +14,8 @@ from kaznet.apps.main.models import Task
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (
     task_fetch_all_instances, task_fetch_form_instances,
-    task_fetch_project_xforms, task_fetch_projects, task_process_user_profiles)
+    task_fetch_project_xforms, task_fetch_projects, task_process_user_profiles,
+    task_update_user_profile)
 
 MOCK_PROJECT_DATA = [
     {
@@ -75,45 +76,27 @@ MOCKED_INSTANCES = [
     },
     {
         "_notes": [],
-        "_media_all_received":
-        True,
-        "_bamboo_dataset_id":
-        "",
+        "_media_all_received": True,
+        "_bamboo_dataset_id": "",
         "_tags": [],
-        "_xform_id_string":
-        "attachment_test",
-        "meta/instanceID":
-        "uuid:65903eb7-6524-4f81-89df-5a3cc725910e",
-        "_duration":
-        "",
+        "_xform_id_string": "attachment_test",
+        "meta/instanceID": "uuid:65903eb7-6524-4f81-89df-5a3cc725910e",
+        "_duration": "",
         "_geolocation": [None, None],
-        "_edited":
-        False,
-        "_status":
-        "submitted_via_web",
-        "_uuid":
-        "65903eb7-6524-4f81-89df-5a3cc725910e",
-        "_submitted_by":
-        "onasupport",
-        "image1":
-        "reece-12_48_29.JPG",
-        "_media_count":
-        1,
-        "formhub/uuid":
-        "fff2652efcd24709bb9236d24c77e918",
-        "name":
-        "ALLLIIICCCEE",
-        "_total_media":
-        1,
-        "_xform_id":
-        253470,
-        "_submission_time":
-        "2017-10-30T09:50:47",
-        "_version":
-        "201710300941",
+        "_edited": False,
+        "_status": "submitted_via_web",
+        "_uuid": "65903eb7-6524-4f81-89df-5a3cc725910e",
+        "_submitted_by": "onasupport",
+        "image1": "reece-12_48_29.JPG",
+        "_media_count": 1,
+        "formhub/uuid": "fff2652efcd24709bb9236d24c77e918",
+        "name": "ALLLIIICCCEE",
+        "_total_media": 1,
+        "_xform_id": 253470,
+        "_submission_time": "2017-10-30T09:50:47",
+        "_version": "201710300941",
         "_attachments": [],
-        "_id":
-        21311503
+        "_id": 21311503
     },
 ]
 
@@ -273,3 +256,13 @@ class TestCeleryTasks(TestCase):
 
         task_process_user_profiles()
         mock.assert_called_with(ona_username=support_profile.ona_username)
+
+    @patch('kaznet.apps.ona.tasks.update_user_profile_metadata')
+    def test_task_update_user_profile(self, mock):
+        """
+        Test that task_update_user_profile actually calls
+        update_user_profile_metadata
+        """
+        task_update_user_profile('Dave')
+
+        mock.assert_called_once_with('Dave')
