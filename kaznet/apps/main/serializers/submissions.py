@@ -65,15 +65,15 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
     """
     Serializer class used for Sumission exports
     """
-    user = serializers.SerializerMethodField(label=LABEL_USER)
-    task = serializers.SerializerMethodField(label=LABEL_TASK)
-    location = serializers.SerializerMethodField(label=LABEL_LOCATION)
-    submission_time = serializers.SerializerMethodField(
+    user = drf_serializers.SerializerMethodField(label=LABEL_USER)
+    task = drf_serializers.SerializerMethodField(label=LABEL_TASK)
+    location = drf_serializers.SerializerMethodField(label=LABEL_LOCATION)
+    submission_time = drf_serializers.SerializerMethodField(
         label=LABEL_SUBMISSION_TIME)
-    amount = serializers.SerializerMethodField(label=LABEL_AMOUNT)
-    status = serializers.SerializerMethodField(label=LABEL_STATUS)
-    phone_number = serializers.SerializerMethodField(label=LABEL_PHONE)
-    payment_number = serializers.SerializerMethodField(
+    amount = drf_serializers.SerializerMethodField(label=LABEL_AMOUNT)
+    status = drf_serializers.SerializerMethodField(label=LABEL_STATUS)
+    phone_number = drf_serializers.SerializerMethodField(label=LABEL_PHONE)
+    payment_number = drf_serializers.SerializerMethodField(
         label=LABEL_PAYMENT_PHONE)
 
     # pylint: disable=too-few-public-methods
@@ -96,6 +96,10 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         ]
 
         model = Submission
+
+    @property
+    def data(self):
+        yield self.to_representation(self.instance)
 
     def get_user(self, obj):
         """
