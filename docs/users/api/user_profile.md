@@ -102,7 +102,8 @@ This request will return a response containing the specific User Profile.
             "gender": "0",
             "national_id": "2342343",
             "submission_count": 0,
-            "metadata": {}  # The user profile owner only gets to view this
+            "metadata": {
+            'last_password_edit': '2018-08-20T12:55:00.949705'}  # The user profile owner only gets to view this
         }
     }
 }
