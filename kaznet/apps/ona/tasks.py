@@ -88,7 +88,7 @@ def task_process_user_profiles():
 
 
 @celery_task(name="task_update_user_profile")  # pylint: disable=not-callable
-def task_update_user_profile(ona_username):
+def task_update_user_profile(ona_username: str):
     """
     Updates Userprofile metadata
     """

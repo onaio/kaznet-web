@@ -348,7 +348,7 @@ def process_ona_webhook(instance_data: dict):
     return True
 
 
-def get_ona_profile_data(key, username):
+def get_ona_profile_data(key: str, username: str):
     """
     Custom method that fetches the user's profile data
     using a TempToken from OnaData API
@@ -367,7 +367,7 @@ def get_ona_profile_data(key, username):
     return data
 
 
-def update_user_profile_metadata(ona_username):
+def update_user_profile_metadata(ona_username: str):
     """
     Custom method that updates the user's profile with that at OnaData
     """
