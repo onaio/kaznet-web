@@ -110,7 +110,7 @@ class TestOnaTempTokenAuthentication(TestCase):
             'token', self.user_profile.ona_username, 14400)
         cache_mock.assert_any_call(
             self.user_profile.ona_username, 'token', 14400)
-        
+
         self.assertEqual(2, cache_mock.call_count)
 
     @patch('kaznet.apps.ona.api.request_session')
