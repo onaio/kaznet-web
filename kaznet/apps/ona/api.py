@@ -373,18 +373,24 @@ def update_user_profile_metadata(ona_username: str):
     """
     profile = None
 
+    # Try to retrieve the profile associated to the ona_username
     try:
         profile = UserProfile.objects.get(ona_username=ona_username)
     except UserProfile.DoesNotExist:  # pylint: disable=no-member
         pass
 
+    # If profile exists we retrieve token key associated to the user
+    # and get their profile data from ONA
     if profile:
-        key = cache.get(ona_username)
-        profile_data = get_ona_profile_data(key=key, username=ona_username)
-        if profile_data is not None:
-            metadata = profile_data.get('metadata')
-            profile.metadata['last_password_edit'] = metadata.get(
+        token_key = cache.get(ona_username)
+        ona_profile_data = get_ona_profile_data(
+            key=token_key, username=ona_username)
+
+        # If ONA returns data we update out profile Object
+        if ona_profile_data is not None:
+            ona_metadata = ona_profile_data.get('metadata')
+            profile.metadata['last_password_edit'] = ona_metadata.get(
                 'last_password_edit')
-            profile.metadata['gravatar'] = profile_data.get('gravatar')
+            profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
 
             profile.save()

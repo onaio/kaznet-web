@@ -73,6 +73,10 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             # Cache the key and username for a set amount of time
             # Only if the user is not already cached
             if not cached:
+                # We cache twice. Creating one cache with a Key that is
+                # the token key in order to use it for future validation
+                # We cache it with the username as the password too, In order
+                # to be able to retrieve the key within updation functions
                 cache.set(key, username, settings.TEMP_TOKEN_TIMEOUT)
                 cache.set(username, key, settings.TEMP_TOKEN_TIMEOUT)
 
