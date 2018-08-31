@@ -110,6 +110,7 @@ class IsOwnSubmissionOrAdmin(permissions.BasePermission):
                         return (
                             userprofile_params == request.user.userprofile.id
                             or check_admin_permission(request))
+                    # pylint: disable=no-member
                     except UserProfile.DoesNotExist:
                         pass
         if view.action == 'retrieve':
