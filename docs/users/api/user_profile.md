@@ -103,7 +103,8 @@ This request will return a response containing the specific User Profile.
             "national_id": "2342343",
             "submission_count": 0,
             "metadata": {
-            'last_password_edit': '2018-08-20T12:55:00.949705'}  # The user profile owner only gets to view this
+            'last_password_edit': '2018-08-20T12:55:00.949705',
+            'gravatar': 'https://secure.gravatar.com/avatar/329d7539a335a69ec1f218829260856a?s=60&d=https%3A%2F%2Fona.io%2Fstatic%2Fimages%2Fdefault_avatar.png'}  # The user profile owner only gets to view this
         }
     }
 }
