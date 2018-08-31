@@ -88,11 +88,31 @@ class IsOwnSubmissionOrAdmin(permissions.BasePermission):
         Checks if the user is an Admin when trying to list
         """
         if view.action == 'list':
+            # get user query params
             user_params = request.query_params.get('user')
             if user_params is not None:
-                user_params = int(user_params)
-                return (user_params == request.user.id
-                        or check_admin_permission(request))
+                try:
+                    user_id = int(user_params)
+                except ValueError:
+                    pass
+                else:
+                    return (user_id == request.user.id
+                            or check_admin_permission(request))
+            # get userprofile params
+            userprofile_params = request.query_params.get('userprofile')
+            if userprofile_params is not None:
+                try:
+                    userprofile_id = int(userprofile_params)
+                except ValueError:
+                    pass
+                else:
+                    try:
+                        return (
+                            userprofile_id == request.user.userprofile.id
+                            or check_admin_permission(request))
+                    # pylint: disable=no-member
+                    except UserProfile.DoesNotExist:
+                        pass
         if view.action == 'retrieve':
             return True
 

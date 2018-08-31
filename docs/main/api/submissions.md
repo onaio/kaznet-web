@@ -30,6 +30,12 @@ Returns a list of submissions from a specific user if given `user` query paramet
 curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/submissions/?user=17
 ```
 
+Returns a list of submissions from a specific userprofile if given `userprofile` query parameter. The `userprofile` query parameter takes a *integer* which is a unique identifier for a userprofile.
+
+```console
+curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/submissions/?userprofile=1337
+```
+
 Returns a list of submissions with a specific status if given `status` query parameter. The `status` query parameter takes a *string* which can be either **a** for Approved, **b** for Rejected Status, **c** for Under Review, **d** for Pending Review.
 
 ```console
