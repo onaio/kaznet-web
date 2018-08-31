@@ -4,6 +4,7 @@ Filters module for main Kaznet app
 from django_filters import rest_framework as filters
 
 from kaznet.apps.main.models import Task, TaskOccurrence, Location, Submission
+from kaznet.apps.users.models import UserProfile
 
 DATE_LOOKUPS = [
     'exact', 'gt', 'lt', 'gte', 'lte', 'year', 'year__gt', 'year__lt',
@@ -179,6 +180,10 @@ class KaznetSubmissionFilterSet(KaznetFilterSet):
         lookup_expr=DATETIME_LOOKUPS,
         method='filter_modified'
     )
+    userprofile = filters.ModelChoiceFilter(
+        name='user__userprofile',
+        queryset=UserProfile.objects.all()
+    )
 
     # pylint: disable=too-few-public-methods
     class Meta:
@@ -189,6 +194,7 @@ class KaznetSubmissionFilterSet(KaznetFilterSet):
         fields = [
             'task',
             'user',
+            'userprofile',
             'status',
             'location',
             'valid',
