@@ -66,7 +66,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         # make a bunch of submissions
         mommy.make('main.Submission', _quantity=7)
 
-        # make one submission using the user mosh
+        # make one submission using the user dave
         submission = mommy.make('main.Submission', user=dave)
 
         # check that we have 8 submissions
@@ -101,6 +101,60 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         response = view(request=request)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(str(response.data[0]['detail']),
+                         'You shall not pass.')
+
+    def test_userprofile_filter(self):
+        """
+        Test able to filter by userprofile
+        """
+        user = create_admin_user()
+        random = mommy.make('auth.User')
+        dave = mommy.make('auth.User', username='dave', first_name='Dave')
+        daves_profile = dave.userprofile
+
+        # make a bunch of submissions
+        mommy.make('main.Submission', _quantity=7)
+
+        # make one submission using the user dave
+        submission = mommy.make('main.Submission', user=dave)
+
+        # check that we have 8 submissions
+        # pylint: disable=no-member
+        self.assertEqual(Submission.objects.all().count(), 8)
+
+        view = KaznetSubmissionsViewSet.as_view({'get': 'list'})
+
+        # test that we get submissions for dave
+        request = self.factory.get(
+            '/submissions', {'userprofile': daves_profile.id})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
+        self.assertEqual(
+            int(response.data['results'][0]['user']['id']),
+            daves_profile.user.id)
+
+        # test dave can filter for his own submissions
+        request2 = self.factory.get(
+            '/submissions', {'userprofile': daves_profile.id})
+        force_authenticate(request2, user=dave)
+        response2 = view(request=request2)
+        self.assertEqual(response2.status_code, 200)
+        self.assertEqual(len(response2.data['results']), 1)
+        self.assertEqual(response2.data['results'][0]['id'], submission.id)
+        self.assertEqual(
+            int(response2.data['results'][0]['user']['id']),
+            daves_profile.user.id)
+
+        # test random users can't filter for daves submissions
+        request3 = self.factory.get(
+            '/submissions', {'userprofile': daves_profile.id})
+        force_authenticate(request3, user=random)
+        response3 = view(request=request3)
+        self.assertEqual(response3.status_code, 403)
+        self.assertEqual(str(response3.data[0]['detail']),
                          'You shall not pass.')
 
     def test_status_filter(self):
