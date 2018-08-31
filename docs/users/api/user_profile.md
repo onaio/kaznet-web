@@ -69,7 +69,7 @@ curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v
 
 This request will return a response containing the specific User Profile.
 
-```json
+```py
 {
     "data": {
         "type": "UserProfile",
@@ -101,12 +101,14 @@ This request will return a response containing the specific User Profile.
             "expertise": "4",
             "gender": "0",
             "national_id": "2342343",
-            "submission_count": 0
+            "submission_count": 0,
+            "metadata": {
+            'last_password_edit': '2018-08-20T12:55:00.949705',
+            'gravatar': 'https://secure.gravatar.com/avatar/329d7539a335a69ec1f218829260856a?s=60&d=https%3A%2F%2Fona.io%2Fstatic%2Fimages%2Fdefault_avatar.png'}  # The user profile owner only gets to view this
         }
     }
 }
 ```
-
 ### DELETE /api/v1/userprofiles/[pk]/ : **User must be Admin to perform this request**
 
 Deletes a specific User Profile with matching pk.
