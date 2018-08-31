@@ -12,15 +12,15 @@ from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.tasks import (task_fetch_all_instances,
-                                   task_fetch_form_instances,
-                                   task_fetch_project_xforms,
-                                   task_fetch_projects,
-                                   task_fetch_all_user_profiles)
+from kaznet.apps.ona.tasks import (
+    task_fetch_all_instances, task_fetch_form_instances,
+    task_fetch_project_xforms, task_fetch_projects, task_process_user_profiles,
+    task_update_user_profile)
 
 MOCK_PROJECT_DATA = [
     {
-        "projectid": 1337,
+        "projectid":
+        1337,
         "forms": [
             {
                 "name": "Form 66",
@@ -35,9 +35,12 @@ MOCK_PROJECT_DATA = [
                 "is_merged_dataset": False,
             },
         ],
-        "name": "Project of Life",
-        "date_modified": "2018-05-30T07:51:59.267839Z",
-        "deleted_at": None
+        "name":
+        "Project of Life",
+        "date_modified":
+        "2018-05-30T07:51:59.267839Z",
+        "deleted_at":
+        None
     },
     {
         "projectid": 1333337,
@@ -92,18 +95,7 @@ MOCKED_INSTANCES = [
         "_xform_id": 253470,
         "_submission_time": "2017-10-30T09:50:47",
         "_version": "201710300941",
-        "_attachments": [
-            {
-                "mimetype": "image/jpeg",
-                "medium_download_url": "/api/v1/files/5881161?filename=onasupport/attachments/reece-12_48_29.JPG&suffix=medium",  # noqa
-                "download_url": "/api/v1/files/5881161?filename=onasupport/attachments/reece-12_48_29.JPG",  # noqa
-                "filename": "onasupport/attachments/reece-12_48_29.JPG",
-                "instance": 21311503,
-                "small_download_url": "/api/v1/files/5881161?filename=onasupport/attachments/reece-12_48_29.JPG&suffix=small",  # noqa
-                "id": 5881161,
-                "xform": 253470
-            }
-        ],
+        "_attachments": [],
         "_id": 21311503
     },
 ]
@@ -118,17 +110,15 @@ class TestCeleryTasks(TestCase):
     @patch('kaznet.apps.ona.tasks.task_fetch_project_xforms.delay')
     @patch('kaznet.apps.ona.tasks.process_projects')
     @requests_mock.Mocker()
-    def test_task_fetch_projects(
-            self, mocked_process_projects, mocked_fetch_project_task,
-            mocked_request):
+    def test_task_fetch_projects(self, mocked_process_projects,
+                                 mocked_fetch_project_task, mocked_request):
         """
         Test task_fetch_projects
         """
         # mock the request
         mocked_request.get(
             "https://example.com/api/v1/projects?owner=mosh",
-            json=MOCK_PROJECT_DATA
-        )
+            json=MOCK_PROJECT_DATA)
         # run the task
         task_fetch_projects(username=settings.ONA_USERNAME)
         # we should call process_projects
@@ -137,8 +127,7 @@ class TestCeleryTasks(TestCase):
         self.assertEqual(1, mocked_fetch_project_task.call_count)
         mocked_fetch_project_task.assert_called_with(
             forms=MOCK_PROJECT_DATA[0]['forms'],
-            project_id=MOCK_PROJECT_DATA[0]['projectid']
-        )
+            project_id=MOCK_PROJECT_DATA[0]['projectid'])
 
     @patch('kaznet.apps.ona.tasks.process_xforms')
     def test_task_fetch_project_xforms(self, mock):
@@ -146,18 +135,17 @@ class TestCeleryTasks(TestCase):
         Test task_fetch_project_xforms
         """
         # call the task
-        task_fetch_project_xforms(
-            MOCK_PROJECT_DATA[0]['forms'][1],
-            MOCK_PROJECT_DATA[0]['projectid'])
+        task_fetch_project_xforms(MOCK_PROJECT_DATA[0]['forms'][1],
+                                  MOCK_PROJECT_DATA[0]['projectid'])
         # we should have called process_xforms
         mock.assert_called_with(
             forms_data=MOCK_PROJECT_DATA[0]['forms'][1],
-            project_id=MOCK_PROJECT_DATA[0]['projectid']
-        )
+            project_id=MOCK_PROJECT_DATA[0]['projectid'])
 
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True,
-                       ONA_BASE_URL="https://example.com",
-                       ONA_USERNAME='mosh')
+    @override_settings(
+        CELERY_TASK_ALWAYS_EAGER=True,
+        ONA_BASE_URL="https://example.com",
+        ONA_USERNAME='mosh')
     @requests_mock.Mocker()
     def test_fetch_projects_and_xforms(self, mocked_request):
         """
@@ -167,8 +155,7 @@ class TestCeleryTasks(TestCase):
         # mock the request
         mocked_request.get(
             "https://example.com/api/v1/projects?owner=mosh",
-            json=MOCK_PROJECT_DATA
-        )
+            json=MOCK_PROJECT_DATA)
         # run the task
         task_fetch_projects(username=settings.ONA_USERNAME)
         # we should have two projects
@@ -181,24 +168,24 @@ class TestCeleryTasks(TestCase):
     @override_settings(ONA_BASE_URL="https://example.com")
     @patch('kaznet.apps.ona.tasks.process_instance')
     @requests_mock.Mocker()
-    def test_task_fetch_form_instances(
-            self, process_instance_mock, mocked_request):
+    def test_task_fetch_form_instances(self, process_instance_mock,
+                                       mocked_request):
         """
         Test task_fetch_form_instances
         """
         mommy.make('auth.User', username='onasupport')
         xform = mommy.make(
-            'ona.XForm', id=7, ona_pk=897, id_string='attachment_test',
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
             title='attachment test')
         # mock the request
         mocked_request.get(
             "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES
-        )
+            json=MOCKED_INSTANCES)
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100",
-            json=[]
-        )
+            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
         # call the task
         task_fetch_form_instances(xform_id=xform.id)
         # process_instance_mock should have been called twice
@@ -219,17 +206,17 @@ class TestCeleryTasks(TestCase):
         """
         mommy.make('auth.User', username='onasupport')
         xform = mommy.make(
-            'ona.XForm', id=7, ona_pk=897, id_string='attachment_test',
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
             title='attachment test')
         # mock the request
         mocked_request.get(
             "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES
-        )
+            json=MOCKED_INSTANCES)
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100",
-            json=[]
-        )
+            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
         # call the task
         task_fetch_form_instances(xform_id=xform.id)
         # should result in two instances
@@ -245,7 +232,10 @@ class TestCeleryTasks(TestCase):
         mommy.make('ona.XForm', id=67, deleted_at=None)
         form1 = mommy.make('ona.XForm', id=99)
         form2 = mommy.make(
-            'ona.XForm', id=7, ona_pk=897, id_string='attachment_test',
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
             title='attachment test')
 
         mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
@@ -256,11 +246,23 @@ class TestCeleryTasks(TestCase):
         mock.assert_called_once_with(xform_id=7)
 
     @patch('kaznet.apps.ona.tasks.task_update_user_profile.delay')
-    def test_task_fetch_all_user_profiles(self, mock):
+    def test_task_process_user_profiles(self, mock):
         """
         Test update user profiles
         """
-        support_user = mommy.make('auth.User', username='onasupport')
+        support_user = mommy.make(
+            'auth.User', username='onasupport', last_login=timezone.now())
         support_profile = support_user.userprofile
-        task_fetch_all_user_profiles()
-        mock.assert_called_with(username=support_profile.user.username)
+
+        task_process_user_profiles()
+        mock.assert_called_with(ona_username=support_profile.ona_username)
+
+    @patch('kaznet.apps.ona.tasks.update_user_profile_metadata')
+    def test_task_update_user_profile(self, mock):
+        """
+        Test that task_update_user_profile actually calls
+        update_user_profile_metadata
+        """
+        task_update_user_profile('Dave')
+
+        mock.assert_called_once_with('Dave')

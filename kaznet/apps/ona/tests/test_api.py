@@ -15,14 +15,12 @@ from requests.exceptions import RetryError
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
-from kaznet.apps.ona.api import (get_instance, get_instances, get_project,
-                                 get_project_obj, get_projects, get_xform,
-                                 get_xform_obj, process_instance,
-                                 process_instances, process_project,
-                                 process_projects, process_xform,
-                                 process_xforms, request, request_session,
-                                 get_ona_profile_data,
-                                 update_user_profile_metadata)
+from kaznet.apps.ona.api import (
+    get_instance, get_instances, get_project, get_project_obj, get_projects,
+    get_xform, get_xform_obj, process_instance, process_instances,
+    process_project, process_projects, process_xform, process_xforms, request,
+    request_session, update_user_profile_metadata)
+from kaznet.apps.users.models import UserProfile
 from kaznet.apps.ona.models import Instance, Project, XForm
 from django.conf import settings
 
@@ -34,10 +32,7 @@ class TestApiMethods(TestCase):
     """
 
     def setUp(self):
-        self.user = mommy.make(
-            'auth.User',
-            username='sluggie'
-        )
+        self.user = mommy.make('auth.User', username='sluggie')
 
     @override_settings(
         ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
@@ -47,26 +42,26 @@ class TestApiMethods(TestCase):
         Test to see that get_projects returns the
         correct data
         """
-        mocked_projects_data = [
-            {
-                "projectid": 18,
-                "forms": [
-                    {
-                        "name": "Changed",
-                        "formid": 53,
-                        "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                        "is_merged_dataset": False}
-                    ],
-                "name": "Changed2",
-                "date_modified": "2018-05-30T07:51:59.267839Z",
-                "deleted_at": None
-            }
-        ]
+        mocked_projects_data = [{
+            "projectid":
+            18,
+            "forms": [{
+                "name": "Changed",
+                "formid": 53,
+                "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "is_merged_dataset": False
+            }],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
-            json=mocked_projects_data
-            )
+            json=mocked_projects_data)
         response = get_projects(username=settings.ONA_USERNAME)
 
         self.assertEqual(response, mocked_projects_data)
@@ -78,25 +73,21 @@ class TestApiMethods(TestCase):
         Test to see that get_instances returns
         the correct data
         """
-        mocked_instances = [
-            {
-                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "_edited": True,
-                "_last_edited": "2018-05-30T07:51:59.187363Z",
-                "_xform_id": 53,
-                "_id": 1755
-            }
-        ]
+        mocked_instances = [{
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-05-30T07:51:59.187363Z",
+            "_xform_id": 53,
+            "_id": 1755
+        }]
         mocked.get(
-            urljoin(
-                settings.ONA_BASE_URL, '/api/v1/data/53?start=0&limit=100'),
-            json=mocked_instances
-        )
+            urljoin(settings.ONA_BASE_URL,
+                    '/api/v1/data/53?start=0&limit=100'),
+            json=mocked_instances)
         mocked.get(
-            urljoin(
-                settings.ONA_BASE_URL, '/api/v1/data/53?start=100&limit=100'),
-            json=[]
-        )
+            urljoin(settings.ONA_BASE_URL,
+                    '/api/v1/data/53?start=100&limit=100'),
+            json=[])
 
         response = get_instances(53)
         for i in response:
@@ -118,10 +109,7 @@ class TestApiMethods(TestCase):
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/projects/18')
-        mocked.get(
-            url,
-            json=mocked_project_data
-            )
+        mocked.get(url, json=mocked_project_data)
         response = get_project(url)
 
         self.assertTrue(response, mocked_project_data)
@@ -141,10 +129,7 @@ class TestApiMethods(TestCase):
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53')
-        mocked.get(
-            url,
-            json=mocked_xform_data
-            )
+        mocked.get(url, json=mocked_xform_data)
         response = get_xform(53)
 
         self.assertTrue(response, mocked_xform_data)
@@ -165,10 +150,7 @@ class TestApiMethods(TestCase):
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53/142')
-        mocked.get(
-            url,
-            json=mocked_instance_data
-            )
+        mocked.get(url, json=mocked_instance_data)
         response = get_instance(53, 142)
         self.assertTrue(response, mocked_instance_data)
 
@@ -179,21 +161,22 @@ class TestApiMethods(TestCase):
         Test that process_projects works the way it
         should when given proper and improper data
         """
-        mocked_projects_data = [
-            {
-                "projectid": 18,
-                "forms": [
-                    {
-                        "name": "Changed",
-                        "formid": 53,
-                        "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                        "is_merged_dataset": False}
-                    ],
-                "name": "Changed2",
-                "date_modified": "2018-05-30T07:51:59.267839Z",
-                "deleted_at": None
-            }
-        ]
+        mocked_projects_data = [{
+            "projectid":
+            18,
+            "forms": [{
+                "name": "Changed",
+                "formid": 53,
+                "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "is_merged_dataset": False
+            }],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
 
         # Test that when valid projects data is passed it calls process_project
         process_projects(mocked_projects_data)
@@ -243,14 +226,12 @@ class TestApiMethods(TestCase):
         Test that process_xforms works the way it
         should when given proper and improper data
         """
-        mocked_forms_data = [
-            {
-                "name": "Changed",
-                "formid": 53,
-                "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "is_merged_dataset": False
-            }
-        ]
+        mocked_forms_data = [{
+            "name": "Changed",
+            "formid": 53,
+            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "is_merged_dataset": False
+        }]
 
         # Test that when valid forms data is passed it calls process_xform
         process_xforms(mocked_forms_data, 18)
@@ -288,8 +269,7 @@ class TestApiMethods(TestCase):
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/projects/18'),
-            json=mocked_project_data
-        )
+            json=mocked_project_data)
 
         self.assertEqual(XForm.objects.all().count(), 0)
         self.assertEqual(Project.objects.all().count(), 0)
@@ -363,20 +343,14 @@ class TestApiMethods(TestCase):
         """
         Test that process_instances calls process_instance
         """
-        mocked_instances = (
-            [
-                [
-                    {
-                        "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                        "_edited": True,
-                        "_last_edited": "2018-05-30T07:51:59.187363Z",
-                        "_xform_id": 53,
-                        "_submitted_by": "sluggie",
-                        "_id": 1755
-                    }
-                ]
-            ]
-        )
+        mocked_instances = ([[{
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": True,
+            "_last_edited": "2018-05-30T07:51:59.187363Z",
+            "_xform_id": 53,
+            "_submitted_by": "sluggie",
+            "_id": 1755
+        }]])
 
         mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
 
@@ -419,18 +393,15 @@ class TestApiMethods(TestCase):
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/projects/18'),
-            json=mocked_project_data
-        )
+            json=mocked_project_data)
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/projects/20'),
-            json=mocked_project_data
-        )
+            json=mocked_project_data)
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/forms/53'),
-            json=mocked_form_data
-        )
+            json=mocked_form_data)
         self.assertEqual(Instance.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
         self.assertEqual(Project.objects.all().count(), 0)
@@ -464,8 +435,7 @@ class TestApiMethods(TestCase):
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/forms/52'),
-            json=mocked_form_data
-        )
+            json=mocked_form_data)
 
         self.assertEqual(Instance.objects.all().count(), 1)
         self.assertEqual(XForm.objects.all().count(), 1)
@@ -545,20 +515,15 @@ class TestApiMethods(TestCase):
         Test that request returns correct json data when given
         valid url and args
         """
-        mocked_response = [
-            {
-                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "_edited": False,
-                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
-                "_xform_id": 53,
-                "_id": 1755
-            }
-        ]
+        mocked_response = [{
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": 53,
+            "_id": 1755
+        }]
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53')
-        mocked.get(
-            url,
-            json=mocked_response
-            )
+        mocked.get(url, json=mocked_response)
         response = request(url)
 
         self.assertEqual(mocked_response, response)
@@ -570,10 +535,7 @@ class TestApiMethods(TestCase):
         Test that request returns None for Incorrect Data
         """
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53')
-        mocked.get(
-            url,
-            text='Oh! Hello There!'
-            )
+        mocked.get(url, text='Oh! Hello There!')
         response = request(url)
 
         self.assertEqual(response, None)
@@ -607,24 +569,21 @@ class TestApiMethods(TestCase):
                 url='http://httpbin.org/status/500',
                 method='GET',
                 retries=3,
-                backoff_factor=0
-                )
+                backoff_factor=0)
 
         with self.assertRaises(RetryError):
             request_session(
                 url='http://httpbin.org/status/502',
                 method='GET',
                 retries=3,
-                backoff_factor=0
-                )
+                backoff_factor=0)
 
         with self.assertRaises(RetryError):
             request_session(
                 url='http://httpbin.org/status/504',
                 method='GET',
                 retries=3,
-                backoff_factor=0
-                )
+                backoff_factor=0)
 
     @patch('kaznet.apps.ona.api.Retry._sleep_backoff')
     def test_request_session_retry(self, mocked):
@@ -641,8 +600,7 @@ class TestApiMethods(TestCase):
                 url='http://httpbin.org/status/504',
                 method='GET',
                 retries=2,
-                backoff_factor=0
-                )
+                backoff_factor=0)
 
         # We assert it's 3 since _sleep_backoff is called
         # first on Initialization Then repeated each Retry
@@ -671,8 +629,7 @@ class TestApiMethods(TestCase):
 
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/projects/3'),
-            json=mocked_project_data
-        )
+            json=mocked_project_data)
         self.assertEqual(Project.objects.all().count(), 1)
         project = get_project_obj(ona_project_id=3)
 
@@ -688,10 +645,7 @@ class TestApiMethods(TestCase):
             "deleted_at": None
         }
         url = urljoin(settings.ONA_BASE_URL, '/api/v1/projects/3')
-        mocked.get(
-            url,
-            json=mocked_project_data
-        )
+        mocked.get(url, json=mocked_project_data)
         self.assertEqual(Project.objects.all().count(), 2)
         mocked_project = get_project_obj(project_url=url)
 
@@ -708,40 +662,54 @@ class TestApiMethods(TestCase):
         self.assertTrue(mocked_xform, project)
 
     @requests_mock.Mocker()
-    def test_get_and_update_profile_metadata(self, mocked):
+    @patch('kaznet.apps.ona.api.cache')
+    def test_update_user_profile_metadata(self, mocked, mocked_cache):
+        """
+        Test that update_user_profile_metadata updates
+        with correct data
+        """
+        support_user = mommy.make(
+            'auth.User', username='onasupport')
+        profile = support_user.userprofile
+        profile.ona_username = 'bob'
+        profile.save()
+
         mocked_user_profile_data = {
             'id': self.user.pk,
             'url': 'http://testserver/api/v1/profiles/bob',
-            'username': u'bob',
-            'first_name': u'Bob',
+            'username': 'bob',
+            'first_name': 'Bob',
             'last_name': 'erama',
-            'email': u'bob@columbia.edu',
-            'city': u'Bobville',
-            'country': u'US',
-            'organization': u'Bob Inc.',
-            'website': u'bob.com',
-            'twitter': u'boberama',
+            'email': 'bob@columbia.edu',
+            'city': 'Bobville',
+            'country': 'US',
+            'organization': 'Bob Inc.',
+            'website': 'bob.com',
+            'twitter': 'boberama',
             'require_auth': False,
             'user': 'http://testserver/api/v1/users/bob',
             'is_org': False,
-            'metadata': {'last_password_edit': timezone.now().isoformat()},
+            'gravatar': 'https://somelink.com/me.png',
+            'metadata': {
+                'last_password_edit': timezone.now().isoformat()
+            },
             'joined_on': self.user.date_joined.isoformat(),
-            'name': u'Bob erama'
+            'name': 'Bob erama'
         }
 
-        mocked.get(urljoin(
-            settings.ONA_BASE_URL, 'api/v1/profiles/{username}/'.format(
-                username=mocked_user_profile_data['username'])),
-            json=mocked_user_profile_data
-        )
-        response = get_ona_profile_data(
-            username=mocked_user_profile_data['username'])
-        self.assertEqual(response, mocked_user_profile_data)
+        mocked_cache.get.return_value = 'token'
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/profiles/bob/'),
+            json=mocked_user_profile_data)
 
-        username = self.user.userprofile.user.username
-        profile = update_user_profile_metadata(
-            username=username, profile_data=response)
-        self.assertEqual(self.user.userprofile, profile)
+        update_user_profile_metadata(ona_username='bob')
+
+        # pylint: disable=no-member
+        profile = UserProfile.objects.get(ona_username='bob')
+
         self.assertEqual(
             mocked_user_profile_data['metadata']['last_password_edit'],
             profile.metadata['last_password_edit'])
+        self.assertEqual(
+            mocked_user_profile_data['gravatar'],
+            profile.metadata['gravatar'])

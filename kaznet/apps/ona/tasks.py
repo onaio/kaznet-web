@@ -1,7 +1,12 @@
 """
 Celery tasks module for Ona app
 """
+from datetime import timedelta
 from time import sleep
+
+from django.contrib.auth.models import User
+from django.utils import timezone
+
 from celery import task as celery_task
 
 from kaznet.apps.main.models import Task
@@ -9,7 +14,6 @@ from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
                                  process_projects, process_xforms,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
-from kaznet.apps.users.models import UserProfile
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -69,20 +73,23 @@ def task_fetch_all_instances():
                 task_fetch_form_instances.delay(xform_id=form.id)
 
 
+@celery_task(name="task_process_user_profiles")  # pylint: disable=not-callable
+def task_process_user_profiles():
+    """
+    Process the User Model Objects and Updates All Objects that need
+    Updating
+    """
+    time = timezone.now() - timedelta(minutes=30)
+    user_list = User.objects.filter(last_login__gt=time)
+
+    for user in user_list:
+        task_update_user_profile.delay(
+            ona_username=user.userprofile.ona_username)
+
+
 @celery_task(name="task_update_user_profile")  # pylint: disable=not-callable
-def task_update_user_profile(username: str):
+def task_update_user_profile(ona_username: str):
     """
-    Updates user profile
+    Updates Userprofile metadata
     """
-    update_user_profile_metadata(username=username)
-
-
-# pylint: disable=not-callable
-@celery_task(name="task_fetch_all_user_profiles")
-def task_fetch_all_user_profiles():
-    """
-    Fetch all Kaznet user profiles
-    """
-    profiles = UserProfile.objects.all()
-    for profile in profiles:
-        task_update_user_profile.delay(username=profile.user.username)
+    update_user_profile_metadata(ona_username)

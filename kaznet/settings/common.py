@@ -176,6 +176,7 @@ ONA_PASSWORD = 'Password was here'
 ONA_MEMBERS_TEAM_ID = 102
 ONA_STATUS_FIELD = 'status'
 ONA_COMMENTS_FIELD = 'comments'
+ONA_LAST_PASSWORD_EDIT_FIELD = 'last_password_edit'
 
 # Allauth
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"

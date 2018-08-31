@@ -106,8 +106,12 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         self.auth.authenticate_credentials('token')
 
-        cache_mock.assert_called_with(
+        cache_mock.assert_any_call(
             'token', self.user_profile.ona_username, 14400)
+        cache_mock.assert_any_call(
+            self.user_profile.ona_username, 'token', 14400)
+
+        self.assertEqual(2, cache_mock.call_count)
 
     @patch('kaznet.apps.ona.api.request_session')
     @patch('django.core.cache.cache.get')

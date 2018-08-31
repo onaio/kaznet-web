@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 
 import dateutil.parser
 import requests
@@ -347,33 +348,49 @@ def process_ona_webhook(instance_data: dict):
     return True
 
 
-def get_ona_profile_data(username: str = settings.ONA_USERNAME):
+def get_ona_profile_data(key: str, username: str):
     """
-    Custom method that fetches the user's profile data from OnaData API
+    Custom method that fetches the user's profile data
+    using a TempToken from OnaData API
     """
-    args = {'owner': username}
-    url = urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}/')
-    user_profile_data = request(url, args)
+    data = None
+    headers = {'Authorization': f'TempToken {key}'}
+    response = request_session(
+        urljoin(settings.ONA_BASE_URL, f'api/v1/profiles/{username}/'),
+        'GET',
+        headers=headers
+    )
 
-    return user_profile_data
+    if response.status_code == 200:
+        data = response.json()
+
+    return data
 
 
-def update_user_profile_metadata(username: str = settings.ONA_USERNAME,
-                                 profile_data: dict = None):
+def update_user_profile_metadata(ona_username: str):
     """
     Custom method that updates the user's profile with that at OnaData
     """
+    profile = None
+
+    # Try to retrieve the profile associated to the ona_username
     try:
-        profile = UserProfile.objects.get(user__username=username)
+        profile = UserProfile.objects.get(ona_username=ona_username)
     except UserProfile.DoesNotExist:  # pylint: disable=no-member
         pass
-    else:
-        if profile_data:
-            ona_profile_data = profile_data
-        else:
-            ona_profile_data = get_ona_profile_data(username=username)
-        if profile and ona_profile_data:
-            if profile.metadata != ona_profile_data['metadata']:
-                profile.metadata = ona_profile_data['metadata']
-        profile.save()
-        return profile
+
+    # If profile exists we retrieve token key associated to the user
+    # and get their profile data from ONA
+    if profile:
+        token_key = cache.get(ona_username)
+        ona_profile_data = get_ona_profile_data(
+            key=token_key, username=ona_username)
+
+        # If ONA returns data we update out profile Object
+        if ona_profile_data is not None:
+            ona_metadata = ona_profile_data.get('metadata')
+            profile.metadata['last_password_edit'] = ona_metadata.get(
+                'last_password_edit')
+            profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
+
+            profile.save()

@@ -78,7 +78,7 @@ def update_details(  # pylint: disable=too-many-arguments
     """
     Custom Method that Updates User Details
     """
-    errors = None
+    data = None
 
     response = request_session(
         urljoin(api_root, f'api/v1/profiles/{username}'),
@@ -92,12 +92,13 @@ def update_details(  # pylint: disable=too-many-arguments
     )
 
     if response.status_code != 200:
-        errors = response.json()
+        data = response.json()
         updated = False
     else:
+        data = response.json()
         updated = True
 
-    return (updated, errors)
+    return (updated, data)
 
 
 def change_password(
