@@ -92,23 +92,23 @@ class IsOwnSubmissionOrAdmin(permissions.BasePermission):
             user_params = request.query_params.get('user')
             if user_params is not None:
                 try:
-                    user_params = int(user_params)
+                    user_id = int(user_params)
                 except ValueError:
                     pass
                 else:
-                    return (user_params == request.user.id
+                    return (user_id == request.user.id
                             or check_admin_permission(request))
             # get userprofile params
             userprofile_params = request.query_params.get('userprofile')
             if userprofile_params is not None:
                 try:
-                    userprofile_params = int(userprofile_params)
+                    userprofile_id = int(userprofile_params)
                 except ValueError:
                     pass
                 else:
                     try:
                         return (
-                            userprofile_params == request.user.userprofile.id
+                            userprofile_id == request.user.userprofile.id
                             or check_admin_permission(request))
                     # pylint: disable=no-member
                     except UserProfile.DoesNotExist:
