@@ -88,5 +88,6 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
             'shapefile',
             'parent',
             'created',
-            'modified'
+            'modified',
+            'has_submissions',
         ]

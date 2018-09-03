@@ -53,7 +53,8 @@ class TestLocationSerializer(TestCase):
             'created',
             'geopoint',
             'name',
-            'shapefile'
+            'shapefile',
+            'has_submissions'
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data)))
