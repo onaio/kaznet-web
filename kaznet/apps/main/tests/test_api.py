@@ -47,9 +47,11 @@ class TestAPIMethods(MainTestBase):
                 -1.294328
             ],
             "_status": "submitted_via_web",
+            "_review_status": "1",
+            "_review_comments": "This is a review comment",
             "_submitted_by": "dave",
             "_xform_id": 25,
-            "_submission_time": "2018-05-30T07:42:07",
+            "_submission_time": "2019-09-01T07:42:07",
             "_version": "vvadCJQ9XjXXSMmFSnKZqK",
             "_attachments": [],
             "_id": 17
@@ -119,7 +121,8 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(
             data, task)
 
-        self.assertEqual(Submission.REJECTED, validated_data['status'])
+        self.assertEqual(
+            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
         self.assertEqual(
             INCORRECT_LOCATION, validated_data[settings.ONA_COMMENTS_FIELD])
 
@@ -175,7 +178,7 @@ class TestAPIMethods(MainTestBase):
         instance = self._create_instance()
         data = instance.json
 
-        data['_submission_time'] = "2018-09-01T20:00:00"
+        data['_submission_time'] = "2019-09-01T20:00:00"
         rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
 
         task = mommy.make(
@@ -225,7 +228,7 @@ class TestAPIMethods(MainTestBase):
         data = instance.json
 
         userprofile.expertise = '4'
-        data['_submission_time'] = "2018-09-01T20:00:00"
+        data['_submission_time'] = "2019-09-01T20:00:00"
 
         rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
 
