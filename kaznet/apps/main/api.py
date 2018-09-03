@@ -161,18 +161,23 @@ def validate_submission_time(task: object, data: dict):
     """
     # We turn the isoformated string we get from Instance data into
     # a datetime object for easier comparison
-    submission_time = dateutil.parser.parse(data['_submission_time'])
-
-    # We query all TaskOccurence Objects for the Submissions Task
-    # To see if the user submitted the data at an acceptable time range
-    if TaskOccurrence.objects.filter(  # pylint: disable=no-member
-            task=task).filter(
-                date__exact=submission_time.date()).filter(
+    try:
+        submission_time = dateutil.parser.parse(data['_submission_time'])
+    except ValueError:
+        pass  # not a valid datetime string
+    else:
+        # We query all TaskOccurrence Objects for the Submissions Task
+        # To see if the user submitted the data at an acceptable time range
+        if TaskOccurrence.objects.filter(  # pylint: disable=no-member
+                task=task).filter(
+                    date__day=submission_time.day,
+                    date__month=submission_time.month,
+                    date__year=submission_time.year
+                ).filter(
                     start_time__lte=submission_time.time()).filter(
                         end_time__gte=submission_time.time()).exists():
-        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
-        return data
-
+            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
+            return data
     # We reject the submission if there was no TaskOccurence
     # That match the submission_time
     data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
