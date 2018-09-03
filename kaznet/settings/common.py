@@ -174,8 +174,8 @@ ONA_CROSS_AUTHENTICATION_URL = 'https://stage-api.ona.io/api/v1/user'
 ONA_USERNAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
 ONA_MEMBERS_TEAM_ID = 102
-ONA_STATUS_FIELD = 'status'
-ONA_COMMENTS_FIELD = 'comments'
+ONA_STATUS_FIELD = '_review_status'
+ONA_COMMENTS_FIELD = '_review_comments'
 ONA_LAST_PASSWORD_EDIT_FIELD = 'last_password_edit'
 
 # Allauth

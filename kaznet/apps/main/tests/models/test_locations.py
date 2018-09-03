@@ -54,6 +54,20 @@ class TestLocations(TestCase):
         self.assertEqual(None, nairobi.parent_name)
         self.assertEqual("Nairobi", hurlingham.parent_name)
 
+    def test_has_submissions(self):
+        """
+        Test the has_submissions property
+        """
+        nairobi = mommy.make('main.Location', name="Nairobi")
+        voi = mommy.make('main.Location', name="Voi")
+        # make a Voi submission
+        mommy.make(
+            'main.Submission',
+            location=voi,
+            _fill_optional=['user', 'comment', 'submission_time'])
+        self.assertEqual(False, nairobi.has_submissions)
+        self.assertEqual(True, voi.has_submissions)
+
     def test_location_type_name(self):
         """
         Test location_type_name
