@@ -84,6 +84,7 @@ This request will return a response containing the specific location.
             "parent_name": "Nairobi",
             "location_type_name": "Area",
             "description": "SUPER LOCATION!!!",
+            "has_submissions": true,
             "geopoint": {
                 "type": "Point",
                 "coordinates": [
