@@ -62,6 +62,20 @@ class Location(BaseLocation):
         except AttributeError:
             return None
 
+    # pylint: disable=no-member
+    def get_has_submissions(self):
+        """
+        method to check if this location has submissions
+        """
+        return self.submission_set.exists()
+
+    @property
+    def has_submissions(self):
+        """
+        Returns a bool indicating if there are submission for this location
+        """
+        return self.get_has_submissions()
+
     @property
     def parent_name(self):
         """
