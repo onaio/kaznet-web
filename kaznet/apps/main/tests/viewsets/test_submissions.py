@@ -27,38 +27,42 @@ class TestSubmissionExportViewSet(MainTestBase):
     def setUp(self):
         super().setUp()
         self.factory = APIRequestFactory()
+        self.expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,True,a,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,True,a,,50.00,KES,,\r\n"  # noqa
+        # make two submissions that work with self.expected
+        self.task = mommy.make('main.Task', name='Quest')
+        self.coco_user = mommy.make('auth.User', first_name='Coco')
+        mommy.make(
+            'main.Submission',
+            task=self.task,
+            location=mommy.make('main.Location', name='Voi'),
+            user=self.coco_user,
+            bounty=mommy.make(
+                'main.Bounty',
+                task=self.task,
+                amount=Money('50', 'KES')),
+            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            status=Submission.APPROVED,
+            id=888
+        )
+        mommy.make(
+            'main.Submission',
+            task=self.task,
+            location=mommy.make('main.Location', name='Voi'),
+            user=self.coco_user,
+            bounty=mommy.make(
+                'main.Bounty',
+                task=self.task,
+                amount=Money('50', 'KES')),
+            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            status=Submission.APPROVED,
+            id=999
+        )
 
     def test_csv_export(self):
         """
         Test CSV export
         """
         user = create_admin_user()
-
-        task = mommy.make('main.Task', name='Quest')
-        mommy.make(
-            'main.Submission',
-            task=task,
-            location=mommy.make('main.Location', name='Voi'),
-            user=mommy.make('auth.User', first_name='Coco'),
-            bounty=mommy.make(
-                'main.Bounty',
-                task=task,
-                amount=Money('50', 'KES')),
-            submission_time=parse("2018-09-04T03:39:29+00:00"),
-            id=888
-        )
-        mommy.make(
-            'main.Submission',
-            task=task,
-            location=mommy.make('main.Location', name='Voi'),
-            user=mommy.make('auth.User', first_name='Coco'),
-            bounty=mommy.make(
-                'main.Bounty',
-                task=task,
-                amount=Money('50', 'KES')),
-            submission_time=parse("2018-09-04T03:39:29+00:00"),
-            id=999
-        )
 
         view = SubmissionExportViewSet.as_view({'get': 'list'})
 
@@ -68,10 +72,141 @@ class TestSubmissionExportViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.streaming)
 
-        expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n"  # noqa
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
+
+    def test_csv_export_task_filter(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        # make 3 other random submissions
+        mommy.make('main.Submission', _quantity=3)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get(
+            '/exports/submissions',
+            {'format': 'csv', 'task': self.task.id}
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        # we have filtered out the 3 new submissions, check our data
+        self.assertEqual(self.expected, received)
+
+    def test_csv_export_user_filter(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        # make 16 other random submissions
+        mommy.make('main.Submission', _quantity=16)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get(
+            '/exports/submissions',
+            {'format': 'csv', 'user': self.coco_user.id}
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        # we have filtered out the 16 new submissions, check our data
+        self.assertEqual(self.expected, received)
+
+    def test_csv_export_userprofile_filter(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        # make 10 other random submissions
+        mommy.make('main.Submission', _quantity=10)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get(
+            '/exports/submissions',
+            {'format': 'csv', 'userprofile': self.coco_user.userprofile.id}
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        # we have filtered out the 10 new submissions, check our data
+        self.assertEqual(self.expected, received)
+
+    def test_csv_export_modified_filter(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        # lets get one of the submissions we had created earlier
+        the_one_submission = Submission.objects.get(pk=999)
+
+        # make 15 other random submissions
+        mommy.make('main.Submission', _quantity=15)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        # filter to only get submissions modified before the_one_submission
+        request = self.factory.get(
+            '/exports/submissions',
+            {
+                'format': 'csv',
+                'modified__lte': str(the_one_submission.modified)
+            }
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        # we have filtered out the 15 new submissions, check our data
+        self.assertEqual(self.expected, received)
+
+    def test_csv_export_status_filter(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        # make 10 other random submissions
+        mommy.make('main.Submission', _quantity=10, status=Submission.PENDING)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get(
+            '/exports/submissions',
+            {'format': 'csv', 'status': Submission.APPROVED}
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        # we have filtered out the 10 new submissions, check our data
+        self.assertEqual(self.expected, received)
 
 
 class TestKaznetSubmissionViewSet(MainTestBase):
