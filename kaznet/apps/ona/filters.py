@@ -37,6 +37,10 @@ class XFormFilterSet(filters.FilterSet):
             target_content_type__model='xform').values_list(
                 'target_object_id', flat=True)
 
+        # ensure the list has no None values as this ruins the queryset
+        # statements below
+        form_ids = [_ for _ in form_ids if _ is not None]
+
         if value is True:
             return queryset.filter(id__in=form_ids)
 
