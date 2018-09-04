@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from tasking.models import BaseSubmission
-from .managers import SubmissionManager
+from kaznet.apps.main.models.managers import SubmissionManager
 
 
 class Submission(BaseSubmission):
