@@ -5,7 +5,6 @@ from django.db import models
 from django.utils.translation import ugettext as _
 
 from tasking.models import BaseSubmission
-from kaznet.apps.main.models.managers import SubmissionManager
 
 
 class Submission(BaseSubmission):
@@ -34,7 +33,6 @@ class Submission(BaseSubmission):
         on_delete=models.PROTECT,
         help_text=_('This represents the Location.')
     )
-    objects = SubmissionManager()
 
     # pylint: disable=no-self-use
     # pylint: disable=too-few-public-methods

@@ -8,7 +8,6 @@ from django.test import TestCase
 
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
-from kaznet.apps.main.models.submissions import Submission
 
 
 class TestSubmission(TestCase):
@@ -63,23 +62,3 @@ class TestSubmission(TestCase):
             _fill_optional=['user', 'comment', 'submission_time'])
 
         self.assertEqual(submission.bounty.id, bounty_instance.id)
-
-    def test_submission_objects_filters(self):
-        cattle = mommy.make(
-            'main.Task',
-            name='Cattle Price')
-        bounty_instance = mommy.make(
-            'main.Bounty',
-            task=cattle)
-        submission = mommy.make(
-            'main.Submission',
-            task=cattle,
-            bounty=bounty_instance,
-            status='a')
-        approved_submissions = Submission.objects.approved()
-        rejected_submissions = Submission.objects.rejected()
-        self.assertEqual(approved_submissions[0], submission)
-        self.assertEqual(rejected_submissions.count(), 0)
-        submission.status = 'b'
-        submission.save()
-        self.assertEqual(approved_submissions.count(), 0)
