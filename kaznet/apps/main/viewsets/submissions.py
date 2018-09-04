@@ -59,12 +59,7 @@ class SubmissionExportViewSet(viewsets.ReadOnlyModelViewSet):
         CSVStreamingRenderer,
     ]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
-    filter_fields = [
-        'task',
-        'user',
-        'location',
-        'status'
-    ]
+    filter_class = KaznetSubmissionFilterSet
     ordering_fields = [
         'submission_time',
         'task__id',
@@ -77,10 +72,11 @@ class SubmissionExportViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if request.GET.get('format') == 'csv':
             renderer = CSVStreamingRenderer()
+            queryset = self.filter_queryset(self.get_queryset())
 
             response = StreamingHttpResponse(
                 renderer.render({
-                    'queryset': self.get_queryset(),
+                    'queryset': queryset,
                     'serializer': self.serializer_class,
                     'context': {'request': request},
                 }), content_type='text/csv')
