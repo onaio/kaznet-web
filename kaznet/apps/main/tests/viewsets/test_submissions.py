@@ -208,6 +208,20 @@ class TestSubmissionExportViewSet(MainTestBase):
         # we have filtered out the 10 new submissions, check our data
         self.assertEqual(self.expected, received)
 
+    def test_csv_export_permissions_required(self):
+        """
+        Test CSV export permissions required
+        """
+        user = mommy.make('auth.User', username='somerandomuser')
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get('/exports/submissions', {'format': 'csv'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(str(response.data['detail']),
+                         'You shall not pass.')
+
 
 class TestKaznetSubmissionViewSet(MainTestBase):
     """
