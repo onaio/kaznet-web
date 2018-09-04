@@ -1,15 +1,15 @@
 """
 Main Submissions ViewSet Module
 """
-from django.http import StreamingHttpResponse
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, renderers, viewsets
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_csv.renderers import CSVStreamingRenderer
-
+from django.http import StreamingHttpResponse
+from django.conf import settings
+from kaznet.apps.main.renderers import CSVStreamingRenderer
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.filters import KaznetSubmissionFilterSet
 from kaznet.apps.main.models import Submission
@@ -77,10 +77,19 @@ class SubmissionExportViewSet(viewsets.ReadOnlyModelViewSet):
         """
         if request.GET.get('format') == 'csv':
             renderer = CSVStreamingRenderer()
-            queryset = self.get_queryset()
-            data = self.serializer_class(queryset, many=True).data
-            response = StreamingHttpResponse(renderer.render(data),
-                                             content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="f.csv"'
+
+            response = StreamingHttpResponse(
+                renderer.render({
+                    'queryset': self.get_queryset(),
+                    'serializer': self.serializer_class,
+                    'context': {'request': request},
+                }), content_type='text/csv')
+
+            filename = settings.EXPORT_FILENAME
+
+            response['Content-Disposition'] = \
+                f'attachment; filename="{filename}.csv"'
+
             return response
+
         return super().list(request, *args, **kwargs)
