@@ -2,6 +2,7 @@
 Test for KaznetSubmissionSerializer
 """
 from collections import OrderedDict
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -184,6 +185,7 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
         """
         """
         submission = self._create_submission()
+        submission.refresh_from_db()
 
         userprofile = submission.user.userprofile
         userprofile.phone_number = '+254722000000'
@@ -214,11 +216,13 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
         self.assertEqual("Cow Prices", serializer_instance.data['task'])
         self.assertEqual("Nairobi", serializer_instance.data['location'])
         self.assertEqual(
-            self.now.astimezone(pytz.timezone('Africa/Nairobi')).isoformat(),
+            self.now.astimezone(pytz.timezone('UTC')).isoformat(),
             serializer_instance.data['submission_time'])
         self.assertEqual(
-            Submission.APPROVED, serializer_instance.data['status'])
-        self.assertEqual('99.00', serializer_instance.data['amount'])
+            Submission.REJECTED, serializer_instance.data['status'])
+        self.assertEqual(
+            Decimal(99.00),
+            serializer_instance.data['amount'])
         self.assertEqual('KES', serializer_instance.data['currency'])
         self.assertEqual(
             '+254722000000', serializer_instance.data['phone_number'])

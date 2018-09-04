@@ -2,18 +2,76 @@
 Tests KaznetSubmissions viewsets.
 """
 from datetime import timedelta
+from io import BytesIO
 
 from django.utils import timezone
 
 import pytz
 from dateutil.parser import parse
+from django_prices.models import Money
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.main.viewsets import KaznetSubmissionsViewSet
+from kaznet.apps.main.viewsets import (KaznetSubmissionsViewSet,
+                                       SubmissionExportViewSet)
 from kaznet.apps.users.tests.base import create_admin_user
+
+
+class TestSubmissionExportViewSet(MainTestBase):
+    """
+    Test SubmissionExportViewSet
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.factory = APIRequestFactory()
+
+    def test_csv_export(self):
+        """
+        Test CSV export
+        """
+        user = create_admin_user()
+
+        task = mommy.make('main.Task', name='Quest')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            location=mommy.make('main.Location', name='Voi'),
+            user=mommy.make('auth.User', first_name='Coco'),
+            bounty=mommy.make(
+                'main.Bounty',
+                task=task,
+                amount=Money('50', 'KES')),
+            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            id=888
+        )
+        mommy.make(
+            'main.Submission',
+            task=task,
+            location=mommy.make('main.Location', name='Voi'),
+            user=mommy.make('auth.User', first_name='Coco'),
+            bounty=mommy.make(
+                'main.Bounty',
+                task=task,
+                amount=Money('50', 'KES')),
+            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            id=999
+        )
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        request = self.factory.get('/exports/submissions', {'format': 'csv'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+        expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n"  # noqa
+        received = BytesIO(b''.join(response.streaming_content)).getvalue()
+
+        self.assertEqual(expected, received)
 
 
 class TestKaznetSubmissionViewSet(MainTestBase):
