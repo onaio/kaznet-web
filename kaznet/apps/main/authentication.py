@@ -39,6 +39,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
 
         return self.authenticate_credentials(auth[1], request)
 
+    # pylint: disable=arguments-differ
     def authenticate_credentials(self, key: str, request: object = None):
         username = cache.get(key)
         cached = False
