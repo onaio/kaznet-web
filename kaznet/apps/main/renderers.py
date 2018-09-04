@@ -12,7 +12,11 @@ class CSVStreamingRenderer(CSVRenderer):
     tabilize() call is not iterator-friendly.
     """
 
-    def render(self, data, media_type=None, renderer_context={}):
+    # pylint: disable=arguments-differ
+    def render(
+            self, data: dict,
+            media_type: str = None,
+            renderer_context: dict = dict):
         """
         Prepare and render response
         """
@@ -21,20 +25,21 @@ class CSVStreamingRenderer(CSVRenderer):
             serializer = data['serializer']
             context = data['context']
         except KeyError:
-            return None
+            yield None
+        else:
+            csv_buffer = Echo()
+            csv_writer = csv.writer(csv_buffer)
 
-        csv_buffer = Echo()
-        csv_writer = csv.writer(csv_buffer)
-
-        header_fields = list()
-        for item in queryset:
-            # yield the headers
-            if len(header_fields) < 1:
-                header_fields = list(serializer(item, context=context).fields)
-                yield csv_writer.writerow(header_fields)
-            # yield the actual data
-            items = serializer(item, context=context).data
-            ordered = [items[column] for column in header_fields]
-            yield csv_writer.writerow([
-                elem for elem in ordered
-            ])
+            header_fields = list()
+            for item in queryset:
+                # yield the headers
+                if not header_fields:
+                    header_fields = list(
+                        serializer(item, context=context).fields)
+                    yield csv_writer.writerow(header_fields)
+                # yield the actual data
+                items = serializer(item, context=context).data
+                ordered = [items[column] for column in header_fields]
+                yield csv_writer.writerow([
+                    elem for elem in ordered
+                ])

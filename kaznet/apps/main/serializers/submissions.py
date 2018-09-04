@@ -100,61 +100,66 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
 
         model = Submission
 
-    def get_user(self, obj):
+    def get_user(self, obj):  # pylint: disable=no-self-use
         """
         Get the user field
         """
         return obj.user.userprofile.get_name()
 
-    def get_task(self, obj):
+    def get_task(self, obj):  # pylint: disable=no-self-use
         """
         Get the task field
         """
         return obj.task.name
 
-    def get_location(self, obj):
+    def get_location(self, obj):  # pylint: disable=no-self-use
         """
         Get the location field
         """
         if obj.location:
             return obj.location.name
+        return None
 
-    def get_submission_time(self, obj):
+    def get_submission_time(self, obj):  # pylint: disable=no-self-use
         """
         Get the submission_time field
         """
         return obj.submission_time.isoformat()
 
-    def get_amount(self, obj):
+    def get_amount(self, obj):  # pylint: disable=no-self-use
         """
         Get the amount field
         """
         if obj.amount:
             return obj.amount.amount
+        return None
 
-    def get_currency(self, obj):
+    def get_currency(self, obj):  # pylint: disable=no-self-use
         """
         Get the currency field
         """
         if obj.amount:
             return obj.amount.currency
+        return None
 
-    def get_status(self, obj):
+    def get_status(self, obj):  # pylint: disable=no-self-use
         """
         Get the status field
         """
         return obj.status
 
-    def get_phone_number(self, obj):
+    def get_phone_number(self, obj):  # pylint: disable=no-self-use
         """
         Get the phone_number field
         """
         if obj.user.userprofile.phone_number:
             return obj.user.userprofile.phone_number.as_e164
+        return None
 
-    def get_payment_number(self, obj):
+    def get_payment_number(self, obj):  # pylint: disable=no-self-use
         """
         Get the payment_number field
         """
         if obj.user.userprofile.payment_number:
             return obj.user.userprofile.payment_number.as_e164
+        return None
