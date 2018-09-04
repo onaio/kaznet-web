@@ -5,7 +5,7 @@ from rest_framework import serializers as drf_serializers
 from rest_framework_json_api import serializers
 from tasking.common_tags import CANT_EDIT_TASK
 
-from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_LOCATION,
+from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY, LABEL_LOCATION,
                                           LABEL_PAYMENT_PHONE, LABEL_PHONE,
                                           LABEL_STATUS, LABEL_SUBMISSION_TIME,
                                           LABEL_TASK, LABEL_USER)
@@ -71,6 +71,7 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
     submission_time = drf_serializers.SerializerMethodField(
         label=LABEL_SUBMISSION_TIME)
     amount = drf_serializers.SerializerMethodField(label=LABEL_AMOUNT)
+    currency = drf_serializers.SerializerMethodField(label=LABEL_CURRENCY)
     status = drf_serializers.SerializerMethodField(label=LABEL_STATUS)
     phone_number = drf_serializers.SerializerMethodField(label=LABEL_PHONE)
     payment_number = drf_serializers.SerializerMethodField(
@@ -91,15 +92,12 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
             'status',
             'comments',
             'amount',
+            'currency',
             'phone_number',
             'payment_number',
         ]
 
         model = Submission
-
-    @property
-    def data(self):
-        yield self.to_representation(self.instance)
 
     def get_user(self, obj):
         """
@@ -131,7 +129,14 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         Get the amount field
         """
         if obj.amount:
-            return f'{obj.amount.amount} {obj.amount.currency}'
+            return obj.amount.amount
+
+    def get_currency(self, obj):
+        """
+        Get the currency field
+        """
+        if obj.amount:
+            return obj.amount.currency
 
     def get_status(self, obj):
         """
