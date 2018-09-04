@@ -191,6 +191,24 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
 
         serializer_instance = SubmissionExportSerializer(submission)
 
+        expected_fields = {
+            'id',
+            'user',
+            'approved',
+            'status',
+            'comments',
+            'task',
+            'location',
+            'submission_time',
+            'amount',
+            'currency',
+            'phone_number',
+            'payment_number',
+        }
+
+        self.assertEqual(set(expected_fields),
+                         set(list(serializer_instance.data.keys())))
+
         self.assertEqual(submission.id, serializer_instance.data['id'])
         self.assertEqual("Bob Kamau", serializer_instance.data['user'])
         self.assertEqual("Cow Prices", serializer_instance.data['task'])
@@ -200,7 +218,8 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
             serializer_instance.data['submission_time'])
         self.assertEqual(
             Submission.APPROVED, serializer_instance.data['status'])
-        self.assertEqual('99.00 KES', serializer_instance.data['amount'])
+        self.assertEqual('99.00', serializer_instance.data['amount'])
+        self.assertEqual('KES', serializer_instance.data['currency'])
         self.assertEqual(
             '+254722000000', serializer_instance.data['phone_number'])
         self.assertEqual(
