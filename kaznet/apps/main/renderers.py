@@ -13,6 +13,9 @@ class CSVStreamingRenderer(CSVRenderer):
     """
 
     def render(self, data, media_type=None, renderer_context={}):
+        """
+        Prepare and render response
+        """
         try:
             queryset = data['queryset']
             serializer = data['serializer']

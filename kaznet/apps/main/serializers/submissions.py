@@ -5,10 +5,11 @@ from rest_framework import serializers as drf_serializers
 from rest_framework_json_api import serializers
 from tasking.common_tags import CANT_EDIT_TASK
 
-from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY, LABEL_LOCATION,
-                                          LABEL_PAYMENT_PHONE, LABEL_PHONE,
-                                          LABEL_STATUS, LABEL_SUBMISSION_TIME,
-                                          LABEL_TASK, LABEL_USER)
+from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY,
+                                          LABEL_LOCATION, LABEL_PAYMENT_PHONE,
+                                          LABEL_PHONE, LABEL_STATUS,
+                                          LABEL_SUBMISSION_TIME, LABEL_TASK,
+                                          LABEL_USER)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
