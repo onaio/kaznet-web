@@ -2,6 +2,7 @@
 Custom Authentication Module
 """
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
 from django.core.cache import cache
 
 from rest_framework import exceptions
@@ -21,7 +22,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
     User Endpoint
     """
 
-    def authenticate(self, request):
+    def authenticate(self, request: object):
         auth = get_authorization_header(request).split()
 
         # We test for b'temptoken' since get_authorization_header
@@ -36,9 +37,9 @@ class OnaTempTokenAuthentication(TokenAuthentication):
             raise exceptions.AuthenticationFailed(
                 INVALID_TOKEN_SPACES_CONTAINED)
 
-        return self.authenticate_credentials(auth[1])
+        return self.authenticate_credentials(auth[1], request)
 
-    def authenticate_credentials(self, key):
+    def authenticate_credentials(self, key: str, request: object = None):
         username = cache.get(key)
         cached = False
 
@@ -79,6 +80,12 @@ class OnaTempTokenAuthentication(TokenAuthentication):
                 # to be able to retrieve the key within updation functions
                 cache.set(key, username, settings.TEMP_TOKEN_TIMEOUT)
                 cache.set(username, key, settings.TEMP_TOKEN_TIMEOUT)
+                # send the logged in signal
+                if request is not None:
+                    user_logged_in.send(
+                        sender=profile.user.__class__,
+                        request=request,
+                        user=profile.user)
 
             return (profile.user, None)
 

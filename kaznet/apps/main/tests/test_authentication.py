@@ -2,11 +2,13 @@
 Authentication Tests Module
 """
 
+from datetime import timedelta
 from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.conf import settings
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
 import requests_mock
 from model_mommy import mommy
@@ -27,6 +29,7 @@ class TestOnaTempTokenAuthentication(TestCase):
         self.user = mommy.make(
             'auth.User',
             username='Davis',
+            last_login=timezone.now() - timedelta(days=1)
         )
 
         # Set ona_username on profile
@@ -81,6 +84,32 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         self.assertRaisesMessage(AuthenticationFailed, 'Invalid Token',
                                  self.auth.authenticate_credentials, 'token')
+
+    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @requests_mock.Mocker()
+    def test_last_login(self, mocked):
+        """
+        Test that the last_login field is set when you authenticate
+        """
+
+        # Test it authenticates if Ona User is Logged In
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
+            json=self.ona_response,
+        )
+
+        factory = APIRequestFactory()
+        request = factory.get('/api/v1/user')
+
+        previous_last_login = self.user.last_login
+
+        returned_user = self.auth.authenticate_credentials(
+            'token', request)[0]
+
+        self.assertEqual(self.user, returned_user)
+        # check that the last_login was updated
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.last_login > previous_last_login)
 
     @override_settings(
         CACHES={
