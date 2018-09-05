@@ -40,6 +40,4 @@ class CSVStreamingRenderer(CSVRenderer):
                 # yield the actual data
                 items = serializer(item, context=context).data
                 ordered = [items[column] for column in header_fields]
-                yield csv_writer.writerow([
-                    elem for elem in ordered
-                ])
+                yield csv_writer.writerow(ordered)
