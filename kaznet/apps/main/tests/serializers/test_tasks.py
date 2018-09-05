@@ -443,6 +443,31 @@ class TestKaznetTaskSerializer(MainTestBase):
         task = serializer_instance.save()
         self.assertEqual(Task.SCHEDULED, task.status)
 
+    def test_stale_task_active(self):
+        """
+        Test that tasks with past dates are not allowed when the status
+        is acive
+        """
+        # not allowed when status is active
+        data = {
+            "type": "Task",
+            'name': 'Coconut Quest',
+            'start': (timezone.now() - timedelta(days=17)).isoformat(),
+            'end': (timezone.now() - timedelta(days=7)).isoformat(),
+            'description': 'Some description',
+            'target_content_type': self.xform_type.id,
+            'target_id': mommy.make('ona.XForm').id,
+            'status': Task.ACTIVE
+        }
+        serializer_instance = KaznetTaskSerializer(data=data)
+        self.assertFalse(serializer_instance.is_valid())
+        self.assertEqual(
+            "Cannot create an active task with an end date from the past.",
+            str(
+                serializer_instance.errors['end'][0]
+            )
+        )
+
     def test_auto_draft(self):
         """
         Test that tasks with no XForms are auto-drafted
@@ -454,7 +479,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'description': 'Some description',
             'target_content_type': self.xform_type.id,
             'status': Task.ACTIVE
-        }
+        }  # notice no XForm is supplied
         serializer_instance = KaznetTaskSerializer(data=data)
         self.assertTrue(serializer_instance.is_valid())
         task = serializer_instance.save()

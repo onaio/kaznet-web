@@ -138,8 +138,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
                     {'end': INVALID_END_DATE}
                 )
 
-            # if status is active and end date is in the past raise an
-            # error
+            # if status is active and end date is in the past raise an error
             if attrs['end'] < timezone.now() and\
                     attrs.get('status') == Task.ACTIVE:
                 raise serializers.ValidationError(
@@ -156,14 +155,17 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             )
 
         # set automated statuses
-        # scheduled
+
+        # scheduled => tasks which start in the future
         if attrs.get('start') and attrs.get('start') > timezone.now():
             attrs['status'] = Task.SCHEDULED
 
-        # draft
+        # draft => tasks with no form
         target_object_id = attrs.get('target_object_id')
+
         if target_object_id is None and self.instance is not None:
             target_object_id = self.instance.target_object_id
+
         if target_object_id is None:
             attrs['status'] = Task.DRAFT
 
