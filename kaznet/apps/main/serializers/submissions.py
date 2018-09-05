@@ -1,9 +1,15 @@
 """
 Main Submission Serializers
 """
+from rest_framework import serializers as drf_serializers
 from rest_framework_json_api import serializers
 from tasking.common_tags import CANT_EDIT_TASK
 
+from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY,
+                                          LABEL_LOCATION, LABEL_PAYMENT_PHONE,
+                                          LABEL_PHONE, LABEL_STATUS,
+                                          LABEL_SUBMISSION_TIME, LABEL_TASK,
+                                          LABEL_USER)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
@@ -54,3 +60,106 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
             )
 
         return value
+
+
+class SubmissionExportSerializer(drf_serializers.ModelSerializer):
+    """
+    Serializer class used for Sumission exports
+    """
+    user = drf_serializers.SerializerMethodField(label=LABEL_USER)
+    task = drf_serializers.SerializerMethodField(label=LABEL_TASK)
+    location = drf_serializers.SerializerMethodField(label=LABEL_LOCATION)
+    submission_time = drf_serializers.SerializerMethodField(
+        label=LABEL_SUBMISSION_TIME)
+    amount = drf_serializers.SerializerMethodField(label=LABEL_AMOUNT)
+    currency = drf_serializers.SerializerMethodField(label=LABEL_CURRENCY)
+    status = drf_serializers.SerializerMethodField(label=LABEL_STATUS)
+    phone_number = drf_serializers.SerializerMethodField(label=LABEL_PHONE)
+    payment_number = drf_serializers.SerializerMethodField(
+        label=LABEL_PAYMENT_PHONE)
+
+    # pylint: disable=too-few-public-methods
+    class Meta:
+        """
+        Meta options for SubmissionExportSerializer
+        """
+        fields = [
+            'id',
+            'user',
+            'task',
+            'location',
+            'submission_time',
+            'approved',
+            'status',
+            'comments',
+            'amount',
+            'currency',
+            'phone_number',
+            'payment_number',
+        ]
+
+        model = Submission
+
+    def get_user(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the user field
+        """
+        return obj.user.userprofile.get_name()
+
+    def get_task(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the task field
+        """
+        return obj.task.name
+
+    def get_location(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the location field
+        """
+        if obj.location:
+            return obj.location.name
+        return None
+
+    def get_submission_time(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the submission_time field
+        """
+        return obj.submission_time.isoformat()
+
+    def get_amount(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the amount field
+        """
+        if obj.amount:
+            return obj.amount.amount
+        return None
+
+    def get_currency(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the currency field
+        """
+        if obj.amount:
+            return obj.amount.currency
+        return None
+
+    def get_status(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the status field
+        """
+        return obj.status
+
+    def get_phone_number(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the phone_number field
+        """
+        if obj.user.userprofile.phone_number:
+            return obj.user.userprofile.phone_number.as_e164
+        return None
+
+    def get_payment_number(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the payment_number field
+        """
+        if obj.user.userprofile.payment_number:
+            return obj.user.userprofile.payment_number.as_e164
+        return None

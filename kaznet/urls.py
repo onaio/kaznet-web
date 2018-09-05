@@ -13,7 +13,8 @@ from kaznet.apps.main.viewsets import (BountyViewSet, ClientViewSet,
                                        KaznetLocationViewSet,
                                        KaznetSubmissionsViewSet,
                                        KaznetTaskOccurrenceViewSet,
-                                       KaznetTaskViewSet)
+                                       KaznetTaskViewSet,
+                                       SubmissionExportViewSet)
 from kaznet.apps.ona.viewsets import XFormViewSet
 from kaznet.apps.users.viewsets import UserProfileViewSet
 
@@ -31,6 +32,7 @@ ROUTER.register(r'clients', ClientViewSet)
 ROUTER.register(r'locations', KaznetLocationViewSet)
 ROUTER.register(r'locationtypes', KaznetLocationTypeViewSet)
 ROUTER.register(r'submissions', KaznetSubmissionsViewSet)
+ROUTER.register(r'exports/submissions', SubmissionExportViewSet)
 ROUTER.register(r'occurrences', KaznetTaskOccurrenceViewSet)
 ROUTER.register(r'tasks', KaznetTaskViewSet)
 ROUTER.register(r'contenttypes', ContentTypeViewSet)

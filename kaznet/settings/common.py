@@ -222,6 +222,9 @@ REST_FRAMEWORK = {
         'rest_framework_json_api.metadata.JSONAPIMetadata',
 }
 
+# Exports
+EXPORT_FILENAME = "download"
+
 # Tasking
 TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'xform'},
