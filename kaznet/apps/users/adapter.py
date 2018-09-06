@@ -11,7 +11,7 @@ class AccountAdapter(DefaultAccountAdapter):
     Custom Account Adapter
     """
 
-    def is_open_for_signup(self, request):
+    def is_open_for_signup(self, request):  # pylint: disable=unused-argument
         """
         Don't allow signups
         """
