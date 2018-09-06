@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+{% load staticfiles i18n %}
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+        <link rel="shortcut icon" href="{% static 'react/favicon.ico' %}">
+        <title>{% block title %}{% block head_title %}{% endblock %} | Kaznet {% endblock %}</title>
+        <link href="{% static 'react/css/main.css' %}" rel="stylesheet">
+        <link href="{% static 'css/allauth.css' %}" rel="stylesheet">
+        {% block extrahead %}
+            {% block extra_head %}
+            {% endblock %}
+        {% endblock %}
+    </head>
+
+    <body>
+        {% block body %}
+        <div id="kaznet-root" class="kaznet-root">
+            <div class="App">
+                <header>
+                    <div class="container-fluid">
+                        <nav class="navbar navbar-expand-md navbar-light bg-white">
+                            <a class="navbar-brand logo" href="{% url 'react_app' %}">KAZNET</a>
+                        </nav>
+                    </div>
+                </header>
+                <main role="main" class="kaznet-main">
+                    <div class="container-fluid">
+                        <div>
+                            <section class="page-section allauth mt-5">
+                                <div class="row">
+                                    <div class="col-6 offset-md-3">
+                                        {% block content %}
+                                        {% endblock %}
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        {% endblock %}
+    </body>
+
+    {% block extrafooter %}
+        {% block extra_body %}
+        {% endblock %}
+    {% endblock %}
+</html>
