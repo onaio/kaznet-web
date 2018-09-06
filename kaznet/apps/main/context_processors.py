@@ -4,7 +4,7 @@ Context processors module
 from django.conf import settings
 
 
-def kaznet_processor(request):
+def kaznet_processor(request):  # pylint: disable=unused-argument
     """
     Sets useful template variables
     """
