@@ -15,4 +15,4 @@ class AccountAdapter(DefaultAccountAdapter):
         """
         Don't allow signups
         """
-        return False
+        return True
