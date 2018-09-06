@@ -11,4 +11,8 @@ class AccountAdapter(DefaultAccountAdapter):
     Custom Account Adapter
     """
 
-    pass
+    def is_open_for_signup(self, request):
+        """
+        Don't allow signups
+        """
+        return False
