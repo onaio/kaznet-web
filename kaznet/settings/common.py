@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth_onadata',
     'corsheaders',
+    'crispy_forms',
     # custom apps
     'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
@@ -94,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "kaznet.apps.main.context_processors.kaznet_processor",
             ],
         },
     },
@@ -237,6 +239,9 @@ TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'xform'},
     {'app_label': 'ona', 'model': 'instance'}
 ]
+
+# crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # try and load local_settings if present
 try:
