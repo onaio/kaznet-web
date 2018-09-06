@@ -3,10 +3,10 @@ Kaznet URL Configuration
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 from rest_framework import routers
-
+from kaznet.apps.main.views import ReactAppView
 from kaznet.apps.main.viewsets import (BountyViewSet, ClientViewSet,
                                        ContentTypeViewSet,
                                        KaznetLocationTypeViewSet,
@@ -42,6 +42,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('api/v1/', include((ROUTER.urls, 'app_name'))),
+    # react url to handle all other matches
+    re_path('^', ReactAppView.as_view(), name="react_app"),
 ]
 
 if settings.DEBUG:

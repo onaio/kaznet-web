@@ -1,0 +1,27 @@
+{% extends "account/base.html" %}
+
+{% load i18n crispy_forms_tags account socialaccount %}
+
+{% block head_title %}{% trans "Log In" %}{% endblock %}
+
+{% block content %}
+
+<h3 class="text-center">{% trans "Log in to Kaznet" %}</h3>
+
+{% get_providers as socialaccount_providers %}
+
+{% if socialaccount_providers %}
+
+    <div class="socialaccount_ballot text-center">
+
+        <ul class="socialaccount_providers list-unstyled mt-5">
+            {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+        </ul>
+
+    </div>
+
+    {% include "socialaccount/snippets/login_extra.html" %}
+
+{% endif %}
+
+{% endblock %}

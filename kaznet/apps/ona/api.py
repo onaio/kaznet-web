@@ -367,7 +367,7 @@ def get_ona_profile_data(key: str, username: str):
     return data
 
 
-def update_user_profile_metadata(ona_username: str):
+def update_user_profile_metadata(ona_username: str, token_key: str = None):
     """
     Custom method that updates the user's profile with that at OnaData
     """
@@ -382,15 +382,18 @@ def update_user_profile_metadata(ona_username: str):
     # If profile exists we retrieve token key associated to the user
     # and get their profile data from ONA
     if profile:
-        token_key = cache.get(ona_username)
-        ona_profile_data = get_ona_profile_data(
-            key=token_key, username=ona_username)
+        if token_key is None:
+            token_key = cache.get(ona_username)
 
-        # If ONA returns data we update out profile Object
-        if ona_profile_data is not None:
-            ona_metadata = ona_profile_data.get('metadata')
-            profile.metadata['last_password_edit'] = ona_metadata.get(
-                'last_password_edit')
-            profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
+        if token_key is not None:
+            ona_profile_data = get_ona_profile_data(
+                key=token_key, username=ona_username)
 
-            profile.save()
+            # If ONA returns data we update out profile Object
+            if ona_profile_data is not None:
+                ona_metadata = ona_profile_data.get('metadata')
+                profile.metadata['last_password_edit'] = ona_metadata.get(
+                    'last_password_edit')
+                profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
+
+                profile.save()

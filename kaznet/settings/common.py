@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth_onadata',
     'corsheaders',
+    'crispy_forms',
     # custom apps
     'kaznet.apps.ona',
     'kaznet.apps.main.apps.MainConfig',
@@ -94,6 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "kaznet.apps.main.context_processors.kaznet_processor",
             ],
         },
     },
@@ -164,6 +166,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 # Authentication
 TEMP_TOKEN_TIMEOUT = 14400
@@ -230,6 +239,9 @@ TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'xform'},
     {'app_label': 'ona', 'model': 'instance'}
 ]
+
+# crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # try and load local_settings if present
 try:
