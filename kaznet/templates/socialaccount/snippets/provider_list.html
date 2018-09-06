@@ -16,7 +16,11 @@
 <li>
     <a title="{{provider.name}}" class="btn socialaccount_provider btn-{{provider.id}} mb-3"
      href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}">
-        {% trans "Log In With" %} {{provider.name}}
+        {% if provider.name == 'Onadata'%}
+            {% trans "Log In With Your Ona Account" %}
+        {% else %}
+            {% trans "Log In With" %} {{provider.name}}
+        {% endif %}
     </a>
 </li>
 {% endfor %}

@@ -3,3 +3,8 @@
     background-color: #ff5d00;
     border-color: #ff5d00;
 }
+
+.btn-onadata:hover,
+.btn-onadata:focus {
+    color: #fff;
+}
