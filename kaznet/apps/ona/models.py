@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from tasking.models.base import TimeStampedModel
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.constants import MAX_ID_LENGTH, XFORM_TITLE_LENGTH
+from kaznet.apps.ona.constants import MAX_ID_LENGTH, LENGTH_255
 from kaznet.apps.ona.managers import GenericSoftDeleteManager
 
 
@@ -72,11 +72,17 @@ class XForm(TimeStampedModel, models.Model):
     title = models.CharField(
         _('Title'),
         editable=False,
-        max_length=XFORM_TITLE_LENGTH)
+        max_length=LENGTH_255)
     id_string = models.SlugField(
         _('ID String'),
         editable=False,
         max_length=MAX_ID_LENGTH)
+    version = models.SlugField(
+        _('Version'),
+        editable=False,
+        max_length=LENGTH_255,
+        null=True,
+        default=None)
     deleted_at = models.DateTimeField(
         _('Deleted at'),
         blank=True,
