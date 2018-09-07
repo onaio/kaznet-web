@@ -38,6 +38,7 @@ class TestXFormSerializer(MainTestBase):
             ona_project_id=54,
             title='Solar Flare',
             id_string=mocked_idstring,
+            version='one1',
             project=mocked_project
         )
 
@@ -49,6 +50,7 @@ class TestXFormSerializer(MainTestBase):
             'ona_project_id',
             'last_updated',
             'id_string',
+            'version',
             'deleted_at',
             'title',
             'has_task',
@@ -65,6 +67,7 @@ class TestXFormSerializer(MainTestBase):
         self.assertEqual(54, serializer_data['ona_project_id'])
         self.assertEqual("Solar Flare", serializer_data['title'])
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
+        self.assertEqual('one1', serializer_data['version'])
         self.assertEqual('10', serializer_data['project']['id'])
 
     def test_has_task(self):

@@ -25,6 +25,7 @@ class XFormSerializer(serializers.ModelSerializer):
             'last_updated',
             'title',
             'id_string',
+            'version',
             'created',
             'modified',
             'deleted_at',

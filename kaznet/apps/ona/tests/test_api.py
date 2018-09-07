@@ -49,7 +49,8 @@ class TestApiMethods(TestCase):
                 "name": "Changed",
                 "formid": 53,
                 "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-                "is_merged_dataset": False
+                "is_merged_dataset": False,
+                "version": "vQZYoAo96pzTHZHY2iWuQA",
             }],
             "name":
             "Changed2",
@@ -125,6 +126,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False
         }
 
@@ -167,6 +169,7 @@ class TestApiMethods(TestCase):
             "forms": [{
                 "name": "Changed",
                 "formid": 53,
+                "version": "vQZYoAo96pzTHZHY2iWuQA",
                 "id_string": "aFEjJKzULJbQYsmQzKcpL9",
                 "is_merged_dataset": False
             }],
@@ -230,6 +233,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False
         }]
 
@@ -256,6 +260,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z"
         }
@@ -282,6 +287,7 @@ class TestApiMethods(TestCase):
 
         self.assertEqual("aFEjJKzULJbQYsmQzKcpL9", the_xform.id_string)
         self.assertEqual("Changed", the_xform.title)
+        self.assertEqual("vQZYoAo96pzTHZHY2iWuQA", the_xform.version)
         self.assertEqual(18, the_xform.ona_project_id)
         self.assertEqual(53, the_xform.ona_pk)
 
@@ -292,6 +298,7 @@ class TestApiMethods(TestCase):
         mocked_form_data = {
             "name": "Salaries",
             "formid": 90,
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "id_string": "aFEjJKzULJlQYsmQzKcpL9",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z"
@@ -309,6 +316,7 @@ class TestApiMethods(TestCase):
         mocked_form_data = {
             "name": "Salaries",
             "formid": 90,
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "id_string": "aFEjJKzULJlQYsmQzKcpL9",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z",
@@ -380,6 +388,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False,
             "project": "https://stage-api.ona.io/api/v1/projects/18"
         }
@@ -429,6 +438,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 52,
             "id_string": "aFEjJKzPLJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False,
             "project": "https://stage-api.ona.io/api/v1/projects/20"
         }
@@ -501,6 +511,7 @@ class TestApiMethods(TestCase):
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
             "is_merged_dataset": False
         }
         process_instance(mocked_instance_data)
