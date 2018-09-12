@@ -179,6 +179,7 @@ class TestKaznetTaskSerializer(MainTestBase):
             'created_by_name',
             'modified',
             'name',
+            'client_name',
             'parent',
             'description',
             'xform_title',
