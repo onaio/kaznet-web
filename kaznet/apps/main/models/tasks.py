@@ -279,3 +279,12 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
         if self.created_by:
             return self.created_by.userprofile.get_name()
         return ''
+
+    @property
+    def client_name(self):
+        """
+        Name of client if set
+        """
+        if self.client:
+            return self.client.name
+        return ''

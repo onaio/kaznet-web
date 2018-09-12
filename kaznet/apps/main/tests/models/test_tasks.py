@@ -53,6 +53,17 @@ class TestTasks(TestCase):
             mommy.make('main.Task', created_by=cate_user).created_by_name
         )
 
+    def test_client_name(self):
+        """
+        Test client name
+        """
+        self.assertEqual(
+            'Zerg',
+            mommy.make(
+                'main.Task', client=mommy.make('main.Client', name="Zerg")
+            ).client_name
+        )
+
     def test_task_xform(self):
         """
         Test:
