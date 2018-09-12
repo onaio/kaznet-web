@@ -181,13 +181,14 @@ def process_xform(xform_data: dict, project_id: int = None):
             project = get_project_obj(project_id)
 
         title = xform_data.get('name') or xform_data.get('title')
+        version = xform_data.get('version')
 
         obj, created = XForm.objects.get_or_create(
             ona_pk=xform_id,
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
-                'version': xform_data.get('version'),
+                'version': version,
                 'ona_project_id': project.ona_pk,
                 'last_updated': xform_data.get('last_updated_at')
             })
@@ -202,6 +203,9 @@ def process_xform(xform_data: dict, project_id: int = None):
 
             if obj.title != title:
                 obj.title = title
+
+            if version is not None and version != obj.version:
+                obj.version = version
 
             obj.save()
 
