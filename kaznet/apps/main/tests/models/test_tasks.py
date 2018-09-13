@@ -70,13 +70,25 @@ class TestTasks(TestCase):
             - get_xform method
             - get_xform_title method
             - get_xform_id_string method
+            - get_xform_version method
+            - get_xform_owner method
+            - get_xform_owner_url method
+
             - xform_title property
             - xform_id_string property
+            - xform_version property
+            - xform_owner property
+            - xform_owner_url property
         """
         xform = mommy.make(
             'ona.XForm',
             title='Coconut',
             id_string='coconut828',
+            version='v828',
+            json=dict(
+                owner="mosh",
+                owner_url="http://example.com/mosh"
+            ),
             ona_pk=200,
             ona_project_id=12389)
         # test when no xform
@@ -91,7 +103,14 @@ class TestTasks(TestCase):
         self.assertEqual(xform, task.get_xform())
         self.assertEqual('Coconut', task.get_xform_title())
         self.assertEqual('coconut828', task.get_xform_id_string())
+        self.assertEqual('v828', task.get_xform_version())
+        self.assertEqual('mosh', task.get_xform_owner())
+        self.assertEqual('http://example.com/mosh', task.get_xform_owner_url())
+
         self.assertEqual('Coconut', task.xform_title)
         self.assertEqual(200, task.xform_ona_id)
         self.assertEqual('coconut828', task.xform_id_string)
+        self.assertEqual('v828', task.xform_version)
+        self.assertEqual('mosh', task.xform_owner)
+        self.assertEqual('http://example.com/mosh', task.xform_owner_url)
         self.assertEqual(12389, task.xform_project_id)

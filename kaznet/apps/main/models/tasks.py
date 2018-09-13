@@ -152,16 +152,43 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
 
     def get_xform_id_string(self):
         """
-        Custom Method to get xform title
+        Custom Method to get xform id_string
         """
         xform = self.get_xform()
         if xform is not None:
             return xform.id_string
         return None
 
+    def get_xform_version(self):
+        """
+        Custom Method to get xform version
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.version
+        return None
+
+    def get_xform_owner(self):
+        """
+        Custom Method to get xform owner
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.json.get('owner')
+        return None
+
+    def get_xform_owner_url(self):
+        """
+        Custom Method to get xform owner url
+        """
+        xform = self.get_xform()
+        if xform is not None:
+            return xform.json.get('owner_url')
+        return None
+
     def get_xform_ona_id(self):
         """
-        Custom Method to get xform title
+        Custom Method to get xform ona_id
         """
         xform = self.get_xform()
         if xform is not None:
@@ -170,7 +197,7 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
 
     def get_xform_project_id(self):
         """
-        Custom Method to get xform title
+        Custom Method to get xform project_id
         """
         xform = self.get_xform()
         if xform is not None:
@@ -194,21 +221,42 @@ class Task(BaseTask):  # pylint: disable=too-many-public-methods
     @property
     def xform_id_string(self):
         """
-        Title of Xform
+        id_string of Xform
         """
         return self.get_xform_id_string()
 
     @property
+    def xform_version(self):
+        """
+        version of Xform
+        """
+        return self.get_xform_version()
+
+    @property
+    def xform_owner(self):
+        """
+        owner of Xform
+        """
+        return self.get_xform_owner()
+
+    @property
+    def xform_owner_url(self):
+        """
+        owner_url of Xform
+        """
+        return self.get_xform_owner_url()
+
+    @property
     def xform_ona_id(self):
         """
-        Title of Xform
+        ona_id of Xform
         """
         return self.get_xform_ona_id()
 
     @property
     def xform_project_id(self):
         """
-        Title of Xform
+        project_id of Xform
         """
         return self.get_xform_project_id()
 
