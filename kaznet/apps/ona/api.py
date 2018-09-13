@@ -193,7 +193,7 @@ def process_xform(xform_data: dict, project_id: int = None):
             owner_url=owner_url
         )
 
-        obj, created = XForm.objects.update_or_create(
+        XForm.objects.update_or_create(
             ona_pk=xform_id,
             defaults={
                 'title': title,

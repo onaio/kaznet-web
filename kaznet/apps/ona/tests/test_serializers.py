@@ -42,7 +42,7 @@ class TestXFormSerializer(MainTestBase):
             project=mocked_project,
             json=dict(
                 owner="Tom",
-                owner_url="Http://example.com/tom"
+                owner_url="http://example.com/tom"
             )
         )
 

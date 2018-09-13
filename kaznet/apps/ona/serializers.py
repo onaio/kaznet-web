@@ -35,7 +35,7 @@ class XFormSerializer(serializers.ModelSerializer):
             'metadata'
         ]
 
-    def get_metadata(self, obj):
+    def get_metadata(self, obj):  # pylint: disable=no-self-use
         """
         Get metadata field
         """
