@@ -104,7 +104,7 @@ class XForm(TimeStampedModel, models.Model):
         blank=True,
         help_text=_('This references the Kaznet Project.')
     )
-    json = JSONField(default=dict, null=False)
+    json = JSONField(_("Metadata"), default=dict, null=False)
 
     objects = GenericSoftDeleteManager()
 
