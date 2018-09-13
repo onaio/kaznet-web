@@ -51,6 +51,7 @@ class TestApiMethods(TestCase):
                 "id_string": "aFEjJKzULJbQYsmQzKcpL9",
                 "is_merged_dataset": False,
                 "version": "vQZYoAo96pzTHZHY2iWuQA",
+                "owner": "https://example.com/api/v1/users/kaznet",
             }],
             "name":
             "Changed2",
@@ -127,6 +128,7 @@ class TestApiMethods(TestCase):
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False
         }
 
@@ -170,6 +172,7 @@ class TestApiMethods(TestCase):
                 "name": "Changed",
                 "formid": 53,
                 "version": "vQZYoAo96pzTHZHY2iWuQA",
+                "owner": "https://example.com/api/v1/users/kaznet",
                 "id_string": "aFEjJKzULJbQYsmQzKcpL9",
                 "is_merged_dataset": False
             }],
@@ -234,6 +237,7 @@ class TestApiMethods(TestCase):
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False
         }]
 
@@ -261,6 +265,7 @@ class TestApiMethods(TestCase):
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z"
         }
@@ -288,6 +293,11 @@ class TestApiMethods(TestCase):
         self.assertEqual("aFEjJKzULJbQYsmQzKcpL9", the_xform.id_string)
         self.assertEqual("Changed", the_xform.title)
         self.assertEqual("vQZYoAo96pzTHZHY2iWuQA", the_xform.version)
+        self.assertEqual(
+            "https://example.com/api/v1/users/kaznet",
+            the_xform.json['owner_url']
+        )
+        self.assertEqual("kaznet", the_xform.json['owner'])
         self.assertEqual(18, the_xform.ona_project_id)
         self.assertEqual(53, the_xform.ona_pk)
 
@@ -299,6 +309,7 @@ class TestApiMethods(TestCase):
             "name": "Salaries",
             "formid": 90,
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "id_string": "aFEjJKzULJlQYsmQzKcpL9",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z"
@@ -317,6 +328,7 @@ class TestApiMethods(TestCase):
             "name": "Salaries",
             "formid": 90,
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "id_string": "aFEjJKzULJlQYsmQzKcpL9",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z",
@@ -328,6 +340,47 @@ class TestApiMethods(TestCase):
 
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(Project.objects.all().count(), 2)
+
+    def test_process_xform_updates_fields(self):
+        """
+        Test that certain fields are always updated if different
+        """
+        the_xform = mommy.make(
+            'ona.XForm',
+            title="First Title",
+            version="v1",
+            json={
+                "owner": "1",
+                "owner_url": "http://example.com/1",
+            },
+            ona_pk=1337,
+            last_updated="2018-02-15T07:51:59.267839Z"
+        )
+
+        mocked_form_data = {
+            "title": "Big Form",
+            "formid": 1337,
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
+            "id_string": "aFEjJKzULJlQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z",
+            "last_updated_at": "2018-02-15T07:55:59.267839Z",
+        }
+
+        process_xform(mocked_form_data, mommy.make('ona.Project').ona_pk)
+
+        the_xform.refresh_from_db()
+
+        self.assertEqual("Big Form", the_xform.title)
+        self.assertEqual("vQZYoAo96pzTHZHY2iWuQA", the_xform.version)
+        self.assertEqual("kaznet", the_xform.json['owner'])
+        self.assertEqual(
+            "2018-02-15T07:55:59.267839+00:00",
+            the_xform.last_updated.isoformat())
+        self.assertEqual(
+            "https://example.com/api/v1/users/kaznet",
+            the_xform.json['owner_url'])
 
     def test_process_xform_bad_data(self):
         """
@@ -389,6 +442,7 @@ class TestApiMethods(TestCase):
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
             "project": "https://stage-api.ona.io/api/v1/projects/18"
         }
@@ -439,6 +493,7 @@ class TestApiMethods(TestCase):
             "formid": 52,
             "id_string": "aFEjJKzPLJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
             "project": "https://stage-api.ona.io/api/v1/projects/20"
         }
@@ -512,6 +567,7 @@ class TestApiMethods(TestCase):
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False
         }
         process_instance(mocked_instance_data)

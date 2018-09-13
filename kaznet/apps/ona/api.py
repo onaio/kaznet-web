@@ -183,31 +183,26 @@ def process_xform(xform_data: dict, project_id: int = None):
         title = xform_data.get('name') or xform_data.get('title')
         version = xform_data.get('version')
 
-        obj, created = XForm.objects.get_or_create(
+        owner_url = xform_data.get('owner')
+        owner = None
+        if owner_url is not None:
+            owner = owner_url.rsplit("/", 1)[-1]
+
+        json_data = dict(
+            owner=owner,
+            owner_url=owner_url
+        )
+
+        obj, created = XForm.objects.update_or_create(
             ona_pk=xform_id,
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
                 'version': version,
                 'ona_project_id': project.ona_pk,
-                'last_updated': xform_data.get('last_updated_at')
+                'last_updated': xform_data.get('last_updated_at'),
+                'json': json_data
             })
-
-        if not created:
-            date_modified = xform_data.get('date_modified')
-
-            if date_modified:
-                last_updated_ona = dateutil.parser.parse(date_modified)
-                if last_updated_ona and obj.last_updated != last_updated_ona:
-                    obj.last_updated = last_updated_ona
-
-            if obj.title != title:
-                obj.title = title
-
-            if version is not None and version != obj.version:
-                obj.version = version
-
-            obj.save()
 
 
 def get_project_obj(ona_project_id: int = None, project_url: str = None):
