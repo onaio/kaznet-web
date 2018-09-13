@@ -199,4 +199,5 @@ class KaznetSubmissionFilterSet(KaznetFilterSet):
             'location',
             'valid',
             'modified',
+            'submission_time',
         ]
