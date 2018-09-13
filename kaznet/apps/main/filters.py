@@ -1,9 +1,12 @@
 """
 Filters module for main Kaznet app
 """
+from django.utils import timezone
+
+from dateutil.parser import parse
 from django_filters import rest_framework as filters
 
-from kaznet.apps.main.models import Task, TaskOccurrence, Location, Submission
+from kaznet.apps.main.models import Location, Submission, Task, TaskOccurrence
 from kaznet.apps.users.models import UserProfile
 
 DATE_LOOKUPS = [
@@ -54,12 +57,24 @@ class KaznetFilterSet(filters.FilterSet):
         if data is None:
             return None
 
+        # we need to localize to avoid naive datetimes
+        try:
+            data_as_datetime = parse(data)
+        except ValueError:
+            pass
+        except TypeError:
+            pass
+        else:
+            if timezone.is_naive(data_as_datetime):
+                data_as_datetime = timezone.make_aware(data_as_datetime)
+            data = data_as_datetime
+
         return {query_name: data}
 
     # pylint: disable=unused-argument
-    def filter_modified(self, queryset, name, value):
+    def filter_datetime(self, queryset, name, value):
         """
-        Filter by modified
+        Filter by datetime
         """
         filter_args = self._get_filter_args(name)
 
@@ -76,7 +91,7 @@ class KaznetLocationFilterSet(KaznetFilterSet):
     modified = filters.DateTimeFilter(
         name='modified',
         lookup_expr=DATETIME_LOOKUPS,
-        method='filter_modified'
+        method='filter_datetime'
     )
 
     # pylint: disable=too-few-public-methods
@@ -133,7 +148,7 @@ class KaznetTaskFilterSet(KaznetFilterSet):
     modified = filters.DateTimeFilter(
         name='modified',
         lookup_expr=DATETIME_LOOKUPS,
-        method='filter_modified'
+        method='filter_datetime'
     )
 
     # pylint: disable=too-few-public-methods
@@ -178,11 +193,16 @@ class KaznetSubmissionFilterSet(KaznetFilterSet):
     modified = filters.DateTimeFilter(
         name='modified',
         lookup_expr=DATETIME_LOOKUPS,
-        method='filter_modified'
+        method='filter_datetime'
     )
     userprofile = filters.ModelChoiceFilter(
         name='user__userprofile',
         queryset=UserProfile.objects.all()
+    )
+    submission_time = filters.DateTimeFilter(
+        name='submission_time',
+        lookup_expr=DATETIME_LOOKUPS,
+        method='filter_datetime'
     )
 
     # pylint: disable=too-few-public-methods
