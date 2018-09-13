@@ -27,7 +27,7 @@ class TestSubmissionExportViewSet(MainTestBase):
     def setUp(self):
         super().setUp()
         self.factory = APIRequestFactory()
-        self.expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,True,a,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,True,a,,50.00,KES,,\r\n"  # noqa
+        self.expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
         # make two submissions that work with self.expected
         self.task = mommy.make('main.Task', name='Quest')
         self.coco_user = mommy.make('auth.User', first_name='Coco')
@@ -40,7 +40,7 @@ class TestSubmissionExportViewSet(MainTestBase):
                 'main.Bounty',
                 task=self.task,
                 amount=Money('50', 'KES')),
-            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            submission_time=parse("2018-09-04T00:00:00+00:00"),
             status=Submission.APPROVED,
             id=888
         )
@@ -53,7 +53,7 @@ class TestSubmissionExportViewSet(MainTestBase):
                 'main.Bounty',
                 task=self.task,
                 amount=Money('50', 'KES')),
-            submission_time=parse("2018-09-04T03:39:29+00:00"),
+            submission_time=parse("2018-09-04T00:00:00+00:00"),
             status=Submission.APPROVED,
             id=999
         )
@@ -78,7 +78,7 @@ class TestSubmissionExportViewSet(MainTestBase):
 
     def test_csv_export_task_filter(self):
         """
-        Test CSV export
+        Test CSV export task filter
         """
         user = create_admin_user()
 
@@ -103,7 +103,7 @@ class TestSubmissionExportViewSet(MainTestBase):
 
     def test_csv_export_user_filter(self):
         """
-        Test CSV export
+        Test CSV export user filter
         """
         user = create_admin_user()
 
@@ -128,7 +128,7 @@ class TestSubmissionExportViewSet(MainTestBase):
 
     def test_csv_export_userprofile_filter(self):
         """
-        Test CSV export
+        Test CSV export userprofile filter
         """
         user = create_admin_user()
 
@@ -153,7 +153,7 @@ class TestSubmissionExportViewSet(MainTestBase):
 
     def test_csv_export_modified_filter(self):
         """
-        Test CSV export
+        Test CSV export modified filter
         """
         user = create_admin_user()
 
@@ -185,7 +185,7 @@ class TestSubmissionExportViewSet(MainTestBase):
 
     def test_csv_export_status_filter(self):
         """
-        Test CSV export
+        Test CSV export status filter
         """
         user = create_admin_user()
 
@@ -207,6 +207,101 @@ class TestSubmissionExportViewSet(MainTestBase):
 
         # we have filtered out the 10 new submissions, check our data
         self.assertEqual(self.expected, received)
+
+    def test_export_submision_time_filter(self):
+        """
+        Test export submission_time filter
+        """
+        user = create_admin_user()
+        location = mommy.make('main.Location', name='Voi')
+
+        # NOTE: we already have two submission created in the setUp method
+        # their submission time value is 2018-09-04
+
+        # make 5 other random submissions with submission_time = 2018-09-06
+        mommy.make(
+            'main.Submission',
+            _quantity=5,
+            task=self.task,
+            location=location,
+            user=self.coco_user,
+            submission_time=parse("2018-09-06T00:00:00+03:00"),
+            status=Submission.PENDING)
+
+        # make 10 other random submissions with submission_time = 2018-09-07
+        mommy.make(
+            'main.Submission',
+            _quantity=10,
+            task=self.task,
+            location=location,
+            user=self.coco_user,
+            submission_time=parse("2018-09-07T00:00:00+03:00"),
+            status=Submission.APPROVED)
+
+        # make 15 other random submissions with submission_time = 2018-09-08
+        mommy.make(
+            'main.Submission',
+            _quantity=15,
+            task=self.task,
+            location=location,
+            user=self.coco_user,
+            submission_time=parse("2018-09-08T00:00:00+03:00"),
+            status=Submission.REJECTED)
+
+        # make 20 other random submissions with submission_time = 2018-09-09
+        mommy.make(
+            'main.Submission',
+            _quantity=20,
+            task=self.task,
+            location=location,
+            user=self.coco_user,
+            submission_time=parse("2018-09-09T00:00:00+03:00"),
+            status=Submission.APPROVED)
+
+        view = SubmissionExportViewSet.as_view({'get': 'list'})
+
+        # let us try and get submissions made on or before 2018-09-07
+        request = self.factory.get(
+            '/exports/submissions',
+            {
+                'format': 'json',
+                'submission_time__lte': '2018-09-07'
+            }
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        # we should have 17 results
+        self.assertEqual(17, len(response.data['results']))
+
+        # let us try and get submissions made between 2018-09-06 and 2018-09-08
+        request = self.factory.get(
+            '/exports/submissions',
+            {
+                'format': 'json',
+                'submission_time__gte': '2018-09-06',
+                'submission_time__lte': '2018-09-08'
+            }
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        # we should have 20 results
+        self.assertEqual(20, len(response.data['results']))
+
+        # let us try and get submissions made after 2018-09-08
+        request = self.factory.get(
+            '/exports/submissions',
+            {
+                'format': 'json',
+                'submission_time__gt': '2018-09-08'
+            }
+        )
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        # we should have 20 results
+        self.assertEqual(20, len(response.data['results']))
 
     def test_csv_export_permissions_required(self):
         """
