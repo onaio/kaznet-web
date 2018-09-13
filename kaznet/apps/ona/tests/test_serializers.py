@@ -39,7 +39,11 @@ class TestXFormSerializer(MainTestBase):
             title='Solar Flare',
             id_string=mocked_idstring,
             version='one1',
-            project=mocked_project
+            project=mocked_project,
+            json=dict(
+                owner="Tom",
+                owner_url="Http://example.com/tom"
+            )
         )
 
         serializer_instance = XFormSerializer(xform)
@@ -56,6 +60,7 @@ class TestXFormSerializer(MainTestBase):
             'has_task',
             'created',
             'modified',
+            'metadata',
             'project'
         }
 
@@ -69,6 +74,9 @@ class TestXFormSerializer(MainTestBase):
         self.assertEqual(mocked_idstring, serializer_data['id_string'])
         self.assertEqual('one1', serializer_data['version'])
         self.assertEqual('10', serializer_data['project']['id'])
+        self.assertEqual('Tom', serializer_data['metadata']['owner'])
+        self.assertEqual(
+            'http://example.com/tom', serializer_data['metadata']['owner_url'])
 
     def test_has_task(self):
         """
