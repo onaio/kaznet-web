@@ -12,10 +12,12 @@ from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.tasks import (
-    task_fetch_all_instances, task_fetch_form_instances,
-    task_fetch_project_xforms, task_fetch_projects, task_process_user_profiles,
-    task_update_user_profile)
+from kaznet.apps.ona.tasks import (task_fetch_all_instances,
+                                   task_fetch_form_instances,
+                                   task_fetch_projects,
+                                   task_process_project_xforms,
+                                   task_process_user_profiles,
+                                   task_update_user_profile)
 
 MOCK_PROJECT_DATA = [
     {
@@ -107,7 +109,7 @@ class TestCeleryTasks(TestCase):
     """
 
     @override_settings(ONA_BASE_URL="https://example.com", ONA_USERNAME='mosh')
-    @patch('kaznet.apps.ona.tasks.task_fetch_project_xforms.delay')
+    @patch('kaznet.apps.ona.tasks.task_process_project_xforms.delay')
     @patch('kaznet.apps.ona.tasks.process_projects')
     @requests_mock.Mocker()
     def test_task_fetch_projects(self, mocked_process_projects,
@@ -123,21 +125,22 @@ class TestCeleryTasks(TestCase):
         task_fetch_projects(username=settings.ONA_USERNAME)
         # we should call process_projects
         mocked_process_projects.assert_called_with(MOCK_PROJECT_DATA)
-        # we should call task_fetch_project_xforms twice, for each form
+        # we should call task_process_project_xforms twice, for each form
         self.assertEqual(1, mocked_fetch_project_task.call_count)
         mocked_fetch_project_task.assert_called_with(
             forms=MOCK_PROJECT_DATA[0]['forms'],
             project_id=MOCK_PROJECT_DATA[0]['projectid'])
 
-    @patch('kaznet.apps.ona.tasks.process_xforms')
-    def test_task_fetch_project_xforms(self, mock):
+    @patch('kaznet.apps.ona.tasks.get_and_process_xforms')
+    def test_task_process_project_xforms(self, mock):
         """
-        Test task_fetch_project_xforms
+        Test task_process_project_xforms
         """
         # call the task
-        task_fetch_project_xforms(MOCK_PROJECT_DATA[0]['forms'][1],
-                                  MOCK_PROJECT_DATA[0]['projectid'])
-        # we should have called process_xforms
+        task_process_project_xforms(
+            MOCK_PROJECT_DATA[0]['forms'][1],
+            MOCK_PROJECT_DATA[0]['projectid'])
+        # we should have called get_and_process_xforms
         mock.assert_called_with(
             forms_data=MOCK_PROJECT_DATA[0]['forms'][1],
             project_id=MOCK_PROJECT_DATA[0]['projectid'])
@@ -147,11 +150,38 @@ class TestCeleryTasks(TestCase):
         ONA_BASE_URL="https://example.com",
         ONA_USERNAME='mosh')
     @requests_mock.Mocker()
-    def test_fetch_projects_and_xforms(self, mocked_request):
+    @patch('kaznet.apps.ona.api.get_xform')
+    def test_fetch_projects_and_xforms(self, mocked_request, get_xform_mock):
         """
         Test that the `task_fetch_projects` task actually fetches and
         stores projects and XForms
         """
+
+        def _get_xform(*args, **kwargs):
+            arguments = args
+            if arguments[0] == 7331:
+                return {
+                    "name": "Form 66",
+                    "formid": 7331,
+                    "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                    "is_merged_dataset": False,
+                    "version": "v5555555555",
+                    "owner": "https://example.com/api/v1/users/kaznet"
+                }
+            elif arguments[0] == 310:
+                return {
+                    "name": "Q-q-uest",
+                    "formid": 310,
+                    "id_string": "kjoin_zKcpL9",
+                    "is_merged_dataset": False,
+                    "version": "v1111111111",
+                    "owner": "https://example.com/api/v1/users/kaznet"
+                }
+
+            return None
+
+        get_xform_mock.side_effect = _get_xform
+
         # mock the request
         mocked_request.get(
             "https://example.com/api/v1/projects?owner=mosh",
