@@ -62,7 +62,16 @@ class TestKaznetTaskSerializer(MainTestBase):
         """
         Test that the serializer can create Task objects
         """
-        mocked_target_object = mommy.make('ona.XForm')
+        mocked_target_object = mommy.make(
+            'ona.XForm',
+            title='Coconut',
+            id_string='coconut828',
+            version='v828',
+            json=dict(
+                owner="mosh",
+                owner_url="http://example.com/mosh"
+            ),
+        )
 
         rule1 = mommy.make('main.SegmentRule')
         rule2 = mommy.make('main.SegmentRule')
@@ -167,6 +176,15 @@ class TestKaznetTaskSerializer(MainTestBase):
         self.assertEqual(
             serializer_instance.data['xform_id_string'],
             mocked_target_object.id_string)
+        self.assertEqual(
+            serializer_instance.data['xform_version'],
+            mocked_target_object.version)
+        self.assertEqual(
+            serializer_instance.data['xform_owner'],
+            mocked_target_object.json.get('owner'))
+        self.assertEqual(
+            serializer_instance.data['xform_owner_url'],
+            mocked_target_object.json.get('owner_url'))
 
         # test no bounty was created since amount wasn't passed
         # pylint: disable=no-member
@@ -209,6 +227,9 @@ class TestKaznetTaskSerializer(MainTestBase):
             'task_locations',
             'xform_ona_id',
             'xform_project_id',
+            'xform_version',
+            'xform_owner',
+            'xform_owner_url',
         ]
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
