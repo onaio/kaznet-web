@@ -155,13 +155,25 @@ def get_xform(xform_id: int):
 
 def process_xforms(forms_data: list, project_id: int):
     """
-    Custom Method that takes in a Dictionary containing Data
+    Custom Method that takes in a list containing Data
     of Forms from OnaData API and a Project ID then processes
     each Form by using the process_xform method
     """
-    if forms_data is not None:
+    if forms_data and forms_data is not None:
         for xform_data in forms_data:
             process_xform(xform_data, project_id=project_id)
+
+
+def get_and_process_xforms(forms_data: list, project_id: int = None):
+    """
+    Takes a list of XForm dicts and calls get_xform then processes it
+    """
+    if forms_data and forms_data is not None:
+        for xform_data in forms_data:
+            ona_xform_id = xform_data.get('formid')
+            if ona_xform_id:
+                full_xform_data = get_xform(ona_xform_id)
+                process_xform(full_xform_data, project_id)
 
 
 def process_xform(xform_data: dict, project_id: int = None):
@@ -183,31 +195,26 @@ def process_xform(xform_data: dict, project_id: int = None):
         title = xform_data.get('name') or xform_data.get('title')
         version = xform_data.get('version')
 
-        obj, created = XForm.objects.get_or_create(
+        owner_url = xform_data.get('owner')
+        owner = None
+        if owner_url is not None:
+            owner = owner_url.rsplit("/", 1)[-1]
+
+        json_data = dict(
+            owner=owner,
+            owner_url=owner_url
+        )
+
+        XForm.objects.update_or_create(
             ona_pk=xform_id,
             defaults={
                 'title': title,
                 'id_string': xform_data.get('id_string'),
                 'version': version,
                 'ona_project_id': project.ona_pk,
-                'last_updated': xform_data.get('last_updated_at')
+                'last_updated': xform_data.get('last_updated_at'),
+                'json': json_data
             })
-
-        if not created:
-            date_modified = xform_data.get('date_modified')
-
-            if date_modified:
-                last_updated_ona = dateutil.parser.parse(date_modified)
-                if last_updated_ona and obj.last_updated != last_updated_ona:
-                    obj.last_updated = last_updated_ona
-
-            if obj.title != title:
-                obj.title = title
-
-            if version is not None and version != obj.version:
-                obj.version = version
-
-            obj.save()
 
 
 def get_project_obj(ona_project_id: int = None, project_url: str = None):
@@ -243,10 +250,11 @@ def get_instances(xform_id: int):
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
-        if data == []:
-            end_page = True
-            break
-        yield data
+        if isinstance(data, list):
+            if data == []:
+                end_page = True
+                break
+            yield data
 
 
 def get_instance(xform_id: int, instance_id: int):
@@ -335,11 +343,12 @@ def get_xform_obj(ona_xform_id: int):
     """
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
-        return xform
     except XForm.DoesNotExist:  # pylint: disable=no-member
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
         return XForm.objects.filter(ona_pk=ona_xform_id).first()
+    else:
+        return xform
 
 
 def process_ona_webhook(instance_data: dict):

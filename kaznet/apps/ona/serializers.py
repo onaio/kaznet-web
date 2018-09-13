@@ -12,6 +12,7 @@ class XFormSerializer(serializers.ModelSerializer):
     """
     Serializer for XForm Model
     """
+    metadata = serializers.SerializerMethodField()
 
     class Meta:  # pylint: disable=too-few-public-methods
         """
@@ -30,8 +31,17 @@ class XFormSerializer(serializers.ModelSerializer):
             'modified',
             'deleted_at',
             'has_task',
-            'project'
+            'project',
+            'metadata'
         ]
+
+    def get_metadata(self, obj):  # pylint: disable=no-self-use
+        """
+        Get metadata field
+        """
+        if obj:
+            return obj.json
+        return None
 
 
 class InstanceSerializer(serializers.ModelSerializer):

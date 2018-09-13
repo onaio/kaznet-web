@@ -10,8 +10,9 @@ from django.utils import timezone
 from celery import task as celery_task
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.api import (get_instances, get_projects, process_instance,
-                                 process_projects, process_xforms,
+from kaznet.apps.ona.api import (get_and_process_xforms, get_instances,
+                                 get_projects, process_instance,
+                                 process_projects,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 
@@ -30,17 +31,19 @@ def task_fetch_projects(username: str):
         project_forms = project.get('forms')
         project_id = project.get('projectid')
         if project_forms and project_id:
-            task_fetch_project_xforms.delay(
+            task_process_project_xforms.delay(
                 forms=project_forms, project_id=int(project_id))
             sleep(0.1)  # to avoid overload on onadata API
 
 
-@celery_task(name="task_fetch_project_xforms")  # pylint: disable=not-callable
-def task_fetch_project_xforms(forms: list, project_id: int):
+# pylint: disable=not-callable
+@celery_task(name="task_process_project_xforms")
+def task_process_project_xforms(forms: list, project_id: int):
     """
-    Fetches and processes XForms from Onadata
+    Simple processes XForms contained in the project response
+    from Onadata
     """
-    process_xforms(forms_data=forms, project_id=project_id)
+    get_and_process_xforms(forms_data=forms, project_id=project_id)
 
 
 @celery_task(name="task_fetch_form_instances")  # pylint: disable=not-callable
