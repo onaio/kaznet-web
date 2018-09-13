@@ -155,13 +155,25 @@ def get_xform(xform_id: int):
 
 def process_xforms(forms_data: list, project_id: int):
     """
-    Custom Method that takes in a Dictionary containing Data
+    Custom Method that takes in a list containing Data
     of Forms from OnaData API and a Project ID then processes
     each Form by using the process_xform method
     """
-    if forms_data is not None:
+    if forms_data and forms_data is not None:
         for xform_data in forms_data:
             process_xform(xform_data, project_id=project_id)
+
+
+def get_and_process_xforms(forms_data: list, project_id: int = None):
+    """
+    Takes a list of XForm dicts and calls get_xform then processes it
+    """
+    if forms_data and forms_data is not None:
+        for xform_data in forms_data:
+            ona_xform_id = xform_data.get('formid')
+            if ona_xform_id:
+                full_xform_data = get_xform(ona_xform_id)
+                process_xform(full_xform_data, project_id)
 
 
 def process_xform(xform_data: dict, project_id: int = None):
@@ -238,10 +250,11 @@ def get_instances(xform_id: int):
         args = {'start': start, 'limit': 100}
         data = request(url, args)
         start = start + 100
-        if data == []:
-            end_page = True
-            break
-        yield data
+        if isinstance(data, list):
+            if data == []:
+                end_page = True
+                break
+            yield data
 
 
 def get_instance(xform_id: int, instance_id: int):
@@ -330,11 +343,12 @@ def get_xform_obj(ona_xform_id: int):
     """
     try:
         xform = XForm.objects.get(ona_pk=ona_xform_id)
-        return xform
     except XForm.DoesNotExist:  # pylint: disable=no-member
         xform_data = get_xform(ona_xform_id)
         process_xform(xform_data)
         return XForm.objects.filter(ona_pk=ona_xform_id).first()
+    else:
+        return xform
 
 
 def process_ona_webhook(instance_data: dict):

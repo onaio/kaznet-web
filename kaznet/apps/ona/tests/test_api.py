@@ -6,6 +6,7 @@ Ona Apps api.py methods
 from unittest.mock import patch
 from urllib.parse import urljoin
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -15,14 +16,15 @@ from requests.exceptions import RetryError
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
-from kaznet.apps.ona.api import (
-    get_instance, get_instances, get_project, get_project_obj, get_projects,
-    get_xform, get_xform_obj, process_instance, process_instances,
-    process_project, process_projects, process_xform, process_xforms, request,
-    request_session, update_user_profile_metadata)
-from kaznet.apps.users.models import UserProfile
+from kaznet.apps.ona.api import (get_and_process_xforms, get_instance,
+                                 get_instances, get_project, get_project_obj,
+                                 get_projects, get_xform, get_xform_obj,
+                                 process_instance, process_instances,
+                                 process_project, process_projects,
+                                 process_xform, process_xforms, request,
+                                 request_session, update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
-from django.conf import settings
+from kaznet.apps.users.models import UserProfile
 
 
 # pylint: disable=too-many-public-methods
@@ -250,6 +252,28 @@ class TestApiMethods(TestCase):
 
         process_xforms(mocked_forms_data, project_id=18)
         mockclass.assert_called_once()
+
+    @patch('kaznet.apps.ona.api.process_xform')
+    @patch('kaznet.apps.ona.api.get_xform')
+    def test_get_and_process_xforms(self, get_xform_mock, process_xform_mock):
+        """
+        Test get_and_process_xforms
+        """
+        xform_data = {
+            "name": "Form 66",
+            "formid": 7331,
+            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "is_merged_dataset": False,
+            "version": "v5555555555",
+            "owner": "https://example.com/api/v1/users/kaznet"
+        }
+        get_xform_mock.return_value = xform_data
+        get_and_process_xforms([xform_data], 29)
+
+        self.assertTrue(get_xform_mock.called)
+        process_xform_mock.assert_called_with(
+            xform_data, 29
+        )
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
