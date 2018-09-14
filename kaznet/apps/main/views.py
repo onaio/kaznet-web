@@ -11,3 +11,11 @@ class ReactAppView(LoginRequiredMixin, TemplateView):
     https://github.com/onaio/kaznet-frontend
     """
     template_name = "index.html"
+
+
+class ContributorNotAllowed(LoginRequiredMixin, TemplateView):
+    """
+    This is the view that contributor-level users will be redirected to
+    because they are not (yet) allowed to access the ReactAppView
+    """
+    template_name = "contributor-not-allowed.html"

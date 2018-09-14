@@ -1,0 +1,18 @@
+{% extends "account/base.html" %}
+
+{% load i18n crispy_forms_tags account socialaccount %}
+
+{% block head_title %}{% trans "Oops!" %}{% endblock %}
+
+{% block content %}
+
+<h3 class="text-center">{% trans "Only Admins Can Access This Website" %}</h3>
+
+<p class="text-center">
+    {% trans "We are sorry, but only admins are allwed to access this website at this time." %}
+</p>
+<p class="text-center">
+    {% trans "Please contact an admin if you have any questions." %}
+</p>
+
+{% endblock %}
