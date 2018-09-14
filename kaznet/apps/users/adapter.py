@@ -41,7 +41,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 try:
                     # check if the given username exists
                     user = User.objects.get(username=username.lower())
-                except User.DoesNotExist:
+                except User.DoesNotExist:  # pylint: disable=no-member
                     # if it does not, let allauth take care of this new
                     # social account
                     pass
@@ -59,7 +59,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 try:
                     email_address = EmailAddress.objects.get(
                         email__iexact=email.lower())
-                except EmailAddress.DoesNotExist:
+                except EmailAddress.DoesNotExist:  # pylint: disable=no-member
                     # if it does not, let allauth take care of this new
                     # social account
                     pass
