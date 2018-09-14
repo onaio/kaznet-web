@@ -11,8 +11,8 @@ from kaznet.apps.users.models import UserProfile
 
 class ContributorNotAllowedMixin:  # pylint: disable=too-few-public-methods
     """
-    This mixin is used to prevent contributor-level users from
-    accessing certain views (i.e. the views the use this mixin)
+    This view mixin is used to prevent contributor-level users from
+    accessing certain views.
     """
 
     @method_decorator(login_required)
