@@ -196,6 +196,8 @@ ACCOUNT_UNIQUE_EMAIL = True
 ALLAUTH_ONA_SCOPE = ['read', 'write']
 ALLAUTH_ONA_BASE_URL = ONA_BASE_URL
 
+SOCIALACCOUNT_ADAPTER = "kaznet.apps.users.adapter.SocialAccountAdapter"
+
 # CELERY
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
