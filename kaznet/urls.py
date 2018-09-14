@@ -45,7 +45,9 @@ urlpatterns = [
 
     # no contributors
     path(
-        'contributors', ContributorNotAllowed.as_view(), name="contributors"
+        'contributors',
+        ContributorNotAllowed.as_view(),
+        name="disallow_contributors"
     ),
 
     # react view to handle all other matches
