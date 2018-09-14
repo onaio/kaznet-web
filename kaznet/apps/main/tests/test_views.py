@@ -9,6 +9,7 @@ from django.urls import reverse
 from model_mommy import mommy
 
 from kaznet.apps.main.views import ContributorNotAllowed, ReactAppView
+from kaznet.apps.users.models import UserProfile
 
 
 class TestViews(StaticLiveServerTestCase):
@@ -28,6 +29,9 @@ class TestViews(StaticLiveServerTestCase):
         ):
             request = self.factory.get(reverse('react_app'))
             request.user = mommy.make('auth.User')
+            request.user.userprofile.role = UserProfile.ADMIN
+            request.user.userprofile.save()
+
             response = ReactAppView.as_view()(request)
             self.assertEqual(response.status_code, 200)
             response.render()
@@ -60,7 +64,7 @@ class TestViews(StaticLiveServerTestCase):
         with self.settings(
             STATICFILES_STORAGE='django.contrib.staticfiles.storage.StaticFilesStorage'  # noqa
         ):
-            request = self.factory.get(reverse('react_app'))
+            request = self.factory.get(reverse('disallow_contributors'))
             request.user = mommy.make('auth.User')
             response = ContributorNotAllowed.as_view()(request)
             self.assertEqual(response.status_code, 200)
@@ -90,13 +94,26 @@ class TestViews(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual('/accounts/login/?next=/', response.url)
 
+    def test_react_app_view_contributor_access(self):
+        """
+        Test that the ReactAppView does not allow contributor access
+        """
+        request = self.factory.get(reverse('react_app'))
+        request.user = mommy.make('auth.User')
+        request.user.userprofile.role = UserProfile.CONTRIBUTOR
+        request.user.userprofile.save()
+        response = ReactAppView.as_view()(request)
+        # you are redirected to the login page
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual('/contributors', response.url)
+
     def test_contributor_not_allowed_view_requires_authentication(self):
         """
         Test that the ContributorNotAllowed view requires authentication
         """
-        request = self.factory.get(reverse('react_app'))
+        request = self.factory.get(reverse('disallow_contributors'))
         request.user = AnonymousUser()
         response = ContributorNotAllowed.as_view()(request)
         # you are redirected to the login page
         self.assertEqual(response.status_code, 302)
-        self.assertEqual('/accounts/login/?next=/', response.url)
+        self.assertEqual('/accounts/login/?next=/contributors', response.url)
