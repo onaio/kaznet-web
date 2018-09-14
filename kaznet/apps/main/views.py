@@ -7,6 +7,7 @@ from django.views.generic.base import TemplateView
 from kaznet.apps.main.mixins import ContributorNotAllowedMixin
 
 
+# pylint: disable=too-many-ancestors
 class ReactAppView(
         LoginRequiredMixin, ContributorNotAllowedMixin, TemplateView):
     """

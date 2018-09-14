@@ -9,7 +9,7 @@ from django.utils.decorators import method_decorator
 from kaznet.apps.users.models import UserProfile
 
 
-class ContributorNotAllowedMixin(object):
+class ContributorNotAllowedMixin:  # pylint: disable=too-few-public-methods
     """
     This mixin is used to prevent contributr-level users from
     access certain views (i.e. the views the use this mixin)
@@ -21,6 +21,6 @@ class ContributorNotAllowedMixin(object):
         Redirect the user to the contributor not allwed view
         if they are a contributor
         """
-        if request.user.userprofile.role == UserProfile.CONTRIBUTOR:
+        if request.user.userprofile.role != UserProfile.ADMIN:
             return redirect(reverse("disallow_contributors"))
         return super().dispatch(request, *args, **kwargs)
