@@ -9,10 +9,15 @@
 <h3 class="text-center">{% trans "Only Admins Can Access This Website" %}</h3>
 
 <p class="text-center">
-    {% trans "We are sorry, but only admins are allwed to access this website at this time." %}
+    {% trans "We are sorry, but only admins are allowed to access this website at this time." %}
 </p>
 <p class="text-center">
     {% trans "Please contact an admin if you have any questions." %}
+</p>
+<p class="text-center">
+    <a href="{% url 'account_logout' %}" class="btn btn-primary">
+        {% trans "Sign in as a different user" %}
+    </a>
 </p>
 
 {% endblock %}
