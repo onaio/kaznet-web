@@ -72,11 +72,15 @@ class TestViews(StaticLiveServerTestCase):
             # check that the react assets are in the HTML rendered
             self.assertContains(
                 response,
-                'We are sorry, but only admins are allwed to access this website at this time.'  # noqa
+                'We are sorry, but only admins are allowed to access this website at this time.'  # noqa
             )
             self.assertContains(
                 response,
                 'Please contact an admin if you have any questions.'
+            )
+            self.assertContains(
+                response,
+                'Sign in as a different user'
             )
             self.assertContains(
                 response,
