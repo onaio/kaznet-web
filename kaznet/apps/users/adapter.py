@@ -69,6 +69,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     user = email_address.user
                     return sociallogin.connect(request, user)
 
+        # in all other cases, just let allauth do its regular thing
+        return None
+
 
 class AccountAdapter(DefaultAccountAdapter):
     """
