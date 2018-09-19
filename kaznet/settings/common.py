@@ -187,6 +187,9 @@ ONA_STATUS_FIELD = '_review_status'
 ONA_COMMENTS_FIELD = '_review_comments'
 ONA_LAST_PASSWORD_EDIT_FIELD = 'last_password_edit'
 
+# Texts
+ONA_LOGIN_TEXT = 'Log In With Your Ona Account'
+
 # Allauth
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_REQUIRED = False
@@ -195,6 +198,7 @@ ACCOUNT_PRESERVE_USERNAME_CASING = False
 ACCOUNT_UNIQUE_EMAIL = True
 ALLAUTH_ONA_SCOPE = ['read', 'write']
 ALLAUTH_ONA_BASE_URL = ONA_BASE_URL
+ACCOUNT_LOGOUT_ON_GET = True
 
 SOCIALACCOUNT_ADAPTER = "kaznet.apps.users.adapter.SocialAccountAdapter"
 
