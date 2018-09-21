@@ -48,7 +48,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 else:
                     # if it does, connect this new social login to the
                     # existing user
-                    sociallogin.connect(request, user)
+                    return sociallogin.connect(request, user)
 
             # next we check for an existing user by email
             email = sociallogin.account.extra_data.get('email')
@@ -67,7 +67,10 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     # if it does, connect this new social login to the
                     # existing user
                     user = email_address.user
-                    sociallogin.connect(request, user)
+                    return sociallogin.connect(request, user)
+
+        # in all other cases, just let allauth do its regular thing
+        return None
 
 
 class AccountAdapter(DefaultAccountAdapter):
