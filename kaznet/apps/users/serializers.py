@@ -9,9 +9,10 @@ from django.db.models.query import QuerySet
 from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
-from kaznet.apps.users.api import (add_team_member, change_password,
-                                   create_ona_user, update_details)
-from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
+from kaznet.apps.users.api import (add_team_member, create_ona_user,
+                                   update_details)
+from kaznet.apps.users.common_tags import (CANNOT_ACCESS_ONADATA,
+                                           NEED_PASSWORD_ON_CREATE)
 from kaznet.apps.users.models import UserProfile
 
 
@@ -175,6 +176,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 data
             )
 
+        if not data:
+            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
+
         ona_pk = data.get('id')
         metadata = data.get('metadata')
         gravatar = data.get('gravatar')
@@ -183,6 +187,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             settings.ONA_BASE_URL,
             user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
+
+        # set an unusable password by not passing the password to the create
+        # method.  Why, you ask?  Because we don't want to store passwords
+        # on the Kaznet site.  Ona is the source of truth for this.
+        try:
+            del user_data['password']
+        except KeyError:
+            pass
+
         # create the User object
         user = UserSerializer.create(UserSerializer(),
                                      validated_data=user_data)
@@ -192,9 +205,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         userprofile.ona_username = user.username
         userprofile.payment_number = validated_data.get('payment_number')
         userprofile.phone_number = validated_data.get('phone_number')
-        userprofile.role = validated_data.get('role')
+        if validated_data.get('role'):
+            userprofile.role = validated_data.get('role')
         userprofile.gender = validated_data.get('gender')
-        userprofile.national_id = validated_data.get('national_id')
+        if validated_data.get('national_id'):
+            userprofile.national_id = validated_data.get('national_id')
         userprofile.expertise = validated_data.get('expertise')
 
         if metadata:
@@ -216,24 +231,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
-        password = user_data.get('password')
-
-        if password is None:
-            # If password is None we Delete it From the user_data
-            try:
-                del user_data['password']
-            except KeyError:
-                pass
-        else:
-            change_password(
-                settings.ONA_BASE_URL,
-                username,
-                user.password,
-                password)
 
         # you can't change username
         try:
             del user_data['username']
+        except KeyError:
+            pass
+
+        # you can't change email
+        # this is because Onadata requires your current password when changing
+        # the email.  And we cannot get the user's current password
+        try:
+            del user_data['email']
+        except KeyError:
+            pass
+
+        # you can't change password
+        # this is because Onadata requires your current password when changing
+        # the password.  And we cannot get the user's current password
+        try:
+            del user_data['password']
         except KeyError:
             pass
 
@@ -242,13 +259,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             username,
             first_name,
             last_name,
-            email,
-            password)
+            email)
 
         if not updated:
             raise serializers.ValidationError(
                 data
             )
+
+        if not data:
+            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
 
         metadata = data.get('metadata')
         gravatar = data.get('gravatar')
