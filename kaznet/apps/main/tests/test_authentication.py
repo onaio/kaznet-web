@@ -44,7 +44,9 @@ class TestOnaTempTokenAuthentication(TestCase):
         }
         self.auth = OnaTempTokenAuthentication()
 
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io',
+        ONA_CROSS_AUTHENTICATION_URL="https://stage-api.ona.io/api/v1/user")
     @requests_mock.Mocker()
     def test_authenticates_credentials(self, mocked):
         """
@@ -85,7 +87,10 @@ class TestOnaTempTokenAuthentication(TestCase):
         self.assertRaisesMessage(AuthenticationFailed, 'Invalid Token',
                                  self.auth.authenticate_credentials, 'token')
 
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io',
+        ONA_CROSS_AUTHENTICATION_URL="https://stage-api.ona.io/api/v1/user"
+    )
     @requests_mock.Mocker()
     def test_last_login(self, mocked):
         """
@@ -94,7 +99,7 @@ class TestOnaTempTokenAuthentication(TestCase):
 
         # Test it authenticates if Ona User is Logged In
         mocked.get(
-            urljoin(settings.ONA_BASE_URL, 'api/v1/user'),
+            "https://stage-api.ona.io/api/v1/user",
             json=self.ona_response,
         )
 
@@ -117,7 +122,8 @@ class TestOnaTempTokenAuthentication(TestCase):
                 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
             }
         },
-        ONA_BASE_URL='https://stage-api.ona.io'
+        ONA_BASE_URL='https://stage-api.ona.io',
+        ONA_CROSS_AUTHENTICATION_URL="https://stage-api.ona.io/api/v1/user"
     )
     @patch('django.core.cache.cache.set')
     @requests_mock.Mocker()
