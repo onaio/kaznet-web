@@ -11,7 +11,8 @@ from rest_framework_json_api import serializers
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
 from kaznet.apps.users.api import (add_team_member, change_password,
                                    create_ona_user, update_details)
-from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
+from kaznet.apps.users.common_tags import (CANNOT_ACCESS_ONADATA,
+                                           NEED_PASSWORD_ON_CREATE)
 from kaznet.apps.users.models import UserProfile
 
 
@@ -175,6 +176,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 data
             )
 
+        if not data:
+            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
+
         ona_pk = data.get('id')
         metadata = data.get('metadata')
         gravatar = data.get('gravatar')
@@ -255,6 +259,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 data
             )
+
+        if not data:
+            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
 
         metadata = data.get('metadata')
         gravatar = data.get('gravatar')

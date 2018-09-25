@@ -1,6 +1,7 @@
 """
 API Methods For Kaznet User App
 """
+from json.decoder import JSONDecodeError
 from urllib.parse import urljoin
 
 from kaznet.apps.ona.api import request_session
@@ -31,11 +32,14 @@ def create_ona_user(  # pylint: disable=too-many-arguments
     )
 
     if response.status_code != 201:
-        data = response.json()
         created = False
     else:
-        data = response.json()
         created = True
+
+    try:
+        data = response.json()
+    except JSONDecodeError:
+        data = None
 
     return (created, data)
 
@@ -59,10 +63,14 @@ def add_team_member(
     )
 
     if response.status_code != 201:
-        data = response.json()
         added = False
     else:
         added = True
+
+    try:
+        data = response.json()
+    except JSONDecodeError:
+        data = None
 
     return (added, data)
 
@@ -92,11 +100,14 @@ def update_details(  # pylint: disable=too-many-arguments
     )
 
     if response.status_code != 200:
-        data = response.json()
         updated = False
     else:
-        data = response.json()
         updated = True
+
+    try:
+        data = response.json()
+    except JSONDecodeError:
+        data = None
 
     return (updated, data)
 
