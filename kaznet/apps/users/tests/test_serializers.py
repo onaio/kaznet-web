@@ -99,7 +99,7 @@ class TestUserProfileSerializer(TestCase):
             data = {
                 'first_name': 'Mosh',
                 'last_name': 'Pitt',
-                'email': 'mosh@example.com',
+                'email': 'mosh@example.com',  # cant edit this
                 'role': UserProfile.CONTRIBUTOR,
                 'expertise': UserProfile.INTERMEDIATE,
                 'national_id': '1337',
@@ -127,7 +127,7 @@ class TestUserProfileSerializer(TestCase):
             expected_data = dict(initial_user_data).copy()
             expected_data['first_name'] = 'Mosh'
             expected_data['last_name'] = 'Pitt'
-            expected_data['email'] = 'mosh@example.com'
+            expected_data['email'] = 'bobbie@example.com'
             expected_data['role'] = UserProfile.CONTRIBUTOR
             expected_data['role_display'] = UserProfile.ROLE_CHOICES[1][1]
             expected_data['expertise_display'] = UserProfile.EXPERTISE_CHOICES[
@@ -150,7 +150,7 @@ class TestUserProfileSerializer(TestCase):
 
             self.assertEqual('Mosh', userprofile.user.first_name)
             self.assertEqual('Pitt', userprofile.user.last_name)
-            self.assertEqual('mosh@example.com', userprofile.user.email)
+            self.assertEqual('bobbie@example.com', userprofile.user.email)
             self.assertEqual(UserProfile.ROLE_CHOICES[1][1],
                              userprofile.role_display)
             self.assertEqual(UserProfile.CONTRIBUTOR, userprofile.role)
