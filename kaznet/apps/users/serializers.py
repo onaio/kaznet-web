@@ -242,6 +242,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             pass
 
         # you can't change email
+        # this is because Onadata requires your current password when changing
+        # the email.  And we cannot get the user's current password
         try:
             del user_data['email']
         except KeyError:
