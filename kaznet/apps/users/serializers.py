@@ -237,6 +237,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
+        # you can't change email
+        try:
+            del user_data['email']
+        except KeyError:
+            pass
+
         updated, data = update_details(
             settings.ONA_BASE_URL,
             username,
