@@ -4,6 +4,7 @@ Tests for UserProfile serializers
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 import requests_mock
@@ -66,6 +67,10 @@ class TestUserProfileSerializer(TestCase):
             data.pop('password')
 
             self.assertDictContainsSubset(data, serializer_instance.data)
+
+            # ensure that the User object has unusable password
+            self.assertFalse(
+                User.objects.get(username='bobbie').has_usable_password())
 
             return serializer_instance.data
 
