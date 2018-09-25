@@ -28,6 +28,6 @@ class TestClientSerializer(TestCase):
         self.assertDictContainsSubset(data, serializer_instance.data)
         self.assertEqual(client.name, data['name'])
 
-        expected_fields = ['name', 'id', 'created']
+        expected_fields = ['name', 'id', 'created', 'modified']
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
