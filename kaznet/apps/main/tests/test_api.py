@@ -125,8 +125,8 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(
             data, task)
 
-        self.assertEqual(
-            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(Submission.REJECTED,
+                         validated_data[settings.ONA_STATUS_FIELD])
         self.assertEqual(
             INCORRECT_LOCATION, validated_data[settings.ONA_COMMENTS_FIELD])
 

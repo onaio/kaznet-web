@@ -149,23 +149,23 @@ def validate_location(data: dict, task: object):
     coords = data.get('_geolocation')
     locations = get_locations(coords, task)
     submission_point = Point(coords[0], coords[1])
+    # import ipdb
+    # ipdb.set_trace()
 
     if locations:
         for location in locations:
-            # dist = distance(location.geopoint, submission_point)
             if location.radius and location.geopoint:
-                dist = distance(location.geopoint, submission_point)
+                # distance in meters
+                dist = distance(location.geopoint, submission_point).m
                 if dist <= location.radius:
                     data['location'] = location
                     return data
 
+                data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+                data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
             # incase location has shapefile instead
             data['location'] = location
             return data
-        # if provided location is not in task locations, reject
-        data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
-        data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
-        return data
 
     # if provided location is not in task locations, reject
     data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
