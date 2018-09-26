@@ -10,7 +10,7 @@ from tasking.utils import get_allowed_contenttypes
 
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
-                                          INVALID_TASK, LACKING_EXPERTISE)
+                                          LACKING_EXPERTISE)
 from kaznet.apps.main.models import Location, Submission, TaskOccurrence, \
     TaskLocation
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
@@ -112,13 +112,13 @@ def convert_ona_kaznet_submission_status(ona_status: str):
     """
     Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
     """
-
     if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
         return Submission.APPROVED
-    elif ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
         return Submission.REJECTED
-    elif ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
         return Submission.PENDING
+    return None
 
 
 def get_locations(coords: list, task: object):
@@ -134,13 +134,12 @@ def get_locations(coords: list, task: object):
         # within its range
         # pylint: disable=no-member
         task_locations = TaskLocation.objects.filter(
-                task=task, location__shapefile__contains=submission_point).\
+            task=task, location__shapefile__contains=submission_point).\
             values_list('location', flat=True)
         if task_locations:
             return Location.objects.filter(id__in=task_locations)
-        else:
-            return task.locations.exclude(geopoint=None, radius=None)
-            # return task.locations.all()
+        return task.locations.exclude(geopoint=None, radius=None)
+    return None
 
 
 def validate_location(data: dict, task: object):
@@ -159,19 +158,19 @@ def validate_location(data: dict, task: object):
                 if dist <= location.radius:
                     data['location'] = location
                     return data
-            else:
-                # incase location has shapefile instead
-                data['location'] = location
-                return data
+
+            # incase location has shapefile instead
+            data['location'] = location
+            return data
         # if provided location is not in task locations, reject
         data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
         data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
         return data
-    else:
-        # if provided location is not in task locations, reject
-        data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
-        data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
-        return data
+
+    # if provided location is not in task locations, reject
+    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+    data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
+    return data
 
 
 def validate_user(data: dict, task: object, user: object):
