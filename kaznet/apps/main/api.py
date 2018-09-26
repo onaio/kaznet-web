@@ -11,7 +11,8 @@ from tasking.utils import get_allowed_contenttypes
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
                                           INVALID_TASK, LACKING_EXPERTISE)
-from kaznet.apps.main.models import Location, Submission, TaskOccurrence
+from kaznet.apps.main.models import Location, Submission, TaskOccurrence, \
+    TaskLocation
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 
 
@@ -23,11 +24,31 @@ def create_submission(ona_instance: object):
     task = ona_instance.get_task()
     user = ona_instance.user
 
-    data = validate_user(data, task, user)
-    if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
-        data = validate_location(data, task)
-        if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
-            data = validate_submission_time(task, data)
+    # only perform validation if the submission is pending and has no comment
+    # Order of validation, User, Location then Time
+    if data[settings.ONA_STATUS_FIELD] == "3" and \
+            data[settings.ONA_COMMENTS_FIELD] == "":
+        data = validate_user(data, task, user)
+        if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED and \
+                all(data[settings.ONA_GEOLOCATION_FIELD]):
+            data = validate_location(data, task)
+            if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
+                data = validate_submission_time(task, data)
+                if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED and \
+                        settings.SUBMISSION_AUTO_APPROVAL:
+                    data[settings.ONA_STATUS_FIELD] = Submission.APPROVED
+                elif data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
+                    data[settings.ONA_STATUS_FIELD] = Submission.PENDING
+
+    else:
+        location = get_locations(data[settings.ONA_GEOLOCATION_FIELD], task)
+        if location:
+            data['location'] = location[0]
+
+    # if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
+    #     data = validate_location(data, task)
+    #     if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
+    #         data = validate_submission_time(task, data)
 
     if data[settings.ONA_STATUS_FIELD] == Submission.REJECTED:
         validated_data = {
@@ -47,6 +68,11 @@ def create_submission(ona_instance: object):
                 model='instance').first().id,
             'target_id': ona_instance.id
         }
+        if 'location' in data:
+            validated_data['location'] = {
+                'type': 'Location',
+                'id': data['location'].id
+            }
 
         serializer_instance = KaznetSubmissionSerializer(data=validated_data)
         if serializer_instance.is_valid():
@@ -70,7 +96,9 @@ def create_submission(ona_instance: object):
             'type': 'Bounty',
             'id': task.bounty.id
         },
-        'status': Submission.PENDING,
+        'status': convert_ona_kaznet_submission_status(
+            data[settings.ONA_STATUS_FIELD]),
+        'comments': str(data[settings.ONA_COMMENTS_FIELD]),
         'submission_time': data['_submission_time'],
         'valid': True,
         'target_content_type': get_allowed_contenttypes().filter(
@@ -84,55 +112,70 @@ def create_submission(ona_instance: object):
     return None
 
 
+def convert_ona_kaznet_submission_status(ona_status: str):
+    """
+    Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
+    """
+
+    if ona_status == '1':
+        return Submission.APPROVED
+    elif ona_status == '2':
+        return Submission.REJECTED
+    elif ona_status == '3':
+        return Submission.PENDING
+
+
+def get_locations(coords: list, task: object):
+    """
+    Return the location given the instance data and task object
+    """
+    # Check if we were able to succesfully get coords
+    # If we weren't then return None
+    if coords and all(coords):
+        submission_point = Point(coords[0], coords[1])
+
+        # get task locations with a shapefile that has the submission_point
+        # within its range
+        # pylint: disable=no-member
+        task_locations = TaskLocation.objects.filter(
+                task=task, location__shapefile__contains=submission_point).\
+            values_list('location', flat=True)
+        if task_locations:
+            return Location.objects.filter(id__in=task_locations)
+        else:
+            return task.locations.exclude(geopoint=None, radius=None)
+            # return task.locations.all()
+
+
 def validate_location(data: dict, task: object):
     """
     Validates Submission Location
     """
     coords = data.get('_geolocation')
+    locations = get_locations(coords, task)
+    submission_point = Point(coords[0], coords[1])
 
-    # Check if we were able to succesfully get coords
-    # If we weren't then the Submission is not Valid
-    if coords and all(coords):
-        submission_point = Point(coords[0], coords[1])
-
-        try:
-            # Check if there is any location with a shapefile
-            # that has the submission_point within its range
-            location = Location.objects.get(
-                task=task, shapefile__contains=submission_point)
-        except Location.DoesNotExist:  # pylint: disable=no-member
-            locations = task.locations.all()
-            for location in locations:
-                if location.geopoint is None:
-                    # If by any chance a location has no geopoint or shapefile
-                    # we reject the submission
-                    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
-                    data[settings.ONA_COMMENTS_FIELD] = INVALID_TASK
-                    return data
-
+    if locations:
+        for location in locations:
+            # dist = distance(location.geopoint, submission_point)
+            if location.radius and location.geopoint:
                 dist = distance(location.geopoint, submission_point)
-
-                if location.radius is not None:
-                    if dist <= location.radius:
-                        data['location'] = location
-                        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
-                        return data
-
-            # Reject Submission if there is no location for the task
-            # that matches there submission_point
-            data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
-            data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
-            return data
-        else:
-            data['location'] = location
-            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
-            return data
-
-    # Add Rejected status to Submission since it doesn't
-    # any location data thus is in valid
-    data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
-    data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
-    return data
+                if dist <= location.radius:
+                    data['location'] = location
+                    return data
+            else:
+                # incase location has shapefile instead
+                data['location'] = location
+                return data
+        # if provided location is not in task locations, reject
+        data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+        data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
+        return data
+    else:
+        # if provided location is not in task locations, reject
+        data[settings.ONA_STATUS_FIELD] = Submission.REJECTED
+        data[settings.ONA_COMMENTS_FIELD] = INCORRECT_LOCATION
+        return data
 
 
 def validate_user(data: dict, task: object, user: object):
@@ -144,8 +187,7 @@ def validate_user(data: dict, task: object, user: object):
 
     # Check if the User submitting Data has an expertise level
     # above or equal to the required_expertise
-    if task.required_expertise <= user_expertise:
-        data[settings.ONA_STATUS_FIELD] = Submission.PENDING
+    if int(task.required_expertise) <= int(user_expertise):
         return data
 
     # Reject the data if user doesn't meet the requirements
@@ -176,7 +218,6 @@ def validate_submission_time(task: object, data: dict):
                 ).filter(
                     start_time__lte=submission_time.time()).filter(
                         end_time__gte=submission_time.time()).exists():
-            data[settings.ONA_STATUS_FIELD] = Submission.PENDING
             return data
     # We reject the submission if there was no TaskOccurence
     # That match the submission_time
