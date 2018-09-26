@@ -6,7 +6,6 @@ from django.test import TestCase
 import pytz
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
-from dateutil.parser import parse
 from kaznet.apps.main.models import Client
 from kaznet.apps.main.viewsets import ClientViewSet
 from kaznet.apps.users.tests.base import create_admin_user
@@ -40,19 +39,16 @@ class TestClientViewSet(TestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertDictContainsSubset(data, response.data)
-
         # pylint: disable=no-member
         client = Client.objects.get(pk=response.data['id'])
-
         self.assertEqual(client.name, data['name'])
 
     def test_modified_client(self):
-
         # order by modified descending
         user = create_admin_user()
         view = ClientViewSet.as_view({'get': 'list'})
         client1 = mommy.make('main.Client', name='Bee Happy')
-        mommy.make('main.CLient', name='Generic', _quantity=7)
+        mommy.make('main.Client', name='Generic', _quantity=7)
         client2 = mommy.make('main.Client', name='Zero Company')
         request = self.factory.get('/clients', {'ordering': '-modified'})
         force_authenticate(request, user=user)
@@ -66,7 +62,7 @@ class TestClientViewSet(TestCase):
             response.data['results'][0]['modified'],
             client2.modified.astimezone(
                 pytz.timezone('Africa/Nairobi')).isoformat())
-        self.assertEqual(response.data['results'][0]['id'], client2.id)  
+        self.assertEqual(response.data['results'][0]['id'], client2.id)
 
     def test_list_clients(self):
         """
@@ -95,7 +91,6 @@ class TestClientViewSet(TestCase):
         force_authenticate(request, user=user)
         response = view(request=request, pk=client.id)
         self.assertEqual(response.status_code, 200)
-
         self.assertTrue(response.data['name'], client.name)
 
     def test_name_search(self):
@@ -295,7 +290,6 @@ class TestClientViewSet(TestCase):
             str(response.data[0]['detail']))
 
         # Cant Create
-
         data = {
             'name': 'Flux Company'
         }
