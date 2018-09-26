@@ -47,7 +47,7 @@ class TestAPIMethods(MainTestBase):
                 -1.294328
             ],
             "_status": "submitted_via_web",
-            "_review_status": "1",
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
             "_review_comments": "This is a review comment",
             "_submitted_by": "dave",
             "_xform_id": 25,
@@ -58,7 +58,7 @@ class TestAPIMethods(MainTestBase):
         }
 
         if pending:
-            data["_review_status"] = "3"
+            data["_review_status"] = settings.ONA_SUBMISSION_REVIEW_PENDING
             data["_review_comments"] = ""
         process_instance(data, xform=form)
 
@@ -99,7 +99,8 @@ class TestAPIMethods(MainTestBase):
         validated_data = validate_location(data, task)
 
         self.assertEqual(location, validated_data['location'])
-        self.assertEqual("1", validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(settings.ONA_SUBMISSION_REVIEW_APPROVED,
+                         validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_location_with_invalid_data(self):
         """
@@ -147,7 +148,8 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_user(data, task, user)
 
-        self.assertEqual("1", validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(settings.ONA_SUBMISSION_REVIEW_APPROVED,
+                         validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_user_with_invalid_data(self):
         """
@@ -191,7 +193,8 @@ class TestAPIMethods(MainTestBase):
 
         validated_data = validate_submission_time(task, data)
 
-        self.assertEqual("1", validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(settings.ONA_SUBMISSION_REVIEW_APPROVED,
+                         validated_data[settings.ONA_STATUS_FIELD])
 
     def test_validate_submission_time_with_invalid_data(self):
         """

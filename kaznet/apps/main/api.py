@@ -26,7 +26,8 @@ def create_submission(ona_instance: object):
 
     # only perform validation if the submission is pending and has no comment
     # Order of validation, User, Location then Time
-    if data[settings.ONA_STATUS_FIELD] == "3" and \
+    if data[settings.ONA_STATUS_FIELD] == \
+            settings.ONA_SUBMISSION_REVIEW_PENDING and \
             data[settings.ONA_COMMENTS_FIELD] == "":
         data = validate_user(data, task, user)
         if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED and \
@@ -43,12 +44,7 @@ def create_submission(ona_instance: object):
     else:
         location = get_locations(data[settings.ONA_GEOLOCATION_FIELD], task)
         if location:
-            data['location'] = location[0]
-
-    # if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
-    #     data = validate_location(data, task)
-    #     if data[settings.ONA_STATUS_FIELD] != Submission.REJECTED:
-    #         data = validate_submission_time(task, data)
+            data['location'] = location.first()
 
     if data[settings.ONA_STATUS_FIELD] == Submission.REJECTED:
         validated_data = {
@@ -117,11 +113,11 @@ def convert_ona_kaznet_submission_status(ona_status: str):
     Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
     """
 
-    if ona_status == '1':
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
         return Submission.APPROVED
-    elif ona_status == '2':
+    elif ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
         return Submission.REJECTED
-    elif ona_status == '3':
+    elif ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
         return Submission.PENDING
 
 
