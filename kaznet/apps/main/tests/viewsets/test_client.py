@@ -332,5 +332,3 @@ class TestClientViewSet(TestCase):
         self.assertEqual(
             'You shall not pass.',
             str(response.data[0]['detail']))
-
-          
