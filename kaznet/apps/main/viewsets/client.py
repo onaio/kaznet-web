@@ -33,6 +33,6 @@ class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         filters.SearchFilter]
     search_fields = ['name']
     ordering_fields = [
-        'name',
+        'name', 'modified'
     ]
     queryset = Client.objects.all()  # pylint: disable=no-member
