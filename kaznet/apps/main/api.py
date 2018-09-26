@@ -46,7 +46,9 @@ def create_submission(ona_instance: object):
         if location:
             data['location'] = location.first()
 
-    if data[settings.ONA_STATUS_FIELD] == Submission.REJECTED:
+    if data[settings.ONA_STATUS_FIELD] == Submission.REJECTED or \
+            data[settings.ONA_STATUS_FIELD] == \
+            settings.ONA_SUBMISSION_REVIEW_REJECTED:
         validated_data = {
             'task': {
                 'type': 'Task',
