@@ -149,8 +149,6 @@ def validate_location(data: dict, task: object):
     coords = data.get('_geolocation')
     locations = get_locations(coords, task)
     submission_point = Point(coords[0], coords[1])
-    # import ipdb
-    # ipdb.set_trace()
 
     if locations:
         for location in locations:
