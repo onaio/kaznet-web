@@ -160,9 +160,9 @@ def change_user_role(
         }
     )
 
-    if response.status_code == 200:
-        updated = True
-    else:
+    if response.status_code != 200:
         updated = False
+    else:
+        updated = True
 
     return updated
