@@ -161,7 +161,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         last_name = user_data.get('last_name')
         email = user_data.get('email')
         password = user_data.get('password')
-        role = validated_data.get('role')
 
         created, data = create_ona_user(
             settings.ONA_BASE_URL,
@@ -189,7 +188,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
 
-        if role == UserProfile.ADMIN:
+        if validated_data.get('role') == UserProfile.ADMIN:
             # make user admin of on organisation
             change_user_role(
                 settings.ONA_BASE_URL,
