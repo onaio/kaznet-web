@@ -138,3 +138,31 @@ def change_password(
         updated = True
 
     return updated
+
+
+def change_user_role(
+        api_root: str,
+        organisation: str,
+        username: str,
+        role: str
+):
+    """
+    Custom method that makes a user an admin
+    """
+    response = request_session(
+        urljoin(
+            api_root,
+            f'api/v1/orgs/{organisation}/members'),
+        'PUT',
+        payload={
+            'username': username,
+            'role': role
+        }
+    )
+
+    if response.status_code == 200:
+        updated = True
+    else:
+        updated = False
+
+    return updated
