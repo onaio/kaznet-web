@@ -10,7 +10,7 @@ from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
 from kaznet.apps.users.api import (add_team_member, create_ona_user,
-                                   update_details)
+                                   update_details, change_user_role)
 from kaznet.apps.users.common_tags import (CANNOT_ACCESS_ONADATA,
                                            NEED_PASSWORD_ON_CREATE)
 from kaznet.apps.users.models import UserProfile
@@ -161,6 +161,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         last_name = user_data.get('last_name')
         email = user_data.get('email')
         password = user_data.get('password')
+        role = validated_data.get('role')
 
         created, data = create_ona_user(
             settings.ONA_BASE_URL,
@@ -187,6 +188,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             settings.ONA_BASE_URL,
             user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
+
+        if role == UserProfile.ADMIN:
+            # make user admin of on organisation
+            change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_USERNAME,
+                user_data['username'],
+                settings.ONA_OWNER_ROLE
+            )
 
         # set an unusable password by not passing the password to the create
         # method.  Why, you ask?  Because we don't want to store passwords
@@ -231,6 +241,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
+        role = validated_data.get('role')
 
         # you can't change username
         try:
@@ -268,6 +279,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         if not data:
             raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
+
+        if role == UserProfile.ADMIN and instance.role != UserProfile.ADMIN:
+            # change role to admin
+
+            change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_USERNAME,
+                instance.ona_username,
+                settings.ONA_OWNER_ROLE
+            )
+
+        elif role != UserProfile.ADMIN and instance.role == UserProfile.ADMIN:
+            # change role from admin to contributor
+            change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_USERNAME,
+                instance.ona_username,
+                settings.ONA_CONTRIBUTER_ROLE
+            )
 
         metadata = data.get('metadata')
         gravatar = data.get('gravatar')
