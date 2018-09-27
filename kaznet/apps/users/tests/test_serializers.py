@@ -35,6 +35,12 @@ class TestUserProfileSerializer(TestCase):
                     f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
                 status_code=201)
 
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                status_code=200)
+
             data = {
                 'first_name': 'Bob',
                 'last_name': 'Doe',
@@ -123,6 +129,12 @@ class TestUserProfileSerializer(TestCase):
                     },
                     'gravatar': ''
                 })
+
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                status_code=200)
 
             serializer_instance = UserProfileSerializer(
                 instance=userprofile, data=data)
