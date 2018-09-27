@@ -64,6 +64,10 @@ def request_session(
         response = session.patch(
             url, auth=basic_auth, data=payload, headers=headers)
         return response
+    if method == 'PUT':
+        response = session.put(
+            url, auth=basic_auth, data=payload, headers=headers)
+        return response
 
     return None
 
