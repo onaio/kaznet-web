@@ -647,7 +647,7 @@ class TestApiMethods(TestCase):
 
         # Returns None for request methods that aren't GET or POST
 
-        response = request_session('https://example.com', 'PUT')
+        response = request_session('https://example.com', 'DELETE')
         self.assertEqual(response, None)
 
     def test_request_session_bad_url(self):
