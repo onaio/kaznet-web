@@ -634,7 +634,7 @@ class TestApiMethods(TestCase):
         # Request returns None for requests that aren't GET or POST
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53')
-        response = request(url, method='PUT')
+        response = request(url, method='DELETE')
 
         self.assertEqual(response, None)
 

@@ -44,6 +44,12 @@ class TestUserProfileViewSet(TestCase):
                     f'api/v1/teams/{settings.ONA_MEMBERS_TEAM_ID}/members'),
                 status_code=201)
 
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                status_code=200)
+
             user = create_admin_user()
 
             data = {
@@ -274,6 +280,12 @@ class TestUserProfileViewSet(TestCase):
                 json=self.ona_json,
                 status_code=200,
             )
+
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                status_code=200)
 
             data = {
                 'first_name': 'Peter',
