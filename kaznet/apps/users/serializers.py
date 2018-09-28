@@ -279,9 +279,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not data:
             raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
 
+        # change role to admin if the user is not initially an admin
         if role == UserProfile.ADMIN and instance.role != UserProfile.ADMIN:
-            # change role to admin
-
             change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_USERNAME,
@@ -289,8 +288,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 settings.ONA_OWNER_ROLE
             )
 
+        # change role to contributor if user was initially an admin
         elif role != UserProfile.ADMIN and instance.role == UserProfile.ADMIN:
-            # change role from admin to contributor
             change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_USERNAME,

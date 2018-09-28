@@ -631,7 +631,7 @@ class TestApiMethods(TestCase):
 
         self.assertEqual(response, None)
 
-        # Request returns None for requests that aren't GET or POST
+        # Request returns None for requests that aren't GET or POST or PUT
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53')
         response = request(url, method='DELETE')
@@ -645,7 +645,7 @@ class TestApiMethods(TestCase):
         response = request_session('https://example.com', 'GET')
         self.assertEqual(response.status_code, 200)
 
-        # Returns None for request methods that aren't GET or POST
+        # Returns None for request methods that aren't GET or POST or PUT
 
         response = request_session('https://example.com', 'DELETE')
         self.assertEqual(response, None)
