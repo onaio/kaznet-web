@@ -30,11 +30,11 @@ def create_submission(ona_instance: object):
         # Order of validation: User - Location - Time
         # only perform validation if the submission is pending and
         # has no comment
-        if (data[settings.ONA_STATUS_FIELD] == Submission.PENDING or \
-                data[settings.ONA_STATUS_FIELD] == \
+        if (data[settings.ONA_STATUS_FIELD] == Submission.PENDING or
+                data[settings.ONA_STATUS_FIELD] ==
                 settings.ONA_SUBMISSION_REVIEW_PENDING) and \
-                (data[settings.ONA_COMMENTS_FIELD] == "" or \
-                not data[settings.ONA_COMMENTS_FIELD]):
+                (data[settings.ONA_COMMENTS_FIELD] == "" or
+                 not data[settings.ONA_COMMENTS_FIELD]):
             data = validate_user(data, task, user)
 
             # Validate location if user validation was successful
