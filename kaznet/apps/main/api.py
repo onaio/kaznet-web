@@ -23,17 +23,18 @@ def create_submission(ona_instance: object):
     data = ona_instance.json
     task = ona_instance.get_task()
     user = ona_instance.user
+    validated_data = data
 
     # Check if submission has had a review
     if settings.ONA_STATUS_FIELD in data:
         # Order of validation: User - Location - Time
         # only perform validation if the submission is pending and
         # has no comment
-        if (data[settings.ONA_STATUS_FIELD] ==
-            settings.ONA_SUBMISSION_REVIEW_PENDING or
-            data[settings.ONA_STATUS_FIELD] == Submission.PENDING) and \
-                (data[settings.ONA_COMMENTS_FIELD] == "" or
-                 not data[settings.ONA_COMMENTS_FIELD]):
+        if (data[settings.ONA_STATUS_FIELD] == Submission.PENDING or \
+                data[settings.ONA_STATUS_FIELD] == \
+                settings.ONA_SUBMISSION_REVIEW_PENDING) and \
+                (data[settings.ONA_COMMENTS_FIELD] == "" or \
+                not data[settings.ONA_COMMENTS_FIELD]):
             data = validate_user(data, task, user)
 
             # Validate location if user validation was successful
@@ -95,8 +96,6 @@ def create_submission(ona_instance: object):
                 data[settings.ONA_STATUS_FIELD])
             validated_data['comments'] = str(data[settings.ONA_COMMENTS_FIELD])
             validated_data['valid'] = True
-    else:
-        validated_data = data
 
     serializer_instance = KaznetSubmissionSerializer(data=validated_data)
     if serializer_instance.is_valid():
