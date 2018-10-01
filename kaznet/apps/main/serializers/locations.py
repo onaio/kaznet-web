@@ -105,12 +105,14 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
         radius = validated_data.get('radius')
         shapefile = validated_data.get('shapefile')
 
+        # remove shapefile if post data has geopoint and radius
         if geopoint is not None and radius is not None:
             instance.radius = radius
             instance.geopoint = geopoint
             if instance.shapefile:
                 instance.shapefile = None
 
+        # remove geopoint and radius if post data has shapefile
         elif shapefile is not None:
             instance.shapefile = shapefile
             if instance.geopoint or instance.radius:

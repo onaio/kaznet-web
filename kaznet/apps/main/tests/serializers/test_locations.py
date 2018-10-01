@@ -191,14 +191,14 @@ class TestLocationSerializer(TestCase):
             geopoint='30,10',
             radius=45.986,
         )
-        serializer_instance = KaznetLocationSerializer(
+        create_serializer_instance = KaznetLocationSerializer(
             instance=mocked_location, data=data)
-        self.assertTrue(serializer_instance.is_valid())
-        serializer_instance.save()
+        self.assertTrue(create_serializer_instance.is_valid())
+        create_serializer_instance.save()
         self.assertEqual(
-            type(serializer_instance.data['geopoint']), GeoJsonDict)
+            type(create_serializer_instance.data['geopoint']), GeoJsonDict)
         self.assertEqual(
-            float(serializer_instance.data['radius']), data['radius'])
+            float(create_serializer_instance.data['radius']), data['radius'])
 
         path = os.path.join(
             BASE_DIR, 'fixtures', 'test_shapefile.zip')
@@ -209,11 +209,12 @@ class TestLocationSerializer(TestCase):
                 name='Nairobi',
                 shapefile=shapefile
             )
-            serializer_instance = KaznetLocationSerializer(
+            update_serializer_instance = KaznetLocationSerializer(
                 instance=mocked_location, data=data)
-            self.assertTrue(serializer_instance.is_valid())
-            serializer_instance.save()
-            self.assertEqual(serializer_instance.data['geopoint'], None)
-            self.assertEqual(serializer_instance.data['radius'], None)
+            self.assertTrue(update_serializer_instance.is_valid())
+            update_serializer_instance.save()
+            self.assertEqual(update_serializer_instance.data['geopoint'], None)
+            self.assertEqual(update_serializer_instance.data['radius'], None)
             self.assertEqual(
-                type(serializer_instance.data['shapefile']), GeoJsonDict)
+                type(update_serializer_instance.data['shapefile']),
+                GeoJsonDict)
