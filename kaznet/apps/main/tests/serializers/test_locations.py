@@ -203,7 +203,7 @@ class TestLocationSerializer(TestCase):
         path = os.path.join(
             BASE_DIR, 'fixtures', 'test_shapefile.zip')
 
-        # overrides geopoint, radius data given shapefile
+        # removes geopoint and radius data given shapefile
         with open(path, 'r+b') as shapefile:
             data = OrderedDict(
                 name='Nairobi',
