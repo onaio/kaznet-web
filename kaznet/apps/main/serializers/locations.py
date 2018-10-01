@@ -96,3 +96,29 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
+    def update(self, instance, validated_data):
+        """
+        Custom method to perform Location Update
+        """
+
+        geopoint = validated_data.get('geopoint')
+        radius = validated_data.get('radius')
+        shapefile = validated_data.get('shapefile')
+
+        if geopoint is not None and radius is not None:
+            instance.radius = radius
+            instance.geopoint = geopoint
+            if instance.shapefile:
+                instance.shapefile = None
+
+        elif shapefile is not None:
+            instance.shapefile = shapefile
+            if instance.geopoint or instance.radius:
+                instance.radius = None
+                instance.geopoint = None
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description',
+                                                  instance.description)
+        instance.save()
+        return super().update(instance, validated_data)
