@@ -25,50 +25,6 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
     shapefile = ShapeFileField(required=False)
     geopoint = GeopointField(required=False)
 
-    def validate_parent(self, value):
-        """
-        Validate location parent field
-        """
-        if self.instance is not None and not validate_parent_field(
-                self.instance, value):
-            # locations cannot be their own parents
-            raise serializers.ValidationError(SAME_PARENT)
-        return value
-
-    def validate(self, attrs):
-        """
-        Custom Validation for KaznetLocationSerializer
-        """
-        if self.instance:
-            geopoint = attrs.get('geopoint', self.instance.geopoint)
-            radius = attrs.get('radius', self.instance.radius)
-            shapefile = attrs.get('shapefile', self.instance.shapefile)
-        else:
-            geopoint = attrs.get('geopoint')
-            radius = attrs.get('radius')
-            shapefile = attrs.get('shapefile')
-
-        if geopoint is not None:
-            if shapefile is not None:
-                raise serializers.ValidationError(
-                    {'shapefile': GEODETAILS_ONLY}
-                )
-            if radius is None:
-                raise serializers.ValidationError(
-                    {'radius': RADIUS_MISSING}
-                )
-        if radius is not None:
-            if shapefile is not None:
-                raise serializers.ValidationError(
-                    {'shapefile': GEODETAILS_ONLY}
-                )
-            if geopoint is None:
-                raise serializers.ValidationError(
-                    {'geopoint': GEOPOINT_MISSING}
-                )
-
-        return super().validate(attrs)
-
     # pylint: disable=too-few-public-methods
     class Meta:
         """
@@ -91,3 +47,52 @@ class KaznetLocationSerializer(serializers.ModelSerializer):
             'modified',
             'has_submissions',
         ]
+
+    def validate_parent(self, value):
+        """
+        Validate location parent field
+        """
+        if self.instance is not None and not validate_parent_field(
+                self.instance, value):
+            # locations cannot be their own parents
+            raise serializers.ValidationError(SAME_PARENT)
+        return value
+
+    def validate(self, attrs):
+        """
+        Custom Validation for KaznetLocationSerializer
+        """
+        geopoint = attrs.get('geopoint')
+        radius = attrs.get('radius')
+        shapefile = attrs.get('shapefile')
+
+        if geopoint is not None:
+            if shapefile is not None:
+                raise serializers.ValidationError(
+                    {'shapefile': GEODETAILS_ONLY}
+                )
+            if radius is None:
+                raise serializers.ValidationError(
+                    {'radius': RADIUS_MISSING}
+                )
+        if radius is not None:
+            if shapefile is not None:
+                raise serializers.ValidationError(
+                    {'shapefile': GEODETAILS_ONLY}
+                )
+            if geopoint is None:
+                raise serializers.ValidationError(
+                    {'geopoint': GEOPOINT_MISSING}
+                )
+        if shapefile is not None:
+            if radius is not None:
+                raise serializers.ValidationError(
+                    {'radius': GEODETAILS_ONLY}
+                )
+            if geopoint is not None:
+                raise serializers.ValidationError(
+                    {'geopoint': GEODETAILS_ONLY}
+                )
+
+        return super().validate(attrs)
+
