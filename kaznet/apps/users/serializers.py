@@ -188,13 +188,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
             user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
 
+        # make user an admin of organisation at ona
         if validated_data.get('role') == UserProfile.ADMIN:
-            # make user admin of on organisation
-            change_user_role(
+            updated = change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
                 user_data['username'],
                 settings.ONA_OWNER_ROLE
+            )
+            if not updated:
+                # default to contributor role incase admin fails
+                validated_data['role'] = UserProfile.CONTRIBUTOR
+        elif validated_data['role'] == UserProfile.CONTRIBUTOR:
+            change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_ORG_NAME,
+                user_data['username'],
+                settings.ONA_CONTRIBUTER_ROLE
             )
 
         # set an unusable password by not passing the password to the create
@@ -240,7 +250,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
         email = user_data.get('email')
-        role = validated_data.get('role')
 
         # you can't change username
         try:
@@ -280,20 +289,25 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
 
         # change role to admin if the user is not initially an admin
-        if role == UserProfile.ADMIN and instance.role != UserProfile.ADMIN:
-            change_user_role(
+        if validated_data.get('role') == UserProfile.ADMIN and \
+                instance.role != UserProfile.ADMIN:
+            updated = change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
-                instance.ona_username,
+                user_data['username'],
                 settings.ONA_OWNER_ROLE
             )
+            if not updated:
+                # default to previous role incase change to admin fails
+                validated_data['role'] = instance.role
 
-        # change role to contributor if user was initially an admin
-        elif role != UserProfile.ADMIN and instance.role == UserProfile.ADMIN:
+        # change role to contributor if user was admin initially
+        elif validated_data.get('role') != UserProfile.ADMIN and \
+                instance.role == UserProfile.ADMIN:
             change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
-                instance.ona_username,
+                user_data['username'],
                 settings.ONA_CONTRIBUTER_ROLE
             )
 
