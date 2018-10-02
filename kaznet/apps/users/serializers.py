@@ -249,7 +249,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         username = user.username
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
-        email = user_data.get('email')
+        data = {}
 
         # you can't change username
         try:
@@ -273,20 +273,27 @@ class UserProfileSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        updated, data = update_details(
-            settings.ONA_BASE_URL,
-            username,
-            first_name,
-            last_name,
-            email)
+        # only pick changed values significant to ona profile
+        update_data = {}
+        if first_name != instance.user.first_name:
+            update_data['first_name'] = first_name
+        if last_name != instance.user.last_name:
+            update_data['last_name'] = last_name
 
-        if not updated:
-            raise serializers.ValidationError(
-                data
-            )
+        # update on ona only if there is are changes made significant to ona
+        if any(update_data):
+            updated, data = update_details(
+                settings.ONA_BASE_URL,
+                username,
+                update_data)
 
-        if not data:
-            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
+            if not updated:
+                raise serializers.ValidationError(
+                    data
+                )
+
+            if not data:
+                raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
 
         # change role to admin if the user is not initially an admin
         if validated_data.get('role') == UserProfile.ADMIN and \
@@ -294,7 +301,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             updated = change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
-                user_data['username'],
+                username,
                 settings.ONA_OWNER_ROLE
             )
             if not updated:
@@ -307,12 +314,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
-                user_data['username'],
+                username,
                 settings.ONA_CONTRIBUTER_ROLE
             )
-
-        metadata = data.get('metadata')
-        gravatar = data.get('gravatar')
 
         UserSerializer().update(instance=user, validated_data=user_data)
 
@@ -328,11 +332,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
         instance.expertise = validated_data.get('expertise',
                                                 instance.expertise)
 
-        if metadata:
-            instance.metadata['last_password_edit'] = metadata.get(
-                settings.ONA_LAST_PASSWORD_EDIT_FIELD)
-
-        instance.metadata['gravatar'] = gravatar
+        if any(data):
+            metadata = data.get('metadata')
+            gravatar = data.get('gravatar')
+            if metadata:
+                instance.metadata['last_password_edit'] = metadata.get(
+                    settings.ONA_LAST_PASSWORD_EDIT_FIELD)
+            if gravatar:
+                instance.metadata['gravatar'] = gravatar
         instance.save()
 
         return instance
