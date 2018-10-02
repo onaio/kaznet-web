@@ -153,7 +153,7 @@ class TestUserProfileSerializer(TestCase):
             expected_data['national_id'] = '1337'
             expected_data['payment_number'] = '+254722111111'
             expected_data['metadata'] = {
-                'gravatar': None,
+                'gravatar': '',
                 'last_password_edit': ''
             }
 
