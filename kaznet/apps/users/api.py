@@ -165,4 +165,4 @@ def change_user_role(
     else:
         updated = True
 
-    return updated
+    return updated, response

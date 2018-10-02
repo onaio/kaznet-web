@@ -192,7 +192,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             # make user admin of on organisation
             change_user_role(
                 settings.ONA_BASE_URL,
-                settings.ONA_USERNAME,
+                settings.ONA_ORG_NAME,
                 user_data['username'],
                 settings.ONA_OWNER_ROLE
             )
@@ -283,7 +283,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if role == UserProfile.ADMIN and instance.role != UserProfile.ADMIN:
             change_user_role(
                 settings.ONA_BASE_URL,
-                settings.ONA_USERNAME,
+                settings.ONA_ORG_NAME,
                 instance.ona_username,
                 settings.ONA_OWNER_ROLE
             )
@@ -292,7 +292,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         elif role != UserProfile.ADMIN and instance.role == UserProfile.ADMIN:
             change_user_role(
                 settings.ONA_BASE_URL,
-                settings.ONA_USERNAME,
+                settings.ONA_ORG_NAME,
                 instance.ona_username,
                 settings.ONA_CONTRIBUTER_ROLE
             )
