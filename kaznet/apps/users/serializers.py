@@ -181,7 +181,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         ona_pk = data.get('id')
         metadata = data.get('metadata')
-        gravatar = data.get('gravatar')
 
         add_team_member(
             settings.ONA_BASE_URL,
@@ -234,7 +233,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if metadata:
             userprofile.metadata['last_password_edit'] = metadata.get(
                 settings.ONA_LAST_PASSWORD_EDIT_FIELD)
-        userprofile.metadata['gravatar'] = gravatar
+        userprofile.metadata['gravatar'] = data.get('gravatar')
         userprofile.save()
 
         return userprofile
@@ -335,11 +334,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if any(data):
             metadata = data.get('metadata')
             gravatar = data.get('gravatar')
-            if metadata:
-                instance.metadata['last_password_edit'] = metadata.get(
-                    settings.ONA_LAST_PASSWORD_EDIT_FIELD)
-            if gravatar:
-                instance.metadata['gravatar'] = gravatar
+            instance.metadata['last_password_edit'] = metadata.get(
+                settings.ONA_LAST_PASSWORD_EDIT_FIELD)
+            instance.metadata['gravatar'] = gravatar
         instance.save()
 
         return instance
