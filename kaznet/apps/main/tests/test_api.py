@@ -227,7 +227,7 @@ class TestAPIMethods(MainTestBase):
         instance = self._create_instance()
         task = instance.get_task()
         user = instance.user
-        task.user_submission_target = 1
+        task.user_submission_target = 2
         task.rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
         task.save()
 
