@@ -11,6 +11,8 @@ INVALID_SUBMISSION_TIME = _('Data Submitted at wrong time.')
 INVALID_TASK = _('Can not submit data to invalid Task.')
 MISSING_START_DATE = _('Cannot determine the start date.  Please provide '
                        'either the start date or timing rule(s)')
+SUBMISSIONS_MORE_THAN_LIMIT = _('User Submissions for this task more than '
+                                'the set limit per user')
 AUTH_USER_DOESNT_EXIST = _('Invalid User. User does not exist.')
 INVALID_TOKEN_CREDENTIALS_MISSING = _('Invalid token header. No credentials'
                                       ' provided.')

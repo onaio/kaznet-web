@@ -11,10 +11,12 @@ from django.test import override_settings
 from model_mommy import mommy
 
 from kaznet.apps.main.api import (create_submission, validate_location,
-                                  validate_submission_time, validate_user)
+                                  validate_submission_time, validate_user,
+                                  validate_submission_limit)
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
-                                          LACKING_EXPERTISE)
+                                          LACKING_EXPERTISE,
+                                          SUBMISSIONS_MORE_THAN_LIMIT)
 from kaznet.apps.main.models import Submission, Task
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
@@ -31,7 +33,7 @@ class TestAPIMethods(MainTestBase):
     Test class for API Methods
     """
 
-    def _create_instance(self):
+    def _create_instance(self, pending: bool = False):
         """
         Helper method to create an instance with
         valid data
@@ -40,6 +42,9 @@ class TestAPIMethods(MainTestBase):
         mommy.make('ona.Project', ona_pk=49)
         form = mommy.make('ona.XForm', ona_pk=25, ona_project_id=49)
 
+        mommy.make('main.Task', target_content_type=self.xform_type,
+                   target_content_object=form)
+
         data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "_geolocation": [
@@ -47,7 +52,7 @@ class TestAPIMethods(MainTestBase):
                 -1.294328
             ],
             "_status": "submitted_via_web",
-            "_review_status": "1",
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
             "_review_comments": "This is a review comment",
             "_submitted_by": "dave",
             "_xform_id": 25,
@@ -56,6 +61,10 @@ class TestAPIMethods(MainTestBase):
             "_attachments": [],
             "_id": 17
         }
+
+        if pending:
+            data["_review_status"] = settings.ONA_SUBMISSION_REVIEW_PENDING
+            data["_review_comments"] = ""
         process_instance(data, xform=form)
 
         return Instance.objects.get(ona_pk=17)
@@ -92,11 +101,12 @@ class TestAPIMethods(MainTestBase):
 
         data = instance.json
 
-        validated_data = validate_location(data, task)
+        validated_location, status, comment = validate_location(
+            data[settings.ONA_GEOLOCATION_FIELD], task)
 
-        self.assertEqual(location, validated_data['location'])
-        self.assertEqual(
-            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(location, validated_location)
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
 
     def test_validate_location_with_invalid_data(self):
         """
@@ -118,13 +128,12 @@ class TestAPIMethods(MainTestBase):
 
         data = instance.json
 
-        validated_data = validate_location(
-            data, task)
+        invalid_location, status, comment = validate_location(
+            data[settings.ONA_GEOLOCATION_FIELD], task)
 
-        self.assertEqual(
-            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
-        self.assertEqual(
-            INCORRECT_LOCATION, validated_data[settings.ONA_COMMENTS_FIELD])
+        self.assertEqual(None, invalid_location)
+        self.assertEqual(Submission.REJECTED, status)
+        self.assertEqual(INCORRECT_LOCATION, comment)
 
     def test_validate_user(self):
         """
@@ -133,7 +142,6 @@ class TestAPIMethods(MainTestBase):
         """
         instance = self._create_instance()
         user = instance.user
-        data = instance.json
         user.userprofile.expertise = UserProfile.ADVANCED
 
         task = mommy.make(
@@ -142,10 +150,10 @@ class TestAPIMethods(MainTestBase):
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
-        validated_data = validate_user(data, task, user)
+        status, comment = validate_user(task, user)
 
-        self.assertEqual(
-            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
 
     def test_validate_user_with_invalid_data(self):
         """
@@ -154,7 +162,6 @@ class TestAPIMethods(MainTestBase):
         """
         instance = self._create_instance()
         user = instance.user
-        data = instance.json
         user.userprofile.expertise = UserProfile.BEGINNER
 
         task = mommy.make(
@@ -163,12 +170,10 @@ class TestAPIMethods(MainTestBase):
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
-        validated_data = validate_user(data, task, user)
+        status, comment = validate_user(task, user)
 
-        self.assertEqual(
-            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
-        self.assertEqual(
-            LACKING_EXPERTISE, validated_data[settings.ONA_COMMENTS_FIELD])
+        self.assertEqual(Submission.REJECTED, status)
+        self.assertEqual(LACKING_EXPERTISE, comment)
 
     def test_validate_submission_time(self):
         """
@@ -187,10 +192,11 @@ class TestAPIMethods(MainTestBase):
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
-        validated_data = validate_submission_time(task, data)
+        status, comment = validate_submission_time(
+            task, data['_submission_time'])
 
-        self.assertEqual(
-            Submission.PENDING, validated_data[settings.ONA_STATUS_FIELD])
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
 
     def test_validate_submission_time_with_invalid_data(self):
         """
@@ -208,13 +214,78 @@ class TestAPIMethods(MainTestBase):
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
 
-        validated_data = validate_submission_time(task, data)
+        status, comment = validate_submission_time(
+            task, data['_submission_time'])
 
-        self.assertEqual(
-            Submission.REJECTED, validated_data[settings.ONA_STATUS_FIELD])
-        self.assertEqual(
-            INVALID_SUBMISSION_TIME,
-            validated_data[settings.ONA_COMMENTS_FIELD])
+        self.assertEqual(Submission.REJECTED, status)
+        self.assertEqual(INVALID_SUBMISSION_TIME, comment)
+
+    def test_validate_submission_limit(self):
+        """
+        Test that validate_submission_limit works as it should with valid data
+        """
+        instance = self._create_instance()
+        task = instance.get_task()
+        user = instance.user
+        task.user_submission_target = 2
+        task.rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
+        task.save()
+
+        userprofile = instance.user.userprofile
+        data = instance.json
+
+        userprofile.expertise = '4'
+        data['_submission_time'] = "2019-09-01T20:00:00"
+
+        mommy.make('main.Bounty', task=task, amount=4000)
+
+        mocked_location = mommy.make(
+            'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        create_submission(instance)
+
+        status, comment = validate_submission_limit(task, user)
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
+
+    def test_validate_submission_limit_with_invalid_data(self):
+        """
+        Test that validate_submission_limit works as it should with invalid
+        data
+        """
+        instance = self._create_instance()
+        task = instance.get_task()
+        user = instance.user
+        task.user_submission_target = 1
+        task.rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
+        task.save()
+
+        userprofile = instance.user.userprofile
+        data = instance.json
+
+        userprofile.expertise = '4'
+        data['_submission_time'] = "2019-09-01T20:00:00"
+
+        mommy.make('main.Bounty', task=task, amount=4000)
+
+        mocked_location = mommy.make(
+            'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        # create two submissions
+        create_submission(instance)
+        create_submission(instance)
+
+        status, comment = validate_submission_limit(task, user)
+        self.assertEqual(Submission.REJECTED, status)
+        self.assertEqual(SUBMISSIONS_MORE_THAN_LIMIT, comment)
 
     def test_create_submission(self):
         """
@@ -232,11 +303,9 @@ class TestAPIMethods(MainTestBase):
 
         rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
 
-        task = mommy.make(
-            'main.Task',
-            timing_rule=rrule,
-            target_content_type=self.xform_type,
-            target_object_id=instance.xform.id)
+        task = instance.get_task()
+        task.timing_rule = rrule
+        task.save()
 
         mocked_bounty = mommy.make('main.Bounty', task=task, amount=4000)
 
@@ -247,9 +316,11 @@ class TestAPIMethods(MainTestBase):
             start='09:00:00', end='19:00:00',
             timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
 
+        instance.refresh_from_db()
+
         submission = create_submission(instance)
 
-        self.assertEqual(Submission.PENDING, submission.status)
+        self.assertEqual(Submission.APPROVED, submission.status)
         self.assertEqual(mocked_location, submission.location)
         self.assertEqual(mocked_bounty, submission.bounty)
         self.assertEqual(task, submission.task)
@@ -265,19 +336,19 @@ class TestAPIMethods(MainTestBase):
         # Test it creates a Submission Object with Rejected as status if
         # Data Fails a validation
 
-        instance = self._create_instance()
+        instance = self._create_instance(pending=True)
         userprofile = instance.user.userprofile
         data = instance.json
 
-        userprofile.expertise = UserProfile.BEGINNER
+        userprofile.expertise = '1'
         data['_submission_time'] = "2018-07-18T21:00:00"
 
-        task = mommy.make(
-            'main.Task',
-            timing_rule='FREQ=DAILY;INTERVAL=1;UNTIL=20180618T210000Z',
-            required_expertise=Task.ADVANCED,
-            target_content_type=self.xform_type,
-            target_object_id=instance.xform.id)
+        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
+
+        task = instance.get_task()
+        task.timing_rule = rrule
+        task.required_expertise = Task.ADVANCED
+        task.save()
 
         mommy.make('main.Bounty', task=task, amount=4000)
 
@@ -292,3 +363,40 @@ class TestAPIMethods(MainTestBase):
 
         self.assertEqual(Submission.REJECTED, submission.status)
         self.assertEqual(LACKING_EXPERTISE, submission.comments)
+
+    def test_create_reviewed_submission(self):
+        """
+        Test that creation of submission based on review status
+         - reviewed submissions don't go through time, location validation
+         - update location fields for reviewed submissions
+         """
+        instance = self._create_instance()
+        userprofile = instance.user.userprofile
+        data = instance.json
+
+        userprofile.expertise = '4'
+        data['_submission_time'] = "2019-09-01T20:00:00"
+
+        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
+
+        task = instance.get_task()
+        task.timing_rule = rrule
+        task.required_expertise = Task.INTERMEDIATE
+        task.save()
+
+        mocked_bounty = mommy.make('main.Bounty', task=task, amount=4000)
+
+        mocked_location = mommy.make(
+            'main.Location', geopoint=Point(36.806852, -1.313721), radius=10)
+        mommy.make(
+            'main.TaskLocation', task=task, location=mocked_location,
+            start='09:00:00', end='19:00:00',
+            timing_rule='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5')
+
+        submission = create_submission(instance)
+        self.assertEqual(Submission.APPROVED, submission.status)
+        self.assertEqual(mocked_location, submission.location)
+        self.assertEqual(mocked_bounty, submission.bounty)
+        self.assertEqual(task, submission.task)
+        self.assertEqual(instance.user, submission.user)
+        self.assertTrue(submission.valid)

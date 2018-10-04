@@ -1,6 +1,6 @@
 # Occurrences
 
-Adds ability to List and Retrieve Occurences. **Requires User to be an Admin to access Endpoint**
+Adds ability to List and Retrieve Occurrences. **Requires User to be an Admin to access Endpoint**
 
 ## API Endpoints
 
@@ -82,7 +82,7 @@ Returns a specific Occurrence.
 curl -X GET -H "Content-type:application/vnd.api+json" https://example.com/api/v1/occurrences/1/
 ```
 
-This request returns a response containing the specific Occurence.
+This request returns a response containing the specific Occurrence.
 
 ```json
 {

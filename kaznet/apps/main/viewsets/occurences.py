@@ -1,5 +1,5 @@
 """
-Main Occurence ViewSet Module
+Main Occurrence ViewSet Module
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
