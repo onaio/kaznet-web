@@ -35,16 +35,17 @@ def create_submission(ona_instance: object):
             'type': 'User',
             'id': user.id
         },
-        'bounty': {
-            'type': 'Bounty',
-            'id': task.bounty.id
-        },
         'submission_time': data['_submission_time'],
         'valid': False,
         'target_content_type': get_allowed_contenttypes().filter(
             model='instance').first().id,
         'target_id': ona_instance.id
     }
+    if task.bounty is not None:
+        validated_data['bounty'] = {
+            'type': 'Bounty',
+            'id': task.bounty.id
+        }
 
     # if submission has had a review, update validated_data appropriately
     if settings.ONA_STATUS_FIELD in data:
