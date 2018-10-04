@@ -10,7 +10,7 @@ from rest_framework_json_api import serializers
 
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
 from kaznet.apps.users.api import (add_team_member, create_ona_user,
-                                   update_details)
+                                   update_details, change_user_role)
 from kaznet.apps.users.common_tags import (CANNOT_ACCESS_ONADATA,
                                            NEED_PASSWORD_ON_CREATE)
 from kaznet.apps.users.models import UserProfile
@@ -181,12 +181,30 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         ona_pk = data.get('id')
         metadata = data.get('metadata')
-        gravatar = data.get('gravatar')
 
         add_team_member(
             settings.ONA_BASE_URL,
             user_data['username'],
             settings.ONA_MEMBERS_TEAM_ID)
+
+        # make user an admin of organisation at ona
+        if validated_data.get('role') == UserProfile.ADMIN:
+            updated = change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_ORG_NAME,
+                user_data['username'],
+                settings.ONA_OWNER_ROLE
+            )
+            if not updated:
+                # default to contributor role incase admin fails
+                validated_data['role'] = UserProfile.CONTRIBUTOR
+        elif validated_data['role'] == UserProfile.CONTRIBUTOR:
+            change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_ORG_NAME,
+                user_data['username'],
+                settings.ONA_CONTRIBUTER_ROLE
+            )
 
         # set an unusable password by not passing the password to the create
         # method.  Why, you ask?  Because we don't want to store passwords
@@ -215,11 +233,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if metadata:
             userprofile.metadata['last_password_edit'] = metadata.get(
                 settings.ONA_LAST_PASSWORD_EDIT_FIELD)
-        userprofile.metadata['gravatar'] = gravatar
+        userprofile.metadata['gravatar'] = data.get('gravatar')
         userprofile.save()
 
         return userprofile
 
+    # pylint: disable=too-many-branches, too-many-statements
     def update(self, instance, validated_data):
         """
         Custom update method for UserProfiles
@@ -230,7 +249,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         username = user.username
         first_name = user_data.get('first_name')
         last_name = user_data.get('last_name')
-        email = user_data.get('email')
+        data = {}
 
         # you can't change username
         try:
@@ -254,23 +273,53 @@ class UserProfileSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
 
-        updated, data = update_details(
-            settings.ONA_BASE_URL,
-            username,
-            first_name,
-            last_name,
-            email)
+        # only pick changed values significant to ona profile
+        update_data = {}
+        if first_name != instance.user.first_name:
+            update_data['first_name'] = first_name
+        if last_name != instance.user.last_name:
+            update_data['last_name'] = last_name
 
-        if not updated:
-            raise serializers.ValidationError(
-                data
+        # update on ona only if there is are changes made significant to ona
+        if any(update_data):
+            updated, data = update_details(
+                settings.ONA_BASE_URL,
+                username,
+                update_data)
+
+            if not updated:
+                raise serializers.ValidationError(
+                    data
+                )
+
+            if not data:
+                raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
+
+        # change role to admin if the user is not initially an admin
+        if validated_data.get('role') == UserProfile.ADMIN and \
+                instance.role != UserProfile.ADMIN:
+            updated = change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_ORG_NAME,
+                username,
+                settings.ONA_OWNER_ROLE
             )
+            if not updated:
+                # default to previous role incase change to admin fails
+                validated_data['role'] = instance.role
 
-        if not data:
-            raise serializers.ValidationError(CANNOT_ACCESS_ONADATA)
-
-        metadata = data.get('metadata')
-        gravatar = data.get('gravatar')
+        # change role to contributor if user was admin initially
+        elif validated_data.get('role') != UserProfile.ADMIN and \
+                instance.role == UserProfile.ADMIN:
+            updated = change_user_role(
+                settings.ONA_BASE_URL,
+                settings.ONA_ORG_NAME,
+                username,
+                settings.ONA_CONTRIBUTER_ROLE
+            )
+            if not updated:
+                # default to previous role incase change to contributor fails
+                validated_data['role'] = instance.role
 
         UserSerializer().update(instance=user, validated_data=user_data)
 
@@ -286,11 +335,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         instance.expertise = validated_data.get('expertise',
                                                 instance.expertise)
 
-        if metadata:
+        if any(data):
+            metadata = data.get('metadata')
+            gravatar = data.get('gravatar')
             instance.metadata['last_password_edit'] = metadata.get(
                 settings.ONA_LAST_PASSWORD_EDIT_FIELD)
-
-        instance.metadata['gravatar'] = gravatar
+            instance.metadata['gravatar'] = gravatar
         instance.save()
 
         return instance

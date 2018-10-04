@@ -78,10 +78,7 @@ def add_team_member(
 def update_details(  # pylint: disable=too-many-arguments
         api_root: str,
         username: str,
-        first_name: str = None,
-        last_name: str = None,
-        email: str = None,
-        password: str = None
+        payload: dict = None
 ):
     """
     Custom Method that Updates User Details
@@ -91,12 +88,7 @@ def update_details(  # pylint: disable=too-many-arguments
     response = request_session(
         urljoin(api_root, f'api/v1/profiles/{username}'),
         'PATCH',
-        payload={
-            'first_name': first_name,
-            'last_name': last_name,
-            'email': email,
-            'password': password
-        }
+        payload=payload
     )
 
     if response.status_code != 200:
@@ -133,6 +125,34 @@ def change_password(
     )
 
     if response.status_code != 204:
+        updated = False
+    else:
+        updated = True
+
+    return updated
+
+
+def change_user_role(
+        api_root: str,
+        organisation: str,
+        username: str,
+        role: str
+):
+    """
+    Custom method that makes a user an admin
+    """
+    response = request_session(
+        urljoin(
+            api_root,
+            f'api/v1/orgs/{organisation}/members'),
+        'PUT',
+        payload={
+            'username': username,
+            'role': role
+        }
+    )
+
+    if response.status_code != 200:
         updated = False
     else:
         updated = True

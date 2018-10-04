@@ -58,11 +58,15 @@ def request_session(
         return response
     if method == 'POST':
         response = session.post(
-            url, auth=basic_auth, data=payload, headers=headers)
+            url, auth=basic_auth, json=payload, headers=headers)
         return response
     if method == 'PATCH':
         response = session.patch(
-            url, auth=basic_auth, data=payload, headers=headers)
+            url, auth=basic_auth, json=payload, headers=headers)
+        return response
+    if method == 'PUT':
+        response = session.put(
+            url, auth=basic_auth, json=payload, headers=headers)
         return response
 
     return None
