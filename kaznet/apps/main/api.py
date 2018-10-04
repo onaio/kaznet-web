@@ -135,13 +135,14 @@ def get_locations(coords: list, task: object):
     """
     Return the location given the instance data and task object
     """
-    # Check if we were able to succesfully get coords
+    # Check if we were able to successfully get coords
     # If we weren't then return None
     if coords and all(coords):
         submission_point = Point(coords[0], coords[1])
 
         # get task locations with a shapefile that has the submission_point
         # within its range
+
         # pylint: disable=no-member
         task_locations = TaskLocation.objects.filter(
             task=task, location__shapefile__contains=submission_point).\
@@ -166,16 +167,16 @@ def validate_location(coords: list, task: object):
                 # distance in meters
                 dist = distance(location.geopoint, submission_point).m
                 if dist <= location.radius:
-                    return location, Submission.PENDING, ""
+                    return (location, Submission.PENDING, "")
 
             # incase location has shapefile instead, use shapefile
             if location.shapefile:
-                return location, Submission.PENDING, ""
+                return (location, Submission.PENDING, "")
 
         # if location is not valid reject
-        return None, Submission.REJECTED, INCORRECT_LOCATION
+        return (None, Submission.REJECTED, INCORRECT_LOCATION)
     # if provided location is not in task locations, reject
-    return None, Submission.REJECTED, INCORRECT_LOCATION
+    return (None, Submission.REJECTED, INCORRECT_LOCATION)
 
 
 def validate_user(task: object, user: object):
@@ -188,16 +189,15 @@ def validate_user(task: object, user: object):
     # Check if the User submitting Data has an expertise level
     # above or equal to the required_expertise
     if int(task.required_expertise) <= int(user_expertise):
-        return Submission.PENDING, ""
+        return (Submission.PENDING, "")
 
     # Reject the data if user doesn't meet the requirements
-    return Submission.REJECTED, LACKING_EXPERTISE
+    return (Submission.REJECTED, LACKING_EXPERTISE)
 
 
 def validate_submission_time(task: object, submission_time: str):
     """
-    Validates that the user submitted at right
-    time
+    Validates that the user submitted at right time
     """
     # We turn the isoformated string we get from Instance data into
     # a datetime object for easier comparison
@@ -216,10 +216,10 @@ def validate_submission_time(task: object, submission_time: str):
                 ).filter(
                     start_time__lte=submission_time.time()).filter(
                         end_time__gte=submission_time.time()).exists():
-            return Submission.PENDING, ""
-    # We reject the submission if there was no TaskOccurence
+            return (Submission.PENDING, "")
+    # We reject the submission if there was no TaskOccurrence
     # That match the submission_time
-    return Submission.REJECTED, INVALID_SUBMISSION_TIME
+    return (Submission.REJECTED, INVALID_SUBMISSION_TIME)
 
 
 def validate_submission_limit(task: object, user: object):
@@ -236,5 +236,5 @@ def validate_submission_limit(task: object, user: object):
         # Check if the number of submissions for this task exceed
         # the limit set
         if user_submissions > limit:
-            return Submission.REJECTED, SUBMISSIONS_MORE_THAN_LIMIT
-    return Submission.PENDING, ""
+            return (Submission.REJECTED, SUBMISSIONS_MORE_THAN_LIMIT)
+    return (Submission.PENDING, "")

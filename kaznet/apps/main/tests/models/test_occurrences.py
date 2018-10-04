@@ -14,7 +14,7 @@ from model_mommy import mommy
 
 class TestOccurrence(TestCase):
     """
-    Test class for TaskOccurence models
+    Test class for TaskOccurrence models
     """
 
     def test_task_occurrence_model_str(self):
