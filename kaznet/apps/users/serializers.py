@@ -238,6 +238,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         return userprofile
 
+    # pylint: disable=too-many-branches, too-many-statements
     def update(self, instance, validated_data):
         """
         Custom update method for UserProfiles
@@ -310,12 +311,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # change role to contributor if user was admin initially
         elif validated_data.get('role') != UserProfile.ADMIN and \
                 instance.role == UserProfile.ADMIN:
-            change_user_role(
+            updated = change_user_role(
                 settings.ONA_BASE_URL,
                 settings.ONA_ORG_NAME,
                 username,
                 settings.ONA_CONTRIBUTER_ROLE
             )
+            if not updated:
+                # default to previous role incase change to contributor fails
+                validated_data['role'] = instance.role
 
         UserSerializer().update(instance=user, validated_data=user_data)
 
