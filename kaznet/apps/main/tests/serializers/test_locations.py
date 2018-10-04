@@ -179,3 +179,42 @@ class TestLocationSerializer(TestCase):
             self.assertTrue(serializer_instance.is_valid())
             self.assertEqual(
                 type(serializer_instance.data['shapefile']), GeoJsonDict)
+
+    def test_location_update(self):
+        """
+        Test update method:
+        - Keep either the shapefile or radius and geopoint
+        """
+        mocked_location = mommy.make('main.Location', name='Nairobi')
+        data = OrderedDict(
+            name='Nairobi',
+            geopoint='30,10',
+            radius=45.986,
+        )
+        create_serializer_instance = KaznetLocationSerializer(
+            instance=mocked_location, data=data)
+        self.assertTrue(create_serializer_instance.is_valid())
+        create_serializer_instance.save()
+        self.assertEqual(
+            type(create_serializer_instance.data['geopoint']), GeoJsonDict)
+        self.assertEqual(
+            float(create_serializer_instance.data['radius']), data['radius'])
+
+        path = os.path.join(
+            BASE_DIR, 'fixtures', 'test_shapefile.zip')
+
+        # removes geopoint and radius data given shapefile
+        with open(path, 'r+b') as shapefile:
+            data = OrderedDict(
+                name='Nairobi',
+                shapefile=shapefile
+            )
+            update_serializer_instance = KaznetLocationSerializer(
+                instance=mocked_location, data=data)
+            self.assertTrue(update_serializer_instance.is_valid())
+            update_serializer_instance.save()
+            self.assertEqual(update_serializer_instance.data['geopoint'], None)
+            self.assertEqual(update_serializer_instance.data['radius'], None)
+            self.assertEqual(
+                type(update_serializer_instance.data['shapefile']),
+                GeoJsonDict)
