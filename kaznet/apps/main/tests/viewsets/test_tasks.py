@@ -1263,3 +1263,31 @@ class TestKaznetTaskViewSet(MainTestBase):
             'You shall not pass.',
             response.data[0]['detail']
         )
+
+    def test_required_expertise_filter(self):
+        """
+        Test that you can filter by required_expertise
+        """
+        user = mommy.make('auth.User')
+        task = mommy.make('main.Task', required_expertise=Task.INTERMEDIATE)
+        mommy.make('main.Task', _quantity=10, required_expertise=Task.ADVANCED)
+
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+
+        # test that we get the task with our required_expertise
+        request = self.factory.get('/tasks',
+                                   {'required_expertise': task.required_expertise})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        #TODO equal filter
+        # self.assertEqual(len(response.data['results']), 1)
+        # self.assertEqual(response.data['results'][0]['id'], task.id)
+
+        # test we can get tasks required_expertise greater than a specific one
+        request = self.factory.get('/tasks',
+                                   {'required_expertise__gt': task.required_expertise})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 10)

@@ -21,6 +21,7 @@ DATETIME_LOOKUPS = [
     'time__lte'
 ]
 TIME_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
+EXPERTISE_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
 
 
 class KaznetFilterSet(filters.FilterSet):
@@ -150,6 +151,11 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         lookup_expr=DATETIME_LOOKUPS,
         method='filter_datetime'
     )
+    required_expertise = filters.CharFilter(
+        name='required_expertise',
+        lookup_expr=EXPERTISE_LOOKUPS,
+        method='filter_expertise'
+    )
 
     # pylint: disable=too-few-public-methods
     class Meta:
@@ -166,7 +172,8 @@ class KaznetTaskFilterSet(KaznetFilterSet):
             'client',
             'date',
             'start_time',
-            'end_time'
+            'end_time',
+            'required_expertise'
         ]
 
     # pylint: disable=unused-argument
@@ -184,6 +191,16 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
+
+    def filter_expertise(self, queryset, name, value):
+        """
+        Method to filter against task required_expertise
+        """
+        filter_args = self._get_filter_args(name)
+
+        if filter_args is None:
+            return queryset
+        return queryset.filter(**filter_args)
 
 
 class KaznetSubmissionFilterSet(KaznetFilterSet):
