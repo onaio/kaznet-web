@@ -10,7 +10,7 @@ def validate_parent_field(instance, value):
     """
     Check if parent field is valid
     """
-    return instance is not None and value == instance
+    return instance is not None and value != instance
 
 
 # pylint: disable=too-many-ancestors
