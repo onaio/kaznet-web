@@ -233,5 +233,3 @@ class TestLocationSerializer(TestCase):
         mocked_parent_location = mommy.make('main.Location', name='Nairobi')
         self.assertTrue(
             validate_parent_field(mocked_location, mocked_parent_location))
-
-
