@@ -14,6 +14,7 @@ from tasking.common_tags import (GEODETAILS_ONLY, GEOPOINT_MISSING,
                                  RADIUS_MISSING)
 
 from kaznet.apps.main.serializers import KaznetLocationSerializer
+from kaznet.apps.main.serializers.base import validate_parent_field
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -218,3 +219,19 @@ class TestLocationSerializer(TestCase):
             self.assertEqual(
                 type(update_serializer_instance.data['shapefile']),
                 GeoJsonDict)
+
+    def test_validate_parent(self):
+        """
+        Test parent location validation
+        """
+        mocked_location = mommy.make('main.Location', name='Nairobi')
+        # Invalid, location cannot be it's own parent
+        self.assertFalse(
+            validate_parent_field(mocked_location, mocked_location))
+
+        # A different location can be a parent
+        mocked_parent_location = mommy.make('main.Location', name='Nairobi')
+        self.assertTrue(
+            validate_parent_field(mocked_location, mocked_parent_location))
+
+
