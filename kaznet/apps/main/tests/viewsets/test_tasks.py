@@ -1280,9 +1280,9 @@ class TestKaznetTaskViewSet(MainTestBase):
         force_authenticate(request, user=user)
         response = view(request=request)
         self.assertEqual(response.status_code, 200)
-        #TODO equal filter
-        # self.assertEqual(len(response.data['results']), 1)
-        # self.assertEqual(response.data['results'][0]['id'], task.id)
+
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
 
         # test we can get tasks required_expertise greater than a specific one
         request = self.factory.get('/tasks',
