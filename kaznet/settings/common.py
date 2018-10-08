@@ -178,8 +178,8 @@ STATICFILES_DIRS = [
 TEMP_TOKEN_TIMEOUT = 14400
 
 # Onadata
-ONA_BASE_URL = 'http://localhost:9000'
-ONA_CROSS_AUTHENTICATION_URL = 'http://localhost:9000/api/v1/user'
+ONA_BASE_URL = 'https://stage-api.ona.io'
+ONA_CROSS_AUTHENTICATION_URL = 'https://stage-api.ona.io/api/v1/user'
 ONA_USERNAME = 'kaznettest'
 ONA_ORG_NAME = 'kaznettest'
 ONA_PASSWORD = 'Password was here'
