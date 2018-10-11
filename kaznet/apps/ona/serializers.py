@@ -4,6 +4,7 @@ Model Serializers for Ona app
 
 from rest_framework_json_api import serializers
 
+from kaznet.apps.ona.api import create_filtered_data_sets
 from kaznet.apps.ona.models import Instance, Project, XForm
 
 
@@ -42,6 +43,17 @@ class XFormSerializer(serializers.ModelSerializer):
         if obj:
             return obj.json
         return None
+
+    def create(self, validated_data):
+        """
+        Custom create method.
+        """
+        form_id = validated_data.get('ona_pk')
+        project_id = validated_data.get('ona_project_id')
+        title = validated_data.get('title')
+        create_filtered_data_sets(
+            form_id=form_id, project_id=project_id, form_title=title)
+        return super().create(validated_data)
 
 
 class InstanceSerializer(serializers.ModelSerializer):
