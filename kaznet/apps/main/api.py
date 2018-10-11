@@ -50,7 +50,7 @@ def create_submission(ona_instance: object):
     # if submission has had a review, update validated_data appropriately
     if settings.ONA_STATUS_FIELD in data:
         validated_data['status'] = convert_ona_kaznet_submission_status(
-            data[settings.ONA_STATUS_FIELD])
+            ona_status=data[settings.ONA_STATUS_FIELD])
         validated_data['comments'] = str(data[settings.ONA_COMMENTS_FIELD])
 
     # if submission hasn't had a review(pending), or no review information of
@@ -118,16 +118,25 @@ def create_submission(ona_instance: object):
     return None
 
 
-def convert_ona_kaznet_submission_status(ona_status: str):
+def convert_ona_kaznet_submission_status(
+        ona_status: str='', kaznet_status: str=''):
     """
     Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
     """
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
-        return Submission.APPROVED
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
-        return Submission.REJECTED
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
-        return Submission.PENDING
+    if ona_status:
+        if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
+            return Submission.APPROVED
+        if ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
+            return Submission.REJECTED
+        if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
+            return Submission.PENDING
+    if kaznet_status:
+        if kaznet_status == Submission.APPROVED:
+            return settings.ONA_SUBMISSION_REVIEW_APPROVED
+        if kaznet_status == Submission.REJECTED:
+            return settings.ONA_SUBMISSION_REVIEW_REJECTED
+        if kaznet_status == Submission.PENDING:
+            return settings.ONA_SUBMISSION_REVIEW_PENDING
     return None
 
 
