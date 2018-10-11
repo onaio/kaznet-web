@@ -14,7 +14,9 @@ from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
+from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.main.api import convert_ona_kaznet_submission_status
 from kaznet.apps.users.models import UserProfile
 
 
@@ -415,3 +417,36 @@ def update_user_profile_metadata(ona_username: str, token_key: str = None):
                 profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
 
                 profile.save()
+
+
+def create_filtered_data_sets(
+        form_id: int, project_id: int, form_title: str=''):
+    """
+    Custom method that creates filtered data sets for all the
+    submission statuses : Approved, Rejected, Pending
+    """
+    data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
+    form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/')
+    project = urljoin(settings.ONA_BASE_URL, f'api/v1/projects/{project_id}/')
+    response = []
+
+    payload = {
+        'xform': form,
+        'project': project,
+        # TODO add relevant columns
+        'columns': ['_submission_time', '_review_status']
+    }
+
+    for status, status_name in Submission.STATUS_CHOICES:
+        ona_status = convert_ona_kaznet_submission_status(kaznet_status=status)
+        if ona_status:
+            payload['name'] = f'{form_title} {status_name}'
+            payload['query'] = [{'column': '_review_status',
+                                 'filter': '=',
+                                 'value': ona_status,
+                                 'condition': 'or'}]
+            resp = request_session(
+                url=data_views_url, method='POST', payload=payload)
+            response.append(resp.status_code)
+
+    return response
