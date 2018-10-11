@@ -21,6 +21,7 @@ DATETIME_LOOKUPS = [
     'time__lte'
 ]
 TIME_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
+EXPERTISE_LOOKUPS = ['exact', 'gt', 'lt', 'gte', 'lte']
 
 
 class KaznetFilterSet(filters.FilterSet):
@@ -30,7 +31,7 @@ class KaznetFilterSet(filters.FilterSet):
 
     def _get_filter_args(self, name):
         """
-        This method returns lookups-aware filter arguments
+        This method returns lookups-aware filter arguments in their raw form
         """
         # get the filter
         try:
@@ -56,27 +57,38 @@ class KaznetFilterSet(filters.FilterSet):
 
         if data is None:
             return None
-
-        # we need to localize to avoid naive datetimes
-        try:
-            data_as_datetime = parse(data)
-        except ValueError:
-            pass
-        except TypeError:
-            pass
-        else:
-            if timezone.is_naive(data_as_datetime):
-                data_as_datetime = timezone.make_aware(data_as_datetime)
-            data = data_as_datetime
-
         return {query_name: data}
+
+    def _get_date_time_filter_args(self, name):
+        """
+        Returns datetime lookups-aware filter arguments
+        """
+        filter_dict = self._get_filter_args(name)
+        if filter_dict:
+            query_name = next(iter(filter_dict))
+            data = filter_dict.get(query_name)
+
+            # we need to localize to avoid naive datetimes
+            try:
+                data_as_datetime = parse(data)
+            except ValueError:
+                pass
+            except TypeError:
+                pass
+            else:
+                if timezone.is_naive(data_as_datetime):
+                    data_as_datetime = timezone.make_aware(data_as_datetime)
+                data = data_as_datetime
+
+            return {query_name: data}
+        return None
 
     # pylint: disable=unused-argument
     def filter_datetime(self, queryset, name, value):
         """
         Filter by datetime
         """
-        filter_args = self._get_filter_args(name)
+        filter_args = self._get_date_time_filter_args(name)
 
         if filter_args is None:
             return queryset
@@ -150,6 +162,11 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         lookup_expr=DATETIME_LOOKUPS,
         method='filter_datetime'
     )
+    required_expertise = filters.CharFilter(
+        name='required_expertise',
+        lookup_expr=EXPERTISE_LOOKUPS,
+        method='filter_expertise'
+    )
 
     # pylint: disable=too-few-public-methods
     class Meta:
@@ -166,7 +183,8 @@ class KaznetTaskFilterSet(KaznetFilterSet):
             'client',
             'date',
             'start_time',
-            'end_time'
+            'end_time',
+            'required_expertise'
         ]
 
     # pylint: disable=unused-argument
@@ -174,7 +192,7 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         """
         Method to filter against task timing using TaskOccurrences
         """
-        filter_args = self._get_filter_args(name)
+        filter_args = self._get_date_time_filter_args(name)
 
         if filter_args is None:
             return queryset
@@ -184,6 +202,16 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         task_ids = TaskOccurrence.objects.filter(
             **filter_args).values_list('task_id', flat=True).distinct()
         return queryset.filter(id__in=task_ids)
+
+    def filter_expertise(self, queryset, name, value):
+        """
+        Method to filter against task required_expertise
+        """
+        filter_args = self._get_filter_args(name)
+
+        if filter_args is None:
+            return queryset
+        return queryset.filter(**filter_args)
 
 
 class KaznetSubmissionFilterSet(KaznetFilterSet):

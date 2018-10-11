@@ -19,6 +19,7 @@ from kaznet.apps.main.viewsets import KaznetTaskViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
 
+# pylint: disable=too-many-public-methods
 class TestKaznetTaskViewSet(MainTestBase):
     """
     Test KaznetTaskViewSet class.
@@ -471,6 +472,7 @@ class TestKaznetTaskViewSet(MainTestBase):
 
         self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(1, len(response.data['task_locations']))
+        # pylint: disable=no-member
         task_location = TaskLocation.objects.get(
             task__id=response.data['id'],
             location=location)
@@ -787,6 +789,7 @@ class TestKaznetTaskViewSet(MainTestBase):
         self.assertEqual(
             Task.objects.filter(name='Cattle Price').count(), 1)
 
+    # pylint: disable=too-many-statements
     def test_task_sorting(self):
         """
         Test that sorting works
@@ -1263,3 +1266,32 @@ class TestKaznetTaskViewSet(MainTestBase):
             'You shall not pass.',
             response.data[0]['detail']
         )
+
+    # pylint: disable=too-many-lines
+    def test_required_expertise_filter(self):
+        """
+        Test that you can filter by required_expertise
+        """
+        user = mommy.make('auth.User')
+        task = mommy.make('main.Task', required_expertise=Task.INTERMEDIATE)
+        mommy.make('main.Task', _quantity=10, required_expertise=Task.ADVANCED)
+
+        view = KaznetTaskViewSet.as_view({'get': 'list'})
+
+        # test that we get the task with our required_expertise
+        request = self.factory.get(
+            '/tasks', {'required_expertise': task.required_expertise})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], task.id)
+
+        # test we can get tasks required_expertise greater than a specific one
+        request = self.factory.get(
+            '/tasks', {'required_expertise__gt': task.required_expertise})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 10)
