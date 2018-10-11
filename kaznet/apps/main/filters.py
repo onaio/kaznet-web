@@ -59,7 +59,7 @@ class KaznetFilterSet(filters.FilterSet):
             return None
         return {query_name: data}
 
-    def _get_date_filter_args(self, name):
+    def _get_date_time_filter_args(self, name):
         """
         Returns datetime lookups-aware filter arguments
         """
@@ -88,7 +88,7 @@ class KaznetFilterSet(filters.FilterSet):
         """
         Filter by datetime
         """
-        filter_args = self._get_date_filter_args(name)
+        filter_args = self._get_date_time_filter_args(name)
 
         if filter_args is None:
             return queryset
@@ -192,7 +192,7 @@ class KaznetTaskFilterSet(KaznetFilterSet):
         """
         Method to filter against task timing using TaskOccurrences
         """
-        filter_args = self._get_date_filter_args(name)
+        filter_args = self._get_date_time_filter_args(name)
 
         if filter_args is None:
             return queryset
