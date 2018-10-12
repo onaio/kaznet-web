@@ -44,17 +44,6 @@ class XFormSerializer(serializers.ModelSerializer):
             return obj.json
         return None
 
-    def create(self, validated_data):
-        """
-        Custom create method.
-        """
-        form_id = validated_data.get('ona_pk')
-        project_id = validated_data.get('ona_project_id')
-        title = validated_data.get('title')
-        create_filtered_data_sets(
-            form_id=form_id, project_id=project_id, form_title=title)
-        return super().create(validated_data)
-
 
 class InstanceSerializer(serializers.ModelSerializer):
     """

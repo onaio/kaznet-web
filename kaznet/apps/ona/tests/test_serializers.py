@@ -100,27 +100,6 @@ class TestXFormSerializer(MainTestBase):
         serializer_instance2 = XFormSerializer(xform)
         self.assertEqual(True, serializer_instance2.data['has_task'])
 
-    def test_create_xform(self):
-        """
-        Test create method of serializer
-        """
-        data = {
-            "ona_pk": 596,
-            "ona_project_id": 54,
-            "title": 'Solar Flare',
-            "version": 'one1',
-        }
-        with requests_mock.Mocker() as mocked:
-            mocked.post(
-                urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
-                status_code=201
-            )
-            instance = XFormSerializer().create(validated_data=data)
-            self.assertEqual(data['ona_pk'], instance.ona_pk)
-            self.assertEqual(data['ona_project_id'], instance.ona_project_id)
-            self.assertEqual(data['title'], instance.title)
-            self.assertEqual(data['version'], instance.version)
-
 
 class TestInstanceSerializer(TestCase):
     """

@@ -426,15 +426,27 @@ def create_filtered_data_sets(
     submission statuses : Approved, Rejected, Pending
     """
     data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
-    form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/')
-    project = urljoin(settings.ONA_BASE_URL, f'api/v1/projects/{project_id}/')
+    form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
+    project = urljoin(settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
     response = []
+
+    columns = ['_review_status', '_review_comment', 'instanceID',
+               '_last_edited', '_submitted_by', '_media_all_received']
+
+    # get all fields/columns of form required in creating filtered data set
+    form_data = request_session(
+        url=urljoin(
+            settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/form.json'),
+        method='GET'
+    )
+    if form_data.status_code == 200:
+        form_columns = [field['name'] for field in form_data.json()['children']]
+        columns += form_columns
 
     payload = {
         'xform': form,
         'project': project,
-        # TODO add relevant columns
-        'columns': ['_submission_time', '_review_status']
+        'columns': columns
     }
 
     for status, status_name in Submission.STATUS_CHOICES:
@@ -445,6 +457,7 @@ def create_filtered_data_sets(
                                  'filter': '=',
                                  'value': ona_status,
                                  'condition': 'or'}]
+
             resp = request_session(
                 url=data_views_url, method='POST', payload=payload)
             response.append(resp.status_code)
