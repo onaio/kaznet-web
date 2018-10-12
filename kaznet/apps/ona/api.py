@@ -420,7 +420,7 @@ def update_user_profile_metadata(ona_username: str, token_key: str = None):
 
 
 def create_filtered_data_sets(
-        form_id: int, project_id: int, form_title: str=''):
+        form_id: int, project_id: int, form_title: str = ''):
     """
     Custom method that creates filtered data sets for all the
     submission statuses : Approved, Rejected, Pending

@@ -26,36 +26,31 @@ from kaznet.apps.ona.api import (get_and_process_xforms, get_instance,
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
+# pylint: disable=bad-continuation
 MOCKED_ONA_FORM_DATA = {
-            'name': 'constraint_example', 'title': 'Constraint Form',
-            'sms_keyword': 'constraint_example', 'default_language': 'default',
-            'version': '201810090735', 'id_string': 'constraint_example',
-            'type': 'survey', 'children': [
-                {'bind': {'jr:constraintMsg': 'Requires a number less than 10',
-                          'constraint': '. < 10'}, 'label': 'Integer',
-                 'type': 'int', 'name': 'my_int',
-                 'hint': 'Try entering a number < 10'},
-                {'bind': {
-                    'jr:constraintMsg':
-                        'Requires a number between 10.51 and 18.39',
-                    'constraint': '. > 10.51 and . < 18.39'},
-                    'label': 'Decimal',
-                    'type': 'decimal',
-                    'name': 'my_decimal',
+    'name': 'constraint_example', 'title': 'Constraint Form',
+    'sms_keyword': 'constraint_example', 'default_language': 'default',
+    'version': '201810090735', 'id_string': 'constraint_example',
+    'type': 'survey', 'children': [
+        {'bind': {'jr:constraintMsg': 'Requires a number less than 10',
+                  'constraint': '. < 10'}, 'label': 'Integer', 'type': 'int',
+         'name': 'my_int', 'hint': 'Try entering a number < 10'},
+        {'bind': {
+            'jr:constraintMsg': 'Requires a number between 10.51 and 18.39',
+            'constraint': '. > 10.51 and . < 18.39'}, 'label': 'Decimal',
+            'type': 'decimal', 'name': 'my_decimal',
                     'hint': 'Only numbers > 10.51 and < 18.39'},
-                {'bind': {
-                    'jr:constraintMsg':
-                        'Requires a date that is not before today',
-                    'constraint': '. >= today()'}, 'label': 'Date',
-                    'type': 'date', 'name': 'my_date',
-                    'hint': 'Only future dates allowed'},
-                {'control': {'bodyless': True},
-                 'type': 'group',
-                 'children': [{'bind': {
-                     'readonly': 'true()',
-                     'calculate': "concat('uuid:', uuid())"},
-                     'type': 'calculate', 'name': 'instanceID'}],
-                 'name': 'meta'}]}
+        {'bind': {
+            'jr:constraintMsg': 'Requires a date that is not before today',
+            'constraint': '. >= today()'}, 'label': 'Date', 'type': 'date',
+            'name': 'my_date', 'hint': 'Only future dates allowed'},
+        {'control': {'bodyless': True},
+         'type': 'group',
+         'children': [
+             {'bind': {
+                'readonly': 'true()', 'calculate': "concat('uuid:', uuid())"},
+                 'type': 'calculate', 'name': 'instanceID'}],
+         'name': 'meta'}]}
 
 
 # pylint: disable=too-many-public-methods
