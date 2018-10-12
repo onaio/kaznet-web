@@ -118,8 +118,9 @@ def create_submission(ona_instance: object):
     return None
 
 
+# pylint: disable=too-many-return-statements
 def convert_ona_kaznet_submission_status(
-        ona_status: str='', kaznet_status: str=''):
+        ona_status: str = '', kaznet_status: str = ''):
     """
     Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
     and vice versa

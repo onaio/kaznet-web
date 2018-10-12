@@ -4,7 +4,6 @@ Model Serializers for Ona app
 
 from rest_framework_json_api import serializers
 
-from kaznet.apps.ona.api import create_filtered_data_sets
 from kaznet.apps.ona.models import Instance, Project, XForm
 
 

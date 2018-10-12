@@ -26,6 +26,37 @@ from kaznet.apps.ona.api import (get_and_process_xforms, get_instance,
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
+MOCKED_ONA_FORM_DATA = {
+            'name': 'constraint_example', 'title': 'Constraint Form',
+            'sms_keyword': 'constraint_example', 'default_language': 'default',
+            'version': '201810090735', 'id_string': 'constraint_example',
+            'type': 'survey', 'children': [
+                {'bind': {'jr:constraintMsg': 'Requires a number less than 10',
+                          'constraint': '. < 10'}, 'label': 'Integer',
+                 'type': 'int', 'name': 'my_int',
+                 'hint': 'Try entering a number < 10'},
+                {'bind': {
+                    'jr:constraintMsg':
+                        'Requires a number between 10.51 and 18.39',
+                    'constraint': '. > 10.51 and . < 18.39'},
+                    'label': 'Decimal',
+                    'type': 'decimal',
+                    'name': 'my_decimal',
+                    'hint': 'Only numbers > 10.51 and < 18.39'},
+                {'bind': {
+                    'jr:constraintMsg':
+                        'Requires a date that is not before today',
+                    'constraint': '. >= today()'}, 'label': 'Date',
+                    'type': 'date', 'name': 'my_date',
+                    'hint': 'Only future dates allowed'},
+                {'control': {'bodyless': True},
+                 'type': 'group',
+                 'children': [{'bind': {
+                     'readonly': 'true()',
+                     'calculate': "concat('uuid:', uuid())"},
+                     'type': 'calculate', 'name': 'instanceID'}],
+                 'name': 'meta'}]}
+
 
 # pylint: disable=too-many-public-methods
 class TestApiMethods(TestCase):
@@ -489,6 +520,14 @@ class TestApiMethods(TestCase):
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/forms/53'),
             json=mocked_form_data)
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/53/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
         self.assertEqual(Instance.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
         self.assertEqual(Project.objects.all().count(), 0)
@@ -525,6 +564,10 @@ class TestApiMethods(TestCase):
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/forms/52'),
             json=mocked_form_data)
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/52/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
 
         self.assertEqual(Instance.objects.all().count(), 1)
         self.assertEqual(XForm.objects.all().count(), 1)
@@ -546,6 +589,10 @@ class TestApiMethods(TestCase):
             "_submitted_by": "sluggie",
             "_id": 1759
         }
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/25/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
 
         mommy.make('ona.Project', ona_pk=49)
         mommy.make('ona.XForm', ona_pk=25, ona_project_id=49)
