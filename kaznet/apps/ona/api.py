@@ -440,7 +440,8 @@ def create_filtered_data_sets(
         method='GET'
     )
     if form_data.status_code == 200:
-        form_columns = [field['name'] for field in form_data.json()['children']]
+        form_columns = [field['name']
+                        for field in form_data.json()['children']]
         columns += form_columns
 
     payload = {
