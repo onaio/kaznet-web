@@ -335,6 +335,14 @@ class TestApiMethods(TestCase):
         mocked.get(
             urljoin(settings.ONA_BASE_URL, '/api/v1/projects/18'),
             json=mocked_project_data)
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/53/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
 
         self.assertEqual(XForm.objects.all().count(), 0)
         self.assertEqual(Project.objects.all().count(), 0)
@@ -369,6 +377,10 @@ class TestApiMethods(TestCase):
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z"
         }
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/90/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
 
         self.assertEqual(XForm.objects.all().count(), 1)
         self.assertEqual(Project.objects.all().count(), 2)
