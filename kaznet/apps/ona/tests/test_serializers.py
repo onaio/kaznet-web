@@ -2,14 +2,10 @@
 Module containing Tests for Ona Apps
 serializers.py
 """
-from urllib.parse import urljoin
-
-from django.conf import settings
 from django.test import TestCase
 from django.utils.text import slugify
 
 from model_mommy import mommy
-import requests_mock
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.serializers import (InstanceSerializer, ProjectSerializer,
                                          XFormSerializer)
