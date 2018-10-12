@@ -440,7 +440,7 @@ def create_filtered_data_sets(
     for status, status_name in Submission.STATUS_CHOICES:
         ona_status = convert_ona_kaznet_submission_status(kaznet_status=status)
         if ona_status:
-            payload['name'] = f'{form_title} {status_name}'
+            payload['name'] = f'{form_title} - {status_name}'
             payload['query'] = [{'column': '_review_status',
                                  'filter': '=',
                                  'value': ona_status,
