@@ -18,7 +18,8 @@ from kaznet.apps.ona.tasks import (task_fetch_all_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
-                                   task_update_user_profile)
+                                   task_update_user_profile,
+                                   task_auto_create_filtered_data_sets)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 MOCK_PROJECT_DATA = [
@@ -328,3 +329,23 @@ class TestCeleryTasks(TestCase):
         task_update_user_profile('Dave')
 
         mock.assert_called_once_with('Dave')
+
+    @patch('kaznet.apps.ona.tasks.create_filtered_data_sets')
+    def test_task_auto_create_filtered_data_sets(self, mock):
+        """
+        Test task_auto_create_filtered_data_sets
+        """
+        ona_form = mommy.make(
+            'ona.XForm',
+            ona_pk=100,
+            ona_project_id=1542,
+            title='Test Form'
+        )
+        task_auto_create_filtered_data_sets(
+            form_id=ona_form.ona_pk,
+            project_id=ona_form.ona_project_id,
+            form_title=ona_form.title)
+        mock.assert_called_with(
+            form_id=ona_form.ona_pk,
+            project_id=ona_form.ona_project_id,
+            form_title=ona_form.title)
