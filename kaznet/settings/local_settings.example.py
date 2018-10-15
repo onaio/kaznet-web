@@ -35,6 +35,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'task_process_user_profiles',
         'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
     },
+    'create_filtered_data_sets': {
+        'task': 'task_auto_create_filtered_data_sets',
+        'schedule': crontab(hour='*', minute='*/15'),
+        'kwargs': {'form_id': 'ona form id', 'project_id': 'ona project id',
+                   'form_title': 'name of the form'}
+    }
 }
 
 # Emails
