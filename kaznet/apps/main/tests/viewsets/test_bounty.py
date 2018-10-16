@@ -142,7 +142,7 @@ class TestBountyViewSet(TestCase):
         request = self.factory.get(
             '/bounty/{id}'.format(id=bounty_data['id']))
         response = view(request=request, pk=bounty_data['id'])
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response.data[0]['detail']))
@@ -152,7 +152,7 @@ class TestBountyViewSet(TestCase):
         request = self.factory.get('/bounty')
         response = view(request=request)
 
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response.data[0]['detail']))

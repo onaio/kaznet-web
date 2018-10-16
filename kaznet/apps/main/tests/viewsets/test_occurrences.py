@@ -81,7 +81,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         request2 = self.factory.get(
             '/occurrence/{id}'.format(id=occurrence_data['id']))
         response2 = view2(request=request2, pk=occurrence_data['id'])
-        self.assertEqual(response2.status_code, 401)
+        self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response2.data[0]['detail']))
@@ -90,7 +90,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
         view3 = KaznetTaskOccurrenceViewSet.as_view({'get': 'list'})
         request3 = self.factory.get('/occurrence')
         response3 = view3(request=request3)
-        self.assertEqual(response3.status_code, 401)
+        self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response3.data[0]['detail']))
