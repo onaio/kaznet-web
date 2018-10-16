@@ -20,9 +20,9 @@ class KaznetTaskOccurrenceViewSet(viewsets.ReadOnlyModelViewSet):
     Viewset for occurrence
     """
     authentication_classes = [
+        SessionAuthentication,
         OnaTempTokenAuthentication,
-        TokenAuthentication,
-        SessionAuthentication
+        TokenAuthentication
         ]
     serializer_class = KaznetTaskOccurrenceSerializer
     permission_classes = [IsAuthenticated, IsAdmin]

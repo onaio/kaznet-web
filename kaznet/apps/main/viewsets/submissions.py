@@ -24,9 +24,9 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
     Viewset for Submissions
     """
     authentication_classes = [
+        SessionAuthentication,
         TokenAuthentication,
-        OnaTempTokenAuthentication,
-        SessionAuthentication
+        OnaTempTokenAuthentication
         ]
     serializer_class = KaznetSubmissionSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]

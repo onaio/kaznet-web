@@ -22,8 +22,8 @@ class KaznetLocationTypeViewSet(
     Viewset for LocationTypes
     """
     authentication_classes = [
-        OnaTempTokenAuthentication,
         SessionAuthentication,
+        OnaTempTokenAuthentication,
         TokenAuthentication
         ]
     serializer_class = KaznetLocationTypeSerializer

@@ -24,10 +24,9 @@ class KaznetLocationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     Viewset for Location
     """
     authentication_classes = [
-        TokenAuthentication,
         SessionAuthentication,
-        OnaTempTokenAuthentication
-        ]
+        TokenAuthentication,
+        OnaTempTokenAuthentication]
     serializer_class = KaznetLocationSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [
