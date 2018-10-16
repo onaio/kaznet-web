@@ -4,7 +4,7 @@ Test for users viewset
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 import requests_mock
 from model_mommy import mommy
@@ -15,6 +15,11 @@ from kaznet.apps.users.tests.base import create_admin_user
 from kaznet.apps.users.viewsets import UserProfileViewSet
 
 
+@override_settings(
+    ONA_BASE_URL="https://kaznet.ona.io",
+    ONA_ORG_NAME="kaznet",
+    ONA_MEMBERS_TEAM_ID=1337,
+)
 class TestUserProfileViewSet(TestCase):
     """
     Test class for UserProfileViewSet
@@ -47,7 +52,7 @@ class TestUserProfileViewSet(TestCase):
             mocked.put(
                 urljoin(
                     settings.ONA_BASE_URL,
-                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
                 status_code=200)
 
             user = create_admin_user()
@@ -284,7 +289,7 @@ class TestUserProfileViewSet(TestCase):
             mocked.put(
                 urljoin(
                     settings.ONA_BASE_URL,
-                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
                 status_code=200)
 
             data = {

@@ -3,25 +3,19 @@ Bounty ViewSet Module
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.authentication import (SessionAuthentication,
-                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
 
-from kaznet.apps.main.authentication import OnaTempTokenAuthentication
+from kaznet.apps.main.mixins import KaznetViewsetMixin
 from kaznet.apps.main.models import Bounty
 from kaznet.apps.main.serializers import BountySerializer
 from kaznet.apps.users.permissions import IsAdmin
 
 
 # pylint: disable=too-many-ancestors
-class BountyViewSet(viewsets.ReadOnlyModelViewSet):
+class BountyViewSet(KaznetViewsetMixin, viewsets.ReadOnlyModelViewSet):
     """
     Bounty ViewSet class
     """
-    authentication_classes = [
-        TokenAuthentication,
-        OnaTempTokenAuthentication,
-        SessionAuthentication]
     serializer_class = BountySerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     filter_backends = [

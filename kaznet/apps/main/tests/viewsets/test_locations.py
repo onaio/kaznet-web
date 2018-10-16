@@ -407,7 +407,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         request = self.factory.post('/locations', data)
 
         response = view(request=request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response.data[0]['detail']))
@@ -418,7 +418,7 @@ class TestKaznetLocationViewSet(MainTestBase):
             '/locations/{id}'.format(id=location_data['id']))
         response1 = view1(request=request1, pk=location_data['id'])
 
-        self.assertEqual(response1.status_code, 401)
+        self.assertEqual(response1.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response1.data[0]['detail']))
@@ -428,7 +428,7 @@ class TestKaznetLocationViewSet(MainTestBase):
         request2 = self.factory.get('/locations')
         response2 = view2(request=request2)
 
-        self.assertEqual(response2.status_code, 401)
+        self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response2.data[0]['detail']))
@@ -442,7 +442,7 @@ class TestKaznetLocationViewSet(MainTestBase):
             '/locations/{id}'.format(id=location.id))
         response3 = view3(request=request3, pk=location.id)
 
-        self.assertEqual(response3.status_code, 401)
+        self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response3.data[0]['detail']))
@@ -458,7 +458,7 @@ class TestKaznetLocationViewSet(MainTestBase):
             '/locations/{id}'.format(id=location1_data['id']), data=data2)
         response4 = view4(request=request4, pk=location1_data['id'])
 
-        self.assertEqual(response4.status_code, 401)
+        self.assertEqual(response4.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response4.data[0]['detail']))

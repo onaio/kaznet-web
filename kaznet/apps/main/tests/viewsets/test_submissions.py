@@ -767,7 +767,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         request2 = self.factory.get(
             '/submissions/{id}'.format(id=submission.id))
         response2 = view2(request=request2, pk=submission.id)
-        self.assertEqual(response2.status_code, 401)
+        self.assertEqual(response2.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response2.data[0]['detail']))
@@ -776,7 +776,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         view3 = KaznetSubmissionsViewSet.as_view({'get': 'list'})
         request3 = self.factory.get('/submissions')
         response3 = view3(request=request3)
-        self.assertEqual(response3.status_code, 401)
+        self.assertEqual(response3.status_code, 403)
         self.assertEqual(
             'Authentication credentials were not provided.',
             str(response3.data[0]['detail']))
