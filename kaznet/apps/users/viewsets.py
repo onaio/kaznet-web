@@ -3,13 +3,11 @@ Viewsets for users app
 """
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
-from rest_framework.authentication import (SessionAuthentication,
-                                           TokenAuthentication)
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from kaznet.apps.main.authentication import OnaTempTokenAuthentication
+from kaznet.apps.main.mixins import KaznetViewsetMixin
 from kaznet.apps.users.filters import UserProfileOrderingFilter
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.permissions import IsOwnUserProfileOrAdmin
@@ -19,13 +17,11 @@ from kaznet.apps.users.serializers import UserProfileSerializer
 # pylint: disable=too-many-ancestors
 class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                          mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
-                         mixins.UpdateModelMixin, viewsets.GenericViewSet):
+                         mixins.UpdateModelMixin, viewsets.GenericViewSet,
+                         KaznetViewsetMixin):
     """
     ViewSet class for UserProfiles
     """
-    authentication_classes = [
-        SessionAuthentication, OnaTempTokenAuthentication, TokenAuthentication
-    ]
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated, IsOwnUserProfileOrAdmin]
     filter_backends = [

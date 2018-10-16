@@ -2,32 +2,27 @@
 Main Submissions ViewSet Module
 """
 
+from django.conf import settings
+from django.http import StreamingHttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, renderers, viewsets
-from rest_framework.authentication import (SessionAuthentication,
-                                           TokenAuthentication)
 from rest_framework.permissions import IsAuthenticated
-from django.http import StreamingHttpResponse
-from django.conf import settings
-from kaznet.apps.main.renderers import CSVStreamingRenderer
-from kaznet.apps.main.authentication import OnaTempTokenAuthentication
+
 from kaznet.apps.main.filters import KaznetSubmissionFilterSet
+from kaznet.apps.main.mixins import KaznetViewsetMixin
 from kaznet.apps.main.models import Submission
+from kaznet.apps.main.renderers import CSVStreamingRenderer
 from kaznet.apps.main.serializers import (KaznetSubmissionSerializer,
                                           SubmissionExportSerializer)
 from kaznet.apps.users.permissions import IsOwnSubmissionOrAdmin
 
 
 # pylint: disable=too-many-ancestors
-class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
+class KaznetSubmissionsViewSet(
+        KaznetViewsetMixin, viewsets.ReadOnlyModelViewSet):
     """
     Viewset for Submissions
     """
-    authentication_classes = [
-        SessionAuthentication,
-        TokenAuthentication,
-        OnaTempTokenAuthentication
-        ]
     serializer_class = KaznetSubmissionSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
@@ -42,15 +37,11 @@ class KaznetSubmissionsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # pylint: disable=too-many-ancestors
-class SubmissionExportViewSet(viewsets.ReadOnlyModelViewSet):
+class SubmissionExportViewSet(
+        KaznetViewsetMixin, viewsets.ReadOnlyModelViewSet):
     """
     Viewset for Submission exports
     """
-    authentication_classes = [
-        TokenAuthentication,
-        OnaTempTokenAuthentication,
-        SessionAuthentication
-    ]
     serializer_class = SubmissionExportSerializer
     permission_classes = [IsAuthenticated, IsOwnSubmissionOrAdmin]
     renderer_classes = [
