@@ -4,12 +4,11 @@ Celery tasks module for main Kaznet app
 
 from celery import task as celery_task
 from django.utils import timezone
-from datetime import datetime
+from datetime import date
 
-from kaznet.apps.main.api import (create_submission,
-                                  task_set_end_date_passed,
-                                  task_occurence_passed)
+from kaznet.apps.main.api import create_submission
 from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.utils import create_occurrences
 from kaznet.apps.ona.models import Instance
 
@@ -40,8 +39,8 @@ def task_create_submission(instance_id: int):
         create_submission(ona_instance=instance)
 
 
-@celery_task(name="task_end_date_passed")  # pylint: disable=not-callable
-def task_set_end_date_passed():
+@celery_task(name="task_past_end_date")  # pylint: disable=not-callable
+def task_past_end_date():
     """
     Sets Task to expired if end date is in the past or today
     """
@@ -52,15 +51,16 @@ def task_set_end_date_passed():
         task_past_end.save()
 
 
-@celery_task(name="task_has_no_more_occurences")  # pylint: disable=not-callable
-def task_occurences_past_date():
+@celery_task(
+    name="task_has_no_more_occurences")  # pylint: disable=not-callable
+def task_has_no_more_occurences():
     """
     Set task to expired whose occurence date is less than or equal to today
     """
-    no_occurence_in_future = Task.objects.exclude(
-        taskoccurrence__date__gte=datetime.today())
-    for no_occurence in no_occurence_in_future:
-        no_occurence.status = Task.EXPIRED
-        no_occurence.save()
-    
-    
+    task_occ = TaskOccurrence.objects.exclude(
+        task__status=Task.EXPIRED).filter(
+            date__gte=date.today()).values_list('task', flat=True)
+    tasks = Task.objects.exclude(id__in=task_occ)
+    for task in tasks:
+        task.status = Task.EXPIRED
+        task.save()
