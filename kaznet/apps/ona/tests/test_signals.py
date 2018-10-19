@@ -38,7 +38,3 @@ class TestSignals(TestCase):
             form_id=ona_form.ona_pk,
             project_id=ona_form.ona_project_id,
             form_title=ona_form.title)
-
-        ona_form.save()
-        # the celery task should be called only on create
-        self.assertEqual(1, mock.call_count)

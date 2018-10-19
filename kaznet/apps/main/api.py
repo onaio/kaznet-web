@@ -129,6 +129,7 @@ def convert_ona_to_kaznet_submission_status(ona_status: str = ''):
         return Submission.REJECTED
     if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
         return Submission.PENDING
+    return None
 
 
 def convert_kaznet_to_ona_submission_status(kaznet_status: str = ''):
@@ -142,6 +143,7 @@ def convert_kaznet_to_ona_submission_status(kaznet_status: str = ''):
         return settings.ONA_SUBMISSION_REVIEW_REJECTED
     if kaznet_status == Submission.PENDING:
         return settings.ONA_SUBMISSION_REVIEW_PENDING
+    return None
 
 
 def get_locations(coords: list, task: object):

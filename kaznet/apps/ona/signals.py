@@ -27,7 +27,7 @@ def auto_create_ona_filtered_data_sets(sender, instance, created, **kwargs):
     """
     # only create filtered data sets if it doesn't have filtered data sets
     datasets = instance.json.get('has_filtered_data_sets')
-    if datasets:
+    if not datasets:
         form_id = instance.ona_pk
         project_id = instance.ona_project_id
         title = instance.title
