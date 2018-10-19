@@ -419,6 +419,7 @@ def update_user_profile_metadata(ona_username: str, token_key: str = None):
                 profile.save()
 
 
+# pylint: disable=too-many-locals
 def create_filtered_data_sets(
         form_id: int, project_id: int, form_title: str = ''):
     """
@@ -466,10 +467,7 @@ def create_filtered_data_sets(
             response.append(resp.status_code)
 
     form = XForm.objects.get(ona_pk=form_id)
-    if response == [201, 201, 201]:
-        form.json['has_filtered_data_sets'] = True
-    else:
-        form.json['has_filtered_data_sets'] = False
+    form.json['has_filtered_data_sets'] = bool(response in [201, 201, 201])
     form.save()
 
     return response
