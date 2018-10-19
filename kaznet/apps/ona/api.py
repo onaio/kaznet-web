@@ -16,7 +16,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.main.api import convert_ona_kaznet_submission_status
+from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.users.models import UserProfile
 
 
@@ -426,8 +426,9 @@ def create_filtered_data_sets(
     submission statuses : Approved, Rejected, Pending
     """
     data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
-    form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
-    project = urljoin(settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
+    ona_form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
+    ona_project = urljoin(
+        settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
     response = []
 
     columns = ['_review_status', '_review_comment', 'instanceID',
@@ -445,13 +446,14 @@ def create_filtered_data_sets(
         columns += form_columns
 
     payload = {
-        'xform': form,
-        'project': project,
+        'xform': ona_form,
+        'project': ona_project,
         'columns': columns
     }
 
     for status, status_name in Submission.STATUS_CHOICES:
-        ona_status = convert_ona_kaznet_submission_status(kaznet_status=status)
+        ona_status = convert_kaznet_to_ona_submission_status(
+            kaznet_status=status)
         if ona_status:
             payload['name'] = f'{form_title} - {status_name}'
             payload['query'] = [{'column': '_review_status',
@@ -462,5 +464,12 @@ def create_filtered_data_sets(
             resp = request_session(
                 url=data_views_url, method='POST', payload=payload)
             response.append(resp.status_code)
+
+    form = XForm.objects.get(ona_pk=form_id)
+    if response == [201, 201, 201]:
+        form.json['has_filtered_data_sets'] = True
+    else:
+        form.json['has_filtered_data_sets'] = False
+    form.save()
 
     return response
