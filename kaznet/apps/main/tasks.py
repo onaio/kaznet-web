@@ -1,10 +1,9 @@
 """
 Celery tasks module for main Kaznet app
 """
-
-from celery import task as celery_task
 from django.utils import timezone
 from datetime import date
+from celery import task as celery_task
 
 from kaznet.apps.main.api import create_submission
 from kaznet.apps.main.models import Task
