@@ -1,8 +1,8 @@
 """
 Celery tasks module for main Kaznet app
 """
-from django.utils import timezone
 from datetime import date
+from django.utils import timezone
 from celery import task as celery_task
 
 from kaznet.apps.main.api import create_submission
@@ -49,13 +49,13 @@ def task_past_end_date():
         task_past_end.status = Task.EXPIRED
         task_past_end.save()
 
-
-@celery_task(
-    name="task_has_no_more_occurences")  # pylint: disable=not-callable
+# pylint: disable=not-callable
+@celery_task(name="task_has_no_more_occurences")
 def task_has_no_more_occurences():
     """
     Set task to expired whose occurence date is less than or equal to today
     """
+    # pylint: disable=no-member
     task_occ = TaskOccurrence.objects.exclude(
         task__status=Task.EXPIRED).filter(
             date__gte=date.today()).values_list('task', flat=True)
