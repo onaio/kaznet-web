@@ -83,10 +83,10 @@ class TestCeleryTasks(TestCase):
             name="Cows head count")
         mommy.make(
             "main.TaskOccurrence",
-            date=date.today() - timedelta(days=1), task=task1)
+            date=date.today() + timedelta(days=1), task=task1)
         mommy.make(
             "main.TaskOccurrence",
-            date=date.today() - timedelta(days=1), task=task1)
+            date=date.today() + timedelta(days=1), task=task1)
         # task occurences in the past and the future
         task2 = mommy.make(
             "main.Task", status=Task.ACTIVE,
@@ -102,5 +102,5 @@ class TestCeleryTasks(TestCase):
         task1.refresh_from_db()
         task2.refresh_from_db()
         self.assertEqual(Task.EXPIRED, task.status)
-        self.assertEqual(Task.EXPIRED, task1.status)
+        self.assertEqual(Task.ACTIVE, task1.status)
         self.assertEqual(Task.ACTIVE, task2.status)
