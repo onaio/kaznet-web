@@ -5,13 +5,15 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from model_mommy import mommy
-
 from django.utils import timezone
 
 from datetime import date, timedelta
 
+from model_mommy import mommy
+
 from kaznet.apps.main.models import Task
+
+from kaznet.apps.main.models import TaskOccurrence
 
 from kaznet.apps.main.tasks import (task_create_occurrences,
                                     task_create_submission,
@@ -70,7 +72,10 @@ class TestCeleryTasks(TestCase):
         # all occurences in the past
         task = mommy.make(
             "main.Task", status=Task.ACTIVE,
-            name="Other Food Commodity Prices")
+            name="Other Food Commodity Prices",
+            end=timezone.now() + timezone.timedelta(days=1))
+        # pylint: disable=no-member
+        TaskOccurrence.objects.filter(task=task).delete()
         mommy.make(
             "main.TaskOccurrence",
             date=date.today() - timedelta(days=1), task=task)
@@ -80,7 +85,10 @@ class TestCeleryTasks(TestCase):
         # all occurences in the future
         task1 = mommy.make(
             "main.Task", status=Task.ACTIVE,
-            name="Cows head count")
+            name="Cows head count",
+            end=timezone.now() + timezone.timedelta(days=1))
+        # pylint: disable=no-member
+        TaskOccurrence.objects.filter(task=task1).delete()
         mommy.make(
             "main.TaskOccurrence",
             date=date.today() + timedelta(days=1), task=task1)
@@ -90,7 +98,10 @@ class TestCeleryTasks(TestCase):
         # task occurences in the past and the future
         task2 = mommy.make(
             "main.Task", status=Task.ACTIVE,
-            name="Goats Distribution")
+            name="Goats Distribution",
+            end=timezone.now() + timezone.timedelta(days=1))
+        # pylint: disable=no-member
+        TaskOccurrence.objects.filter(task=task2).delete()
         mommy.make(
             "main.TaskOccurrence",
             date=date.today() - timedelta(days=1), task=task2)
