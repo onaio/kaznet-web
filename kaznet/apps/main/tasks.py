@@ -49,6 +49,7 @@ def task_past_end_date():
         task_past_end.status = Task.EXPIRED
         task_past_end.save()
 
+
 # pylint: disable=not-callable
 @celery_task(name="task_has_no_more_occurences")
 def task_has_no_more_occurences():
