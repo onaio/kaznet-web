@@ -3,11 +3,13 @@ Test Module for Main API Methods
 """
 import os
 from collections import OrderedDict
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.test import override_settings
 
+import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.api import (create_submission, validate_location,
@@ -23,6 +25,7 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import process_instance
 from kaznet.apps.ona.models import Instance
 from kaznet.apps.users.models import UserProfile
+from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -33,11 +36,21 @@ class TestAPIMethods(MainTestBase):
     Test class for API Methods
     """
 
-    def _create_instance(self, pending: bool = False):
+    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @requests_mock.Mocker()
+    def _create_instance(self, mocked, pending: bool = False):
         """
         Helper method to create an instance with
         valid data
         """
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/53/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
         mommy.make('auth.User', username='dave')
         mommy.make('ona.Project', ona_pk=49)
         form = mommy.make('ona.XForm', ona_pk=25, ona_project_id=49)
