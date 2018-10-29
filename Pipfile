@@ -5,15 +5,15 @@ verify_ssl = true
 
 [packages]
 "e1839a8" = {editable = true, path = "."}
-ona-tasking = {git = "https://github.com/onaio/tasking.git", editable = true, ref = "v0.1.8"}
+ona-tasking = {editable = true, git = "https://github.com/onaio/tasking.git", ref = "v0.2.0"}
 redis = "*"
 allauth-onadata = {git = "https://github.com/onaio/django-allauth-onadata.git", ref = "v0.0.2", editable = true}
 djangorestframework-csv = "*"
 django-crispy-forms = "*"
+future = "*"
 
 [dev-packages]
 "flake8" = "*"
-"pep8" = "*"
 pylint = "*"
 pycodestyle = "*"
 coverage = "*"
@@ -22,7 +22,6 @@ yapf = "*"
 isort = "*"
 ipdb = "*"
 model-mommy = "*"
-"autopep8" = "*"
 tblib = "*"
 requests-mock = "*"
 django-extensions = "*"
