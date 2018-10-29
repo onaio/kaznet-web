@@ -27,7 +27,6 @@ class TestSubmissionExportViewSet(MainTestBase):
     def setUp(self):
         super().setUp()
         self.factory = APIRequestFactory()
-        self.expected = b"id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,Quest,Voi,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,Quest,Voi,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
         # make two submissions that work with self.expected
         self.task = mommy.make('main.Task', name='Quest')
         self.coco_user = mommy.make('auth.User', first_name='Coco')
@@ -73,8 +72,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         self.assertTrue(response.streaming)
 
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
-
-        self.assertEqual(self.expected, received)
+        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,120,Quest,97,Voi,2,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,120,Quest,97,Voi,3,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
+        self.assertEqual(expected, received)
 
     def test_csv_export_task_filter(self):
         """
@@ -99,7 +98,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 3 new submissions, check our data
-        self.assertEqual(self.expected, received)
+        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,153,Quest,126,Voi,10,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,153,Quest,126,Voi,11,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  # noqa
+        self.assertEqual(expected, received)
 
     def test_csv_export_user_filter(self):
         """
@@ -124,7 +124,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 16 new submissions, check our data
-        self.assertEqual(self.expected, received)
+        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,158,Quest,130,Voi,12,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,158,Quest,130,Voi,13,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  #noqa
+        self.assertEqual(expected, received)
 
     def test_csv_export_userprofile_filter(self):
         """
@@ -149,7 +150,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 10 new submissions, check our data
-        self.assertEqual(self.expected, received)
+        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,176,Quest,147,Voi,14,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,176,Quest,147,Voi,15,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  #noqa
+        self.assertEqual(expected, received)
 
     def test_csv_export_modified_filter(self):
         """
@@ -181,7 +183,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 15 new submissions, check our data
-        self.assertEqual(self.expected, received)
+        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,122,Quest,98,Voi,4,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,122,Quest,98,Voi,5,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
+        self.assertEqual(expected, received)
 
     def test_csv_export_status_filter(self):
         """
@@ -206,7 +209,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 10 new submissions, check our data
-        self.assertEqual(self.expected, received)
+        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,141,Quest,115,Voi,8,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,141,Quest,115,Voi,9,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"
+        self.assertEqual(expected, received)
 
     def test_export_submision_time_filter(self):
         """
