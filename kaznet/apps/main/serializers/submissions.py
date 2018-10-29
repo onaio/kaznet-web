@@ -9,8 +9,8 @@ from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY,
                                           LABEL_LOCATION, LABEL_PAYMENT_PHONE,
                                           LABEL_PHONE, LABEL_STATUS,
                                           LABEL_SUBMISSION_TIME, LABEL_TASK,
-                                          LABEL_USER, LABEL_USER_ID, LABEL_LOCATION_ID,
-                                          LABEL_TASK_ID)
+                                          LABEL_USER, LABEL_USER_ID,
+                                          LABEL_LOCATION_ID, LABEL_TASK_ID)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
@@ -172,21 +172,20 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
             return obj.user.userprofile.payment_number.as_e164
         return None
 
-    def get_user_id(self, obj):  #pylint: disable=no-self-use
+    def get_user_id(self, obj):  # pylint: disable=no-self-use
         """
         Get the user_id field
         """
         return obj.user.id
 
-    def get_task_id(self, obj):
+    def get_task_id(self, obj):  # pylint: disable=no-self-use
         """
         Get the task_id
         """
         return obj.task.id
 
-    def get_location_id(self, obj):
+    def get_location_id(self, obj):  # pylint: disable=no-self-use
         """
         Get the task_id
         """
         return obj.location.id
-
