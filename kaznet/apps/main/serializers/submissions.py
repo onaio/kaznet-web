@@ -9,7 +9,8 @@ from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY,
                                           LABEL_LOCATION, LABEL_PAYMENT_PHONE,
                                           LABEL_PHONE, LABEL_STATUS,
                                           LABEL_SUBMISSION_TIME, LABEL_TASK,
-                                          LABEL_USER)
+                                          LABEL_USER, LABEL_USER_ID, LABEL_LOCATION_ID,
+                                          LABEL_TASK_ID)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
@@ -67,8 +68,12 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
     Serializer class used for Sumission exports
     """
     user = drf_serializers.SerializerMethodField(label=LABEL_USER)
+    user_id = drf_serializers.SerializerMethodField(label=LABEL_USER_ID)
     task = drf_serializers.SerializerMethodField(label=LABEL_TASK)
+    task_id = drf_serializers.SerializerMethodField(label=LABEL_TASK_ID)
     location = drf_serializers.SerializerMethodField(label=LABEL_LOCATION)
+    location_id = drf_serializers.SerializerMethodField(
+        label=LABEL_LOCATION_ID)
     submission_time = drf_serializers.SerializerMethodField(
         label=LABEL_SUBMISSION_TIME)
     amount = drf_serializers.SerializerMethodField(label=LABEL_AMOUNT)
@@ -86,8 +91,11 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         fields = [
             'id',
             'user',
+            'user_id',
             'task',
+            'task_id',
             'location',
+            'location_id',
             'submission_time',
             'approved',
             'status',
@@ -163,3 +171,22 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         if obj.user.userprofile.payment_number:
             return obj.user.userprofile.payment_number.as_e164
         return None
+
+    def get_user_id(self, obj):  #pylint: disable=no-self-use
+        """
+        Get the user_id field
+        """
+        return obj.user.id
+
+    def get_task_id(self, obj):
+        """
+        Get the task_id
+        """
+        return obj.task.id
+
+    def get_location_id(self, obj):
+        """
+        Get the task_id
+        """
+        return obj.location.id
+

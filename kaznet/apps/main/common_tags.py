@@ -22,8 +22,11 @@ PAST_END_DATE = _(
     'Cannot create an active task with an end date from the past.')
 
 LABEL_USER = _('User')
+LABEL_USER_ID = _('User Id')
 LABEL_TASK = _('Task')
+LABEL_TASK_ID = _('Task Id')
 LABEL_LOCATION = _('Location')
+LABEL_LOCATION_ID = _('Location Id')
 LABEL_SUBMISSION_TIME = _('Submission Time')
 LABEL_AMOUNT = _('Amount')
 LABEL_CURRENCY = _('Currency')
