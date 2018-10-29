@@ -61,7 +61,7 @@ class TestCSVStreamingRenderer(MainTestBase):
         """
         Test that we get the right data back
         """
-        expected = "id,user,task,location,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n555,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n666,Coco,Quest,Voi,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n"  # noqa
+        expected = "id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n555,Coco,3,Quest,2,Voi,3,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n666,Coco,4,Quest,2,Voi,4,2018-09-04T03:39:29+00:00,,d,,50.00,KES,,\r\n"  # noqa
 
         streaming_renderer = CSVStreamingRenderer()
         request = self.factory.get('/exports/submissions?format=csv')
@@ -74,7 +74,6 @@ class TestCSVStreamingRenderer(MainTestBase):
                 }
             )
         )
-
         self.assertEqual(
             expected,
             streaming_renderer_data
