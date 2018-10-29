@@ -196,25 +196,30 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
         expected_fields = {
             'id',
             'user',
+            'user_id',
+            'task',
+            'task_id',
+            'location',
+            'location_id',
+            'submission_time',
             'approved',
             'status',
             'comments',
-            'task',
-            'location',
-            'submission_time',
             'amount',
             'currency',
             'phone_number',
             'payment_number',
         }
-
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
 
         self.assertEqual(submission.id, serializer_instance.data['id'])
         self.assertEqual("Bob Kamau", serializer_instance.data['user'])
+        self.assertEqual(6, serializer_instance.data['user_id'])
         self.assertEqual("Cow Prices", serializer_instance.data['task'])
+        self.assertEqual(3, serializer_instance.data['task_id'])
         self.assertEqual("Nairobi", serializer_instance.data['location'])
+        self.assertEqual(3, serializer_instance.data['location_id'])
         self.assertEqual(
             self.now.astimezone(pytz.timezone('UTC')).isoformat(),
             serializer_instance.data['submission_time'])
