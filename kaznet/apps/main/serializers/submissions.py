@@ -182,10 +182,14 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         """
         Get the task_id
         """
+        
         return obj.task.id
 
     def get_location_id(self, obj):  # pylint: disable=no-self-use
         """
-        Get the task_id
+        Get the location_id
         """
-        return obj.location.id
+        if obj.location:   
+           return obj.location.id
+        return None
+
