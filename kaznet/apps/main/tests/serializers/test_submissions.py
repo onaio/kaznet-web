@@ -32,8 +32,12 @@ class SubmissionSerializerBase(MainTestBase):
         mocked_task = mommy.make('main.Task', name='Cow Prices')
         mocked_location = mommy.make('main.Location', name='Nairobi')
         mocked_user = mommy.make(
-            'auth.User', username='Bob', first_name='Bob', last_name='Kamau')
+            'auth.User', username='Bob', first_name='Bob', last_name='Kamau',
+            id=1001)
         mocked_bounty = mommy.make('main.Bounty', task=mocked_task, amount=99)
+        self.task = mocked_task
+        self.location = mocked_location
+        self.user = mocked_user
 
         data = {
             'task': {
@@ -196,25 +200,31 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
         expected_fields = {
             'id',
             'user',
+            'user_id',
+            'task',
+            'task_id',
+            'location',
+            'location_id',
+            'submission_time',
             'approved',
             'status',
             'comments',
-            'task',
-            'location',
-            'submission_time',
             'amount',
             'currency',
             'phone_number',
             'payment_number',
         }
-
         self.assertEqual(set(expected_fields),
                          set(list(serializer_instance.data.keys())))
 
         self.assertEqual(submission.id, serializer_instance.data['id'])
         self.assertEqual("Bob Kamau", serializer_instance.data['user'])
+        self.assertEqual(self.user.id, serializer_instance.data['user_id'])
         self.assertEqual("Cow Prices", serializer_instance.data['task'])
+        self.assertEqual(self.task.id, serializer_instance.data['task_id'])
         self.assertEqual("Nairobi", serializer_instance.data['location'])
+        self.assertEqual(
+            self.location.id, serializer_instance.data['location_id'])
         self.assertEqual(
             self.now.astimezone(pytz.timezone('UTC')).isoformat(),
             serializer_instance.data['submission_time'])
