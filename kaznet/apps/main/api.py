@@ -118,7 +118,7 @@ def create_submission(ona_instance: object):
     return None
 
 
-def convert_ona_to_kaznet_submission_status(ona_status: str = ''):
+def convert_ona_to_kaznet_submission_status(ona_status: str):
     """
     Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
     ('a', 'b', 'c')
@@ -132,7 +132,7 @@ def convert_ona_to_kaznet_submission_status(ona_status: str = ''):
     return None
 
 
-def convert_kaznet_to_ona_submission_status(kaznet_status: str = ''):
+def convert_kaznet_to_ona_submission_status(kaznet_status: str):
     """
     Convert kaznet submission statuses ('a', 'b', 'c') to Ona Instance
     statuses (1, 2, 3)
