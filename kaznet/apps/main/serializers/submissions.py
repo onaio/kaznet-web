@@ -190,5 +190,4 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         """
         if obj.location:
             return obj.location.id
-        else:
-            return None
+        return None
