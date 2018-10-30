@@ -13,7 +13,8 @@ from kaznet.apps.main.models import Task
 from kaznet.apps.ona.api import (get_and_process_xforms, get_instances,
                                  get_projects, process_instance,
                                  process_projects,
-                                 update_user_profile_metadata)
+                                 update_user_profile_metadata,
+                                 create_filtered_data_sets)
 from kaznet.apps.ona.models import XForm
 
 
@@ -96,3 +97,14 @@ def task_update_user_profile(ona_username: str):
     Updates Userprofile metadata
     """
     update_user_profile_metadata(ona_username)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_auto_create_filtered_data_sets")
+def task_auto_create_filtered_data_sets(
+        form_id: int, project_id: int, form_title: str):
+    """
+    Takes ona form filtered data sets
+    """
+    create_filtered_data_sets(
+        form_id=form_id, project_id=project_id, form_title=form_title)
