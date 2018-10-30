@@ -12,7 +12,7 @@ from django_prices.models import Money
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
-from kaznet.apps.main.models import Submission
+from kaznet.apps.main.models import Submission, Task, Location
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import (KaznetSubmissionsViewSet,
                                        SubmissionExportViewSet)
@@ -27,13 +27,31 @@ class TestSubmissionExportViewSet(MainTestBase):
     def setUp(self):
         super().setUp()
         self.factory = APIRequestFactory()
+        self.expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,1377,Quest,2001,Voi,1000,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,1377,Quest,2001,Voi,1000,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
         # make two submissions that work with self.expected
-        self.task = mommy.make('main.Task', name='Quest')
-        self.coco_user = mommy.make('auth.User', first_name='Coco')
+        try:
+            self.task = Task.objects.get(id=2001)
+        except Task.DoesNotExist:
+
+            task = mommy.make('main.Task', name='Quest')
+            task.id = 2001
+            task.save(force_insert=True)
+            self.task = task
+
+        try:
+            self.location = Location.objects.get(id=1000)
+        except Location.DoesNotExist:
+
+            location = mommy.make('main.Location', name='Voi')
+            location.id = 1000
+            location.save(force_insert=True)
+            self.location = location
+ 
+        self.coco_user = mommy.make('auth.User', first_name='Coco', id=1377)
         mommy.make(
             'main.Submission',
             task=self.task,
-            location=mommy.make('main.Location', name='Voi'),
+            location=self.location,
             user=self.coco_user,
             bounty=mommy.make(
                 'main.Bounty',
@@ -46,7 +64,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         mommy.make(
             'main.Submission',
             task=self.task,
-            location=mommy.make('main.Location', name='Voi'),
+            location=self.location,
             user=self.coco_user,
             bounty=mommy.make(
                 'main.Bounty',
@@ -72,8 +90,8 @@ class TestSubmissionExportViewSet(MainTestBase):
         self.assertTrue(response.streaming)
 
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
-        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,120,Quest,97,Voi,2,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,120,Quest,97,Voi,3,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
-        self.assertEqual(expected, received)
+
+        self.assertEqual(self.expected, received)
 
     def test_csv_export_task_filter(self):
         """
@@ -98,8 +116,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 3 new submissions, check our data
-        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,153,Quest,126,Voi,10,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,153,Quest,126,Voi,11,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  # noqa
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
 
     def test_csv_export_user_filter(self):
         """
@@ -124,8 +141,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 16 new submissions, check our data
-        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,158,Quest,130,Voi,12,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,158,Quest,130,Voi,13,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  #noqa
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
 
     def test_csv_export_userprofile_filter(self):
         """
@@ -150,8 +166,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 10 new submissions, check our data
-        expected = b'id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,176,Quest,147,Voi,14,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,176,Quest,147,Voi,15,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n'  #noqa
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
 
     def test_csv_export_modified_filter(self):
         """
@@ -183,8 +198,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 15 new submissions, check our data
-        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,122,Quest,98,Voi,4,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,122,Quest,98,Voi,5,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"  # noqa
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
 
     def test_csv_export_status_filter(self):
         """
@@ -209,8 +223,7 @@ class TestSubmissionExportViewSet(MainTestBase):
         received = BytesIO(b''.join(response.streaming_content)).getvalue()
 
         # we have filtered out the 10 new submissions, check our data
-        expected = b"id,user,user_id,task,task_id,location,location_id,submission_time,approved,status,comments,amount,currency,phone_number,payment_number\r\n888,Coco,141,Quest,115,Voi,8,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n999,Coco,141,Quest,115,Voi,9,2018-09-04T00:00:00+00:00,True,a,,50.00,KES,,\r\n"
-        self.assertEqual(expected, received)
+        self.assertEqual(self.expected, received)
 
     def test_export_submision_time_filter(self):
         """
