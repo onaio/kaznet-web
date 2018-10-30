@@ -223,7 +223,8 @@ class TestSubmissionExportSerializer(SubmissionSerializerBase):
         self.assertEqual("Cow Prices", serializer_instance.data['task'])
         self.assertEqual(self.task.id, serializer_instance.data['task_id'])
         self.assertEqual("Nairobi", serializer_instance.data['location'])
-        self.assertEqual(self.location.id, serializer_instance.data['location_id'])
+        self.assertEqual(
+            self.location.id, serializer_instance.data['location_id'])
         self.assertEqual(
             self.now.astimezone(pytz.timezone('UTC')).isoformat(),
             serializer_instance.data['submission_time'])

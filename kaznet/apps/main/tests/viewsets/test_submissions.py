@@ -46,7 +46,7 @@ class TestSubmissionExportViewSet(MainTestBase):
             location.id = 1000
             location.save(force_insert=True)
             self.location = location
- 
+
         self.coco_user = mommy.make('auth.User', first_name='Coco', id=1377)
         mommy.make(
             'main.Submission',
