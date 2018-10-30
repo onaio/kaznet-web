@@ -2,6 +2,7 @@
 Test module for celery tasks for Ona app
 """
 from unittest.mock import call, patch
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.test import TestCase, override_settings
@@ -17,7 +18,9 @@ from kaznet.apps.ona.tasks import (task_fetch_all_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
-                                   task_update_user_profile)
+                                   task_update_user_profile,
+                                   task_auto_create_filtered_data_sets)
+from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 MOCK_PROJECT_DATA = [
     {
@@ -188,6 +191,18 @@ class TestCeleryTasks(TestCase):
         mocked_request.get(
             "https://example.com/api/v1/projects?owner=mosh",
             json=MOCK_PROJECT_DATA)
+        mocked_request.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/7331/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked_request.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/310/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked_request.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
         # run the task
         task_fetch_projects(username=settings.ONA_USERNAME)
         # we should have two projects
@@ -205,6 +220,14 @@ class TestCeleryTasks(TestCase):
         """
         Test task_fetch_form_instances
         """
+        mocked_request.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked_request.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
         mommy.make('auth.User', username='onasupport')
         xform = mommy.make(
             'ona.XForm',
@@ -237,6 +260,14 @@ class TestCeleryTasks(TestCase):
         Test task_fetch_form_instances results in actual instances
         """
         mommy.make('auth.User', username='onasupport')
+        mocked_request.get(
+            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
+            json=MOCKED_ONA_FORM_DATA
+        )
+        mocked_request.post(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
+            status_code=201
+        )
         xform = mommy.make(
             'ona.XForm',
             id=7,
@@ -298,3 +329,23 @@ class TestCeleryTasks(TestCase):
         task_update_user_profile('Dave')
 
         mock.assert_called_once_with('Dave')
+
+    @patch('kaznet.apps.ona.tasks.create_filtered_data_sets')
+    def test_task_auto_create_filtered_data_sets(self, mock):
+        """
+        Test task_auto_create_filtered_data_sets
+        """
+        ona_form = mommy.make(
+            'ona.XForm',
+            ona_pk=100,
+            ona_project_id=1542,
+            title='Test Form'
+        )
+        task_auto_create_filtered_data_sets(
+            form_id=ona_form.ona_pk,
+            project_id=ona_form.ona_project_id,
+            form_title=ona_form.title)
+        mock.assert_called_with(
+            form_id=ona_form.ona_pk,
+            project_id=ona_form.ona_project_id,
+            form_title=ona_form.title)

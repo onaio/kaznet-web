@@ -14,7 +14,9 @@ from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
+from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.users.models import UserProfile
 
 
@@ -415,3 +417,57 @@ def update_user_profile_metadata(ona_username: str, token_key: str = None):
                 profile.metadata['gravatar'] = ona_profile_data.get('gravatar')
 
                 profile.save()
+
+
+# pylint: disable=too-many-locals
+def create_filtered_data_sets(
+        form_id: int, project_id: int, form_title: str):
+    """
+    Custom method that creates filtered data sets for all the
+    submission statuses : Approved, Rejected, Pending
+    """
+    data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
+    ona_form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
+    ona_project = urljoin(
+        settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
+    response = []
+
+    columns = ['_review_status', '_review_comment', 'instanceID',
+               '_last_edited', '_submitted_by', '_media_all_received']
+
+    # get all fields/columns of form required in creating filtered data set
+    form_data = request_session(
+        url=urljoin(
+            settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/form.json'),
+        method='GET'
+    )
+    if form_data.status_code == 200:
+        form_columns = [field['name']
+                        for field in form_data.json()['children']]
+        columns += form_columns
+
+    payload = {
+        'xform': ona_form,
+        'project': ona_project,
+        'columns': columns
+    }
+
+    for status, status_name in Submission.STATUS_CHOICES:
+        ona_status = convert_kaznet_to_ona_submission_status(
+            kaznet_status=status)
+        if ona_status:
+            payload['name'] = f'{form_title} - {status_name}'
+            payload['query'] = [{'column': '_review_status',
+                                 'filter': '=',
+                                 'value': ona_status,
+                                 'condition': 'or'}]
+
+            resp = request_session(
+                url=data_views_url, method='POST', payload=payload)
+            response.append(resp.status_code)
+
+    form = XForm.objects.get(ona_pk=form_id)
+    form.json['has_filtered_data_sets'] = bool(response in [201, 201, 201])
+    form.save()
+
+    return response
