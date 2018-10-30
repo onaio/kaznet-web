@@ -102,7 +102,7 @@ def task_update_user_profile(ona_username: str):
 # pylint: disable=not-callable
 @celery_task(name="task_auto_create_filtered_data_sets")
 def task_auto_create_filtered_data_sets(
-        form_id: int, project_id: int, form_title: str = ''):
+        form_id: int, project_id: int, form_title: str):
     """
     Takes ona form filtered data sets
     """
