@@ -188,5 +188,9 @@ class SubmissionExportSerializer(drf_serializers.ModelSerializer):
         """
         Get the task_id
         """
-        return obj.location.id
+        if obj.location:
+            return obj.location.id
+        else:
+            return None
+
 
