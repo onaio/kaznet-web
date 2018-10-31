@@ -5,10 +5,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='kaznet',
-    version='0.0.1',
-    description='Django Project For ILRI Kaznet',
+    version="1.0.0",
+    description='Tasking application built on top of Onadata',
     license='Apache 2.0',
-    author='Ona Kenya',
+    author='Ona Systems Inc',
     author_email='tech@ona.io',
     url='https://github.com/onaio/kaznet-web',
     packages=find_packages(exclude=['docs', 'tests']),
