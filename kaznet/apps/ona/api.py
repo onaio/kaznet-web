@@ -18,6 +18,7 @@ from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.users.models import UserProfile
+from kaznet.apps.main.common_tags import KAZNET_WEBHOOK_NAME
 
 
 def request_session(
@@ -471,3 +472,28 @@ def create_filtered_data_sets(
     form.save()
 
     return response
+
+
+def create_form_webhook(
+        form_id: int, service_url: str, name: str = KAZNET_WEBHOOK_NAME):
+    """
+    Creates a rest service webhook via the Onadata API
+    """
+    try:
+        form = XForm.objects.get(pk=form_id)
+    except XForm.DoesNotExist:
+        return None
+    else:
+        restservice_url = urljoin(settings.ONA_BASE_URL, 'api/v1/restservices')
+        payload = {
+            'xform': form_id,
+            'service_url': service_url,
+            'name': name
+        }
+        response = request_session(
+            url=restservice_url, method='POST', payload=payload)
+
+        form['has_webhook'] = response.status_code == 201
+        form.save()
+
+        return response
