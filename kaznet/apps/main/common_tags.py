@@ -34,3 +34,6 @@ LABEL_PHONE = _('Phone Number')
 LABEL_PAYMENT_PHONE = _('Payment Phone Number')
 LABEL_STATUS = _('Status')
 KAZNET_WEBHOOK_NAME = _('Kaznet Webhook')
+
+HAS_WEBHOOK_FIELD_NAME = 'has_webhook'
+HAS_FILTERED_DATASETS_FIELD_NAME = 'has_filtered_data_sets'

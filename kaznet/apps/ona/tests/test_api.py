@@ -6,16 +6,16 @@ Ona Apps api.py methods
 from unittest.mock import patch
 from urllib.parse import urljoin
 
+import requests_mock
 from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
-
-import requests_mock
 from model_mommy import mommy
 from requests.exceptions import RetryError
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
+from kaznet.apps.main.common_tags import HAS_WEBHOOK_FIELD_NAME
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_form_webhook, get_and_process_xforms,
                                  get_instance, get_instances, get_project,
@@ -839,7 +839,7 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(201, response.status_code)
 
         xform.refresh_from_db()
-        self.assertTrue(xform.json['has_webhook'])
+        self.assertTrue(xform.json[HAS_WEBHOOK_FIELD_NAME])
 
     @requests_mock.Mocker()
     @patch('kaznet.apps.ona.api.cache')

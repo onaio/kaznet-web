@@ -3,6 +3,8 @@ Signals for ona
 """
 from django.db.models.signals import post_save, pre_delete
 
+from kaznet.apps.main.common_tags import (HAS_FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Task
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_create_form_webhook)
@@ -27,7 +29,7 @@ def auto_create_ona_filtered_data_sets(sender, instance, created, **kwargs):
     Create ona form filtered data sets
     """
     # only create filtered data sets if it doesn't have filtered data sets
-    datasets = instance.json.get('has_filtered_data_sets')
+    datasets = instance.json.get(HAS_FILTERED_DATASETS_FIELD_NAME)
     if not datasets:
         form_id = instance.ona_pk
         project_id = instance.ona_project_id
@@ -40,7 +42,7 @@ def create_form_webhook_signal(sender, instance, created, **kwargs):
     """
     Signal to create form webhooks
     """
-    if not instance.json.get('has_webhook'):
+    if not instance.json.get(HAS_WEBHOOK_FIELD_NAME):
         # only attempt to create webhooks if not already created
         form_id = instance.ona_pk
         task_create_form_webhook.delay(form_id=form_id)

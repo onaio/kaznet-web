@@ -4,21 +4,22 @@ with the OnaData API
 """
 from urllib.parse import urljoin
 
+import dateutil.parser
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-
-import dateutil.parser
-import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
+from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
+from kaznet.apps.main.common_tags import (HAS_FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_WEBHOOK_FIELD_NAME,
+                                          KAZNET_WEBHOOK_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.users.models import UserProfile
-from kaznet.apps.main.common_tags import KAZNET_WEBHOOK_NAME
 
 
 def request_session(
@@ -476,7 +477,8 @@ def create_filtered_data_sets(
                     url=data_views_url, method='POST', payload=payload)
                 response.append(resp.status_code)
 
-        form.json['has_filtered_data_sets'] = bool(response in [201, 201, 201])
+        form.json[HAS_FILTERED_DATASETS_FIELD_NAME] = bool(
+            response in [201, 201, 201])
         form.save()
 
         return response
@@ -501,7 +503,7 @@ def create_form_webhook(
         response = request_session(
             url=restservice_url, method='POST', payload=payload)
 
-        form.json['has_webhook'] = response.status_code in [200, 201]
+        form.json[HAS_WEBHOOK_FIELD_NAME] = response.status_code in [200, 201]
         form.save()
 
         return response
