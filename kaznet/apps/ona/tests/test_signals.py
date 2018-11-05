@@ -19,9 +19,10 @@ class TestSignals(TestCase):
             username='sluggie'
         )
 
+    @patch('kaznet.apps.ona.signals.task_create_form_webhook.delay')
     @patch(
         'kaznet.apps.ona.signals.task_auto_create_filtered_data_sets.delay')
-    def test_auto_create_filtered_data_sets_signal_handler(self, mock):
+    def test_auto_create_filtered_data_sets_signal_handler(self, mock, mock2):
         """
         Test auto create filtered data sets signal handler
         """
@@ -39,8 +40,10 @@ class TestSignals(TestCase):
             project_id=ona_form.ona_project_id,
             form_title=ona_form.title)
 
+    @patch(
+        'kaznet.apps.ona.signals.task_auto_create_filtered_data_sets.delay')
     @patch('kaznet.apps.ona.signals.task_create_form_webhook.delay')
-    def test_create_form_webhook_signal(self, mock):
+    def test_create_form_webhook_signal(self, mock, mock2):
         """
         Test create_form_webhook_signal handler
         """
