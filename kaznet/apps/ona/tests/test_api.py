@@ -815,10 +815,11 @@ class TestApiMethods(MainTestBase):
         """
         Test create_form_webhook
         """
-        xform = mommy.make('ona.XForm', title="Red Dead Redemption")
+        xform = mommy.make(
+            'ona.XForm', title="Red Dead Redemption", ona_pk=888999)
         mocked_restservice = {
             'id': 777,
-            'xform': xform.pk,
+            'xform': xform.ona_pk,
             'name': 'TEST',
             'service_url': 'http://example.com',
             'active': True,
@@ -831,7 +832,9 @@ class TestApiMethods(MainTestBase):
             status_code=201)
 
         response = create_form_webhook(
-            form_id=xform.id, service_url='http://example.com', name='TEST')
+            form_id=xform.ona_pk,
+            service_url='http://example.com',
+            name='TEST')
         self.assertDictEqual(mocked_restservice, response.json())
         self.assertEqual(201, response.status_code)
 
