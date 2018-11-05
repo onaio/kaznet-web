@@ -22,7 +22,8 @@ from kaznet.apps.ona.api import (get_and_process_xforms, get_instance,
                                  process_instance, process_instances,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
-                                 request_session, update_user_profile_metadata)
+                                 request_session, update_user_profile_metadata,
+                                 create_form_webhook)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -805,6 +806,35 @@ class TestApiMethods(TestCase):
         project = get_xform_obj(876)
 
         self.assertTrue(mocked_xform, project)
+
+    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @requests_mock.Mocker()
+    def test_create_form_webhook(self, mocked):
+        """
+        Test create_form_webhook
+        """
+        xform = mommy.make('ona.XForm', title="Red Dead Redemption")
+        mocked_restservice = {
+            'id': 777,
+            'xform': xform.pk,
+            'name': 'TEST',
+            'service_url': 'http://example.com',
+            'active': True,
+            'inactive_reason': ''
+        }
+
+        mocked.post(
+            url='https://stage-api.ona.io/api/v1/restservices',
+            json=mocked_restservice,
+            status_code=201)
+
+        response = create_form_webhook(
+            form_id=xform.id, service_url='http://example.com', name='TEST')
+        self.assertDictEqual(mocked_restservice, response.json())
+        self.assertEqual(201, response.status_code)
+
+        xform.refresh_from_db()
+        self.assertTrue(xform.json['has_webhook'])
 
     @requests_mock.Mocker()
     @patch('kaznet.apps.ona.api.cache')
