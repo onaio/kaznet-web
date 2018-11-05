@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.test import TestCase, override_settings
 from django.utils import timezone
+from django.contrib.sites.models import Site
 
 import requests_mock
 from model_mommy import mommy
@@ -19,7 +20,8 @@ from kaznet.apps.ona.tasks import (task_fetch_all_instances,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
                                    task_update_user_profile,
-                                   task_auto_create_filtered_data_sets)
+                                   task_auto_create_filtered_data_sets,
+                                   task_create_form_webhook)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 MOCK_PROJECT_DATA = [
@@ -349,3 +351,17 @@ class TestCeleryTasks(TestCase):
             form_id=ona_form.ona_pk,
             project_id=ona_form.ona_project_id,
             form_title=ona_form.title)
+
+    @patch('kaznet.apps.ona.tasks.create_form_webhook')
+    def test_task_create_form_webhook(self, mock):
+        """
+        Test task_create_form_webhook
+        """
+        current_site = Site.objects.get_current()
+        current_site.domain = "https://kaznet.com"
+        current_site.save()
+
+        task_create_form_webhook(form_id=1337)
+        mock.assert_called_with(
+            form_id=1337,
+            service_url="https://kaznet.com/webhook/")
