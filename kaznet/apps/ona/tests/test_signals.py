@@ -3,9 +3,13 @@ Tests for ona signals
 """
 from unittest.mock import patch
 
+from django.db.models import signals
 from model_mommy import mommy
 
 from kaznet.apps.main.tests.base import MainTestBase
+from kaznet.apps.ona.models import XForm
+from kaznet.apps.ona.signals import (auto_create_ona_filtered_data_sets,
+                                     create_form_webhook_signal)
 
 
 class TestSignals(MainTestBase):
@@ -19,6 +23,13 @@ class TestSignals(MainTestBase):
             'auth.User',
             username='sluggie'
         )
+        # connect signals
+        signals.post_save.connect(
+            receiver=auto_create_ona_filtered_data_sets,
+            sender=XForm, dispatch_uid="auto_create_ona_filtered_data_sets")
+        signals.post_save.connect(
+            receiver=create_form_webhook_signal,
+            sender=XForm, dispatch_uid="create_form_webhook_signal")
 
     @patch('kaznet.apps.ona.signals.task_create_form_webhook.delay')
     @patch(
