@@ -1,15 +1,17 @@
 """
 Test for LocationType Serializers
 """
-from django.test import TestCase
-
 from kaznet.apps.main.serializers import KaznetLocationTypeSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestKaznetLocationTypeSerializer(TestCase):
+class TestKaznetLocationTypeSerializer(MainTestBase):
     """
     Test the LocationType Serializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_create_locationtype(self):
         """

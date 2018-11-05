@@ -17,7 +17,7 @@ class TestKaznetTaskOccurrenceViewSet(MainTestBase):
     """
 
     def setUp(self):
-        super(TestKaznetTaskOccurrenceViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def _create_occurrence(self):

@@ -1,18 +1,19 @@
-# -*- coding: utf-8 -*-
 """
 Test for Project model
 """
-from __future__ import unicode_literals
-
-from django.test import TestCase
 
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestProject(TestCase):
+
+class TestProject(MainTestBase):
     """
     Test class for TaskProject models
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_project_model_str(self):
         """

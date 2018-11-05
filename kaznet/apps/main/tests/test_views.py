@@ -18,6 +18,7 @@ class TestViews(StaticLiveServerTestCase):
     """
 
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
 
     def test_react_app_view_renders(self):

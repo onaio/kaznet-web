@@ -5,19 +5,22 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase
 
 import requests_mock
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
 
 
-class TestUserProfileSerializer(TestCase):
+class TestUserProfileSerializer(MainTestBase):
     """
     Test class for UserProfileSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def _create_user(self):
         """

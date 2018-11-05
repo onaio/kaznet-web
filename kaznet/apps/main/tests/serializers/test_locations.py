@@ -5,8 +5,6 @@ Tests for KaznetLocationSerializer
 import os
 from collections import OrderedDict
 
-from django.test import TestCase
-
 from model_mommy import mommy
 from rest_framework.exceptions import ValidationError
 from rest_framework_gis.fields import GeoJsonDict
@@ -15,14 +13,18 @@ from tasking.common_tags import (GEODETAILS_ONLY, GEOPOINT_MISSING,
 
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.serializers.base import validate_parent_field
+from kaznet.apps.main.tests.base import MainTestBase
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
-class TestLocationSerializer(TestCase):
+class TestLocationSerializer(MainTestBase):
     """
     Test the LocationSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_location_create(self):
         """

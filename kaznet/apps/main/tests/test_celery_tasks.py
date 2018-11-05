@@ -1,30 +1,27 @@
 """
 Tests for celery tasks
 """
+from datetime import date, timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
-
 from django.utils import timezone
-
-from datetime import date, timedelta
-
 from model_mommy import mommy
 
-from kaznet.apps.main.models import Task
-
-from kaznet.apps.main.models import TaskOccurrence
-
+from kaznet.apps.main.models import Task, TaskOccurrence
 from kaznet.apps.main.tasks import (task_create_occurrences,
                                     task_create_submission,
-                                    task_past_end_date,
-                                    task_has_no_more_occurences)
+                                    task_has_no_more_occurences,
+                                    task_past_end_date)
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestCeleryTasks(TestCase):
+class TestCeleryTasks(MainTestBase):
     """
     Tests for celery tasks
     """
+
+    def setUp(self):
+        super().setUp()
 
     @patch('kaznet.apps.main.tasks.create_occurrences')
     def test_task_create_occurrences(self, mock):

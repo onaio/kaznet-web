@@ -3,17 +3,19 @@ Module Containing all Tests for
 Ona Apps models.py
 """
 
-from django.test import TestCase
-
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestXFormModel(TestCase):
+class TestXFormModel(MainTestBase):
     """
     Tests for XFormModel
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_xform_str(self):
         """
@@ -40,10 +42,13 @@ class TestXFormModel(TestCase):
         self.assertEqual(task.status, Task.DRAFT)
 
 
-class TestProjectModel(TestCase):
+class TestProjectModel(MainTestBase):
     """
     Tests for ProjectModel
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_project_str(self):
         """

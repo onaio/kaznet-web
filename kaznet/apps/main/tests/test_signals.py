@@ -3,21 +3,22 @@ Tests for main signals
 """
 from unittest.mock import patch
 
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.utils import timezone
-
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Submission, TaskOccurrence
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.tests.test_celery_tasks import MOCKED_INSTANCES
 
 
-class TestSignals(TestCase):
+class TestSignals(MainTestBase):
     """
     Tests for Kanzet app signals
     """
 
     def setUp(self):
+        super().setUp()
         self.user = mommy.make(
             'auth.User',
             username='sluggie'

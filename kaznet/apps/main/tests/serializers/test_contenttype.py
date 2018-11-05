@@ -2,15 +2,18 @@
 Tests for KaznetContentTypeSerializer
 """
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
 
 from kaznet.apps.main.serializers import KaznetContentTypeSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestKaznetContentTypeSerializer(TestCase):
+class TestKaznetContentTypeSerializer(MainTestBase):
     """
     Tests the KaznetContentTypeSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_serializer_output(self):
         """

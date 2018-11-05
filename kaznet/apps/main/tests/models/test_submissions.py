@@ -1,21 +1,20 @@
-# -*- coding: utf-8 -*-
 """
 Test for Submission model
 """
-from __future__ import unicode_literals
-
-from django.test import TestCase
 
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestSubmission(TestCase):
+
+class TestSubmission(MainTestBase):
     """
     Test for Submission Model
     """
 
     def setUp(self):
+        super().setUp()
         self.instance_type = get_allowed_contenttypes().filter(
             model='instance').first()
 

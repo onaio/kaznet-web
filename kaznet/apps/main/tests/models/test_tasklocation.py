@@ -1,15 +1,18 @@
 """
 Test for TaskLocation model
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestTaskLocation(TestCase):
+
+class TestTaskLocation(MainTestBase):
     """
     Test class for TaskLocation model
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_task_location_model_str(self):
         """

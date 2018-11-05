@@ -4,24 +4,23 @@ Tests module for BountyViewSet
 
 from collections import OrderedDict
 
-from django.test import TestCase
-
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from kaznet.apps.main.models import Bounty
 from kaznet.apps.main.serializers import BountySerializer
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.viewsets import BountyViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
 
-class TestBountyViewSet(TestCase):
+class TestBountyViewSet(MainTestBase):
     """
     Test for ClientViewSet
     """
 
     def setUp(self):
-        super(TestBountyViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def _create_bounty(self):

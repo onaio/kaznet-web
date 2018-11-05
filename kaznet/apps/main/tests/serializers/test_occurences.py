@@ -3,15 +3,18 @@ Test for KaznetTaskOccurrenceSerializer
 """
 
 from model_mommy import mommy
-from kaznet.apps.main.tests.base import MainTestBase
 
 from kaznet.apps.main.serializers import KaznetTaskOccurrenceSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 
 
 class TestTaskOccurrenceSerializer(MainTestBase):
     """
     Test the TaskOccurrenceSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_create_occurrence(self):
         """

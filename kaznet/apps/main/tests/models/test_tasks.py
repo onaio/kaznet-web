@@ -4,18 +4,19 @@ Test for Task model
 """
 from __future__ import unicode_literals
 
-from django.test import TestCase
-
 from model_mommy import mommy
 from tasking.utils import get_allowed_contenttypes
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestTasks(TestCase):
+
+class TestTasks(MainTestBase):
     """
     Test class for task models
     """
 
     def setUp(self):
+        super().setUp()
         self.instance_type = get_allowed_contenttypes().filter(
             model='xform').first()
 

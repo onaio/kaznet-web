@@ -1,14 +1,18 @@
 """
 Test for Bounty model
 """
-from django.test import TestCase
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestBounty(TestCase):
+
+class TestBounty(MainTestBase):
     """
     Test class for Bounty mdoels
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_bounty_str(self):
         """

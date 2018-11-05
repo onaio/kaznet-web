@@ -7,7 +7,7 @@ from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.utils import timezone
 
 import requests_mock
@@ -16,14 +16,15 @@ from requests.exceptions import RetryError
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
-from kaznet.apps.ona.api import (get_and_process_xforms, get_instance,
-                                 get_instances, get_project, get_project_obj,
-                                 get_projects, get_xform, get_xform_obj,
-                                 process_instance, process_instances,
-                                 process_project, process_projects,
-                                 process_xform, process_xforms, request,
-                                 request_session, update_user_profile_metadata,
-                                 create_form_webhook)
+from kaznet.apps.main.tests.base import MainTestBase
+from kaznet.apps.ona.api import (create_form_webhook, get_and_process_xforms,
+                                 get_instance, get_instances, get_project,
+                                 get_project_obj, get_projects, get_xform,
+                                 get_xform_obj, process_instance,
+                                 process_instances, process_project,
+                                 process_projects, process_xform,
+                                 process_xforms, request, request_session,
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -55,12 +56,13 @@ MOCKED_ONA_FORM_DATA = {
 
 
 # pylint: disable=too-many-public-methods
-class TestApiMethods(TestCase):
+class TestApiMethods(MainTestBase):
     """
     Tests for the API Methods
     """
 
     def setUp(self):
+        super().setUp()
         self.user = mommy.make('auth.User', username='sluggie')
 
     @override_settings(

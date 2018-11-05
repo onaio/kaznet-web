@@ -5,23 +5,24 @@ from unittest.mock import call, patch
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.test import TestCase, override_settings
-from django.utils import timezone
 from django.contrib.sites.models import Site
+from django.test import override_settings
+from django.utils import timezone
 
 import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.tasks import (task_fetch_all_instances,
+from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
+                                   task_create_form_webhook,
+                                   task_fetch_all_instances,
                                    task_fetch_form_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
-                                   task_update_user_profile,
-                                   task_auto_create_filtered_data_sets,
-                                   task_create_form_webhook)
+                                   task_update_user_profile)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 MOCK_PROJECT_DATA = [
@@ -110,10 +111,13 @@ MOCKED_INSTANCES = [
 ]
 
 
-class TestCeleryTasks(TestCase):
+class TestCeleryTasks(MainTestBase):
     """
     Tests for celery tasks
     """
+
+    def setUp(self):
+        super().setUp()
 
     @override_settings(ONA_BASE_URL="https://example.com", ONA_USERNAME='mosh')
     @patch('kaznet.apps.ona.tasks.task_process_project_xforms.delay')

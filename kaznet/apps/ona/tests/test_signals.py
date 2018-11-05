@@ -3,17 +3,18 @@ Tests for ona signals
 """
 from unittest.mock import patch
 
-from django.test import TestCase
-
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestSignals(TestCase):
+
+class TestSignals(MainTestBase):
     """
     Tests for ona app signals
     """
 
     def setUp(self):
+        super().setUp()
         self.user = mommy.make(
             'auth.User',
             username='sluggie'

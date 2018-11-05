@@ -3,19 +3,21 @@ Tests for custom adapters
 """
 from unittest.mock import MagicMock
 
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory
 
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.adapter import SocialAccountAdapter
 
 
-class TestSocialAccountAdapter(TestCase):
+class TestSocialAccountAdapter(MainTestBase):
     """
     Test class for SocialAccountAdapter
     """
 
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
 
     def test_username_already_exists(self):

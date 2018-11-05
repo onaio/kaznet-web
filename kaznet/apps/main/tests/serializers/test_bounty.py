@@ -3,20 +3,22 @@ Test module for BountySerializer
 """
 from collections import OrderedDict
 
-from django.test import TestCase
-
 from django_prices.models import Money
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Bounty
 from kaznet.apps.main.serializers import BountySerializer
 from kaznet.apps.main.serializers.bounty import create_bounty
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestBountySerializer(TestCase):
+class TestBountySerializer(MainTestBase):
     """
     Test the ClientSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_method_create_bounty(self):
         """
