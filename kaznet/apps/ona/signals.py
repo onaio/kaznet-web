@@ -1,10 +1,11 @@
 """
 Signals for ona
 """
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import post_save, pre_delete
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.tasks import task_auto_create_filtered_data_sets
+from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
+                                   task_create_form_webhook)
 
 
 # pylint: disable=unused-argument
@@ -35,6 +36,16 @@ def auto_create_ona_filtered_data_sets(sender, instance, created, **kwargs):
             form_id=form_id, project_id=project_id, form_title=title)
 
 
+def create_form_webhook_signal(sender, instance, created, **kwargs):
+    """
+    Signal to create form webhooks
+    """
+    if not instance.json.get('has_webhook'):
+        # only attempt to create webhooks if not already created
+        form_id = instance.ona_pk
+        task_create_form_webhook.delay(form_id=form_id)
+
+
 pre_delete.connect(
     delete_xform,
     sender='ona.XForm',
@@ -44,4 +55,10 @@ post_save.connect(
     auto_create_ona_filtered_data_sets,
     sender='ona.XForm',
     dispatch_uid='auto_create_ona_filtered_data_sets'
+)
+
+post_save.connect(
+    create_form_webhook_signal,
+    sender='ona.XForm',
+    dispatch_uid='create_form_webhook_signal'
 )

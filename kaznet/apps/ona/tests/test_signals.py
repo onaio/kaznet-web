@@ -38,3 +38,18 @@ class TestSignals(TestCase):
             form_id=ona_form.ona_pk,
             project_id=ona_form.ona_project_id,
             form_title=ona_form.title)
+
+    @patch('kaznet.apps.ona.signals.task_create_form_webhook.delay')
+    def test_create_form_webhook_signal(self, mock):
+        """
+        Test create_form_webhook_signal handler
+        """
+        ona_form = mommy.make(
+            'ona.XForm',
+            ona_pk=101,
+            ona_project_id=1543,
+            title='Test Form'
+        )
+        # the celery task should have been called
+        self.assertEqual(1, mock.call_count)
+        mock.assert_called_with(form_id=ona_form.ona_pk)

@@ -428,8 +428,8 @@ def create_filtered_data_sets(
     submission statuses : Approved, Rejected, Pending
     """
     try:
-        form = XForm.objects.get(pk=form_id)
-    except XForm.DoesNotExist:
+        form = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
         return None
     else:
         data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
@@ -438,7 +438,7 @@ def create_filtered_data_sets(
             settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
         response = []
 
-        columns = ['_review_status', '_review_comment', 'instanceID', 
+        columns = ['_review_status', '_review_comment', 'instanceID',
                    '_last_edited', '_submitted_by', '_media_all_received']
 
         # get all fields/columns of form required in creating filtered data set
@@ -488,8 +488,8 @@ def create_form_webhook(
     Creates a rest service webhook via the Onadata API
     """
     try:
-        form = XForm.objects.get(pk=form_id)
-    except XForm.DoesNotExist:
+        form = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
         return None
     else:
         restservice_url = urljoin(settings.ONA_BASE_URL, 'api/v1/restservices')
