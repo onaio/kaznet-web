@@ -71,6 +71,8 @@ def task_fetch_form_instances(xform_id: int):
 @celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
 def task_fetch_all_instances():
     """
+    DEPRECATED.  USE WEBHOOKS
+
     Gets and processes instances for all known XForms
     """
     forms = XForm.objects.filter(deleted_at=None)
