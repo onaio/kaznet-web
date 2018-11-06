@@ -51,6 +51,10 @@ class TestSignals(MainTestBase):
             form_id=ona_form.ona_pk,
             project_id=ona_form.ona_project_id,
             form_title=ona_form.title)
+        # mock2 was included just to make sure that the signal does not run
+        # normally as this would end up in a call being made to Onadata.
+        # However, mock2 should definitely have been called, as asserted below
+        self.assertTrue(mock2.called)
 
     @patch(
         'kaznet.apps.ona.signals.task_auto_create_filtered_data_sets.delay')
@@ -68,3 +72,7 @@ class TestSignals(MainTestBase):
         # the celery task should have been called
         self.assertEqual(1, mock.call_count)
         mock.assert_called_with(form_id=ona_form.ona_pk)
+        # mock2 was included just to make sure that the signal does not run
+        # normally as this would end up in a call being made to Onadata.
+        # However, mock2 should definitely have been called, as asserted below
+        self.assertTrue(mock2.called)

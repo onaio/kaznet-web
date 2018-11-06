@@ -827,7 +827,7 @@ class TestApiMethods(MainTestBase):
         }
 
         mocked.post(
-            url='https://stage-api.ona.io/api/v1/restservices',
+            url=f'{settings.ONA_BASE_URL}/api/v1/restservices',
             json=mocked_restservice,
             status_code=201)
 
