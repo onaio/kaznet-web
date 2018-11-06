@@ -1,15 +1,17 @@
 """
 Test module for ClientSeriliazer
 """
-from django.test import TestCase
-
 from kaznet.apps.main.serializers import ClientSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestClientSerializer(TestCase):
+class TestClientSerializer(MainTestBase):
     """
     Test the ClientSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_create_client(self):
         """

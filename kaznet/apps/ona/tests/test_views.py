@@ -2,22 +2,21 @@
 Module containing all tests for Ona App
 Views
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory
 
-from kaznet.apps.ona.views import create_or_update_instance
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance
+from kaznet.apps.ona.views import create_or_update_instance
 
 
-class TestViews(TestCase):
+class TestViews(MainTestBase):
     """
     Tests for views.py
     """
 
     def setUp(self):
-        super(TestViews, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
         self.user = mommy.make(
             'auth.User',

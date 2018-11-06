@@ -1,15 +1,18 @@
 """
 Test users app signals
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestSignals(TestCase):
+
+class TestSignals(MainTestBase):
     """
     Tests for Kanzet app signals
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_sync_onadata_oauth_profile(self):
         """

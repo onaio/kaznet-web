@@ -1,16 +1,18 @@
-# -*- coding: utf-8 -*-
 """
 Test for Location model
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestLocations(TestCase):
+
+class TestLocations(MainTestBase):
     """
     Test class for Location models
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_location_model_str(self):
         """

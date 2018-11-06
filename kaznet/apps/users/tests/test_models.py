@@ -1,18 +1,20 @@
 """
 Test for UserProfile model
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 from rest_framework.authtoken.models import Token
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.models import UserProfile
 
 
-class TestUserModels(TestCase):
+class TestUserModels(MainTestBase):
     """
     Test class for User models
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_userprofile_model_creation(self):
         """

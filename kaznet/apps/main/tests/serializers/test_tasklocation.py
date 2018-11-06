@@ -1,16 +1,19 @@
 """
 Test module for TaskLocationSeriliazer
 """
-from django.test import TestCase
 from model_mommy import mommy
 
 from kaznet.apps.main.serializers import TaskLocationSerializer
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestTaskLocationSerializer(TestCase):
+class TestTaskLocationSerializer(MainTestBase):
     """
     Test the TaskLocationSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_create_client(self):
         """

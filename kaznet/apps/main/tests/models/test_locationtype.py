@@ -1,15 +1,18 @@
 """
 Test for LocationType model
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestLocationTypes(TestCase):
+
+class TestLocationTypes(MainTestBase):
     """
     Test class for LocationType model
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_locationtype_model_str(self):
         """

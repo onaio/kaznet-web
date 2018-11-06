@@ -3,9 +3,12 @@ Celery tasks module for Ona app
 """
 from datetime import timedelta
 from time import sleep
+from urllib.parse import urljoin
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.contrib.sites.models import Site
+from django.urls import reverse
 
 from celery import task as celery_task
 
@@ -14,7 +17,8 @@ from kaznet.apps.ona.api import (get_and_process_xforms, get_instances,
                                  get_projects, process_instance,
                                  process_projects,
                                  update_user_profile_metadata,
-                                 create_filtered_data_sets)
+                                 create_filtered_data_sets,
+                                 create_form_webhook)
 from kaznet.apps.ona.models import XForm
 
 
@@ -67,6 +71,8 @@ def task_fetch_form_instances(xform_id: int):
 @celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
 def task_fetch_all_instances():
     """
+    DEPRECATED.  USE WEBHOOKS
+
     Gets and processes instances for all known XForms
     """
     forms = XForm.objects.filter(deleted_at=None)
@@ -108,3 +114,16 @@ def task_auto_create_filtered_data_sets(
     """
     create_filtered_data_sets(
         form_id=form_id, project_id=project_id, form_title=form_title)
+
+
+@celery_task(name="task_task_create_form_webhook")
+def task_create_form_webhook(form_id: int):
+    """
+    Creates an Onadata webhook for the form
+    """
+    current_site = Site.objects.get_current()
+    service_url = urljoin(current_site.domain, reverse('webhook'))
+    create_form_webhook(
+        form_id=form_id,
+        service_url=service_url
+    )

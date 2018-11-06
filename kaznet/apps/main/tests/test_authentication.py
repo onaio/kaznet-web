@@ -7,7 +7,7 @@ from unittest.mock import patch
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.utils import timezone
 
 import requests_mock
@@ -17,14 +17,16 @@ from rest_framework.test import APIRequestFactory
 
 from kaznet.apps.main.authentication import OnaTempTokenAuthentication
 from kaznet.apps.main.common_tags import AUTH_USER_DOESNT_EXIST
+from kaznet.apps.main.tests.base import MainTestBase
 
 
-class TestOnaTempTokenAuthentication(TestCase):
+class TestOnaTempTokenAuthentication(MainTestBase):
     """
     Tests OnaTempTokenAuthentication
     """
 
     def setUp(self):
+        super().setUp()
         self.factory = APIRequestFactory()
         self.user = mommy.make(
             'auth.User',

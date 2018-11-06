@@ -4,19 +4,21 @@ with the OnaData API
 """
 from urllib.parse import urljoin
 
+import dateutil.parser
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-
-import dateutil.parser
-import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
+from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
+from kaznet.apps.main.common_tags import (HAS_FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_WEBHOOK_FIELD_NAME,
+                                          KAZNET_WEBHOOK_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.users.models import UserProfile
 
 
@@ -426,48 +428,82 @@ def create_filtered_data_sets(
     Custom method that creates filtered data sets for all the
     submission statuses : Approved, Rejected, Pending
     """
-    data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
-    ona_form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
-    ona_project = urljoin(
-        settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
-    response = []
+    try:
+        form = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        return None
+    else:
+        data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
+        ona_form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
+        ona_project = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
+        response = []
 
-    columns = ['_review_status', '_review_comment', 'instanceID',
-               '_last_edited', '_submitted_by', '_media_all_received']
+        columns = ['_review_status', '_review_comment', 'instanceID',
+                   '_last_edited', '_submitted_by', '_media_all_received']
 
-    # get all fields/columns of form required in creating filtered data set
-    form_data = request_session(
-        url=urljoin(
-            settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/form.json'),
-        method='GET'
-    )
-    if form_data.status_code == 200:
-        form_columns = [field['name']
-                        for field in form_data.json()['children']]
-        columns += form_columns
+        # get all fields/columns of form required in creating filtered data set
+        form_data = request_session(
+            url=urljoin(
+                settings.ONA_BASE_URL, f'api/v1/forms/{form_id}/form.json'),
+            method='GET'
+        )
+        if form_data.status_code == 200:
+            form_columns = [field['name']
+                            for field in form_data.json()['children']]
+            columns += form_columns
 
-    payload = {
-        'xform': ona_form,
-        'project': ona_project,
-        'columns': columns
-    }
+        payload = {
+            'xform': ona_form,
+            'project': ona_project,
+            'columns': columns
+        }
 
-    for status, status_name in Submission.STATUS_CHOICES:
-        ona_status = convert_kaznet_to_ona_submission_status(
-            kaznet_status=status)
-        if ona_status:
-            payload['name'] = f'{form_title} - {status_name}'
-            payload['query'] = [{'column': '_review_status',
-                                 'filter': '=',
-                                 'value': ona_status,
-                                 'condition': 'or'}]
+        for status, status_name in Submission.STATUS_CHOICES:
+            ona_status = convert_kaznet_to_ona_submission_status(
+                kaznet_status=status)
+            if ona_status:
+                payload['name'] = f'{form_title} - {status_name}'
+                payload['query'] = [
+                    {
+                        'column': '_review_status',
+                        'filter': '=',
+                        'value': ona_status,
+                        'condition': 'or'
+                    }
+                ]
 
-            resp = request_session(
-                url=data_views_url, method='POST', payload=payload)
-            response.append(resp.status_code)
+                resp = request_session(
+                    url=data_views_url, method='POST', payload=payload)
+                response.append(resp.status_code)
 
-    form = XForm.objects.get(ona_pk=form_id)
-    form.json['has_filtered_data_sets'] = bool(response in [201, 201, 201])
-    form.save()
+        form.json[HAS_FILTERED_DATASETS_FIELD_NAME] = bool(
+            response in [201, 201, 201])
+        form.save()
 
-    return response
+        return response
+
+
+def create_form_webhook(
+        form_id: int, service_url: str, name: str = KAZNET_WEBHOOK_NAME):
+    """
+    Creates a rest service webhook via the Onadata API
+    """
+    try:
+        form = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        return None
+    else:
+        restservice_url = urljoin(settings.ONA_BASE_URL, 'api/v1/restservices')
+        payload = {
+            'xform': form_id,
+            'service_url': service_url,
+            'name': name
+        }
+        response = request_session(
+            url=restservice_url, method='POST', payload=payload)
+
+        form.json[HAS_WEBHOOK_FIELD_NAME] = response.status_code in [200, 201]
+        form.save()
+
+        return response

@@ -6,23 +6,25 @@ from collections import OrderedDict
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.utils import timezone
-
 from dateutil.rrule import rrulestr
+from django.utils import timezone
 from django_prices.models import Money
 from model_mommy import mommy
 from tasking.utils import get_rrule_end, get_rrule_start
 
+from kaznet.apps.main.common_tags import PAST_END_DATE
 from kaznet.apps.main.models import Bounty, Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.main.common_tags import PAST_END_DATE
 
 
 class TestKaznetTaskSerializer(MainTestBase):
     """
     Test the KaznetTaskSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_validate_bad_data(self):
         """

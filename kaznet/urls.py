@@ -15,6 +15,7 @@ from kaznet.apps.main.viewsets import (BountyViewSet, ClientViewSet,
                                        KaznetTaskOccurrenceViewSet,
                                        KaznetTaskViewSet,
                                        SubmissionExportViewSet)
+from kaznet.apps.ona.views import create_or_update_instance
 from kaznet.apps.ona.viewsets import XFormViewSet
 from kaznet.apps.users.viewsets import UserProfileViewSet
 
@@ -49,6 +50,8 @@ urlpatterns = [
         ContributorNotAllowed.as_view(),
         name="disallow_contributors"
     ),
+
+    path('webhook/', create_or_update_instance, name="webhook"),
 
     # react view to handle all other matches
     re_path(r'^$', ReactAppView.as_view(), name="react_app"),

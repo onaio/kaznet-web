@@ -1,21 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 Test for Occurrence model
 """
-from __future__ import unicode_literals
 
 import datetime
-
-from django.test import TestCase
 
 import pytz
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestOccurrence(TestCase):
+
+class TestOccurrence(MainTestBase):
     """
     Test class for TaskOccurrence models
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_task_occurrence_model_str(self):
         """

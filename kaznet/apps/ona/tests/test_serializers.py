@@ -2,10 +2,10 @@
 Module containing Tests for Ona Apps
 serializers.py
 """
-from django.test import TestCase
 from django.utils.text import slugify
 
 from model_mommy import mommy
+
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.serializers import (InstanceSerializer, ProjectSerializer,
                                          XFormSerializer)
@@ -97,10 +97,13 @@ class TestXFormSerializer(MainTestBase):
         self.assertEqual(True, serializer_instance2.data['has_task'])
 
 
-class TestInstanceSerializer(TestCase):
+class TestInstanceSerializer(MainTestBase):
     """
     Tests for InstanceSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_serializer_output(self):
         """
@@ -135,10 +138,13 @@ class TestInstanceSerializer(TestCase):
         self.assertEqual({}, serializer_data['json'])
 
 
-class TestProjectSerializer(TestCase):
+class TestProjectSerializer(MainTestBase):
     """
     Tests for OnaProjectSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_serializer_output(self):
         """

@@ -5,19 +5,29 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import override_settings
 
 import requests_mock
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
 
 
-class TestUserProfileSerializer(TestCase):
+@override_settings(
+    ONA_BASE_URL="https://kaznet.ona.io",
+    ONA_ORG_NAME="kaznet",
+    ONA_MEMBERS_TEAM_ID=1337,
+    ONA_USERNAME="mosh"
+)
+class TestUserProfileSerializer(MainTestBase):
     """
     Test class for UserProfileSerializer
     """
+
+    def setUp(self):
+        super().setUp()
 
     def _create_user(self):
         """
@@ -38,7 +48,7 @@ class TestUserProfileSerializer(TestCase):
             mocked.put(
                 urljoin(
                     settings.ONA_BASE_URL,
-                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
                 status_code=200)
 
             data = {
@@ -133,7 +143,7 @@ class TestUserProfileSerializer(TestCase):
             mocked.put(
                 urljoin(
                     settings.ONA_BASE_URL,
-                    f'api/v1/orgs/{settings.ONA_USERNAME}/members'),
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
                 status_code=200)
 
             serializer_instance = UserProfileSerializer(

@@ -4,12 +4,13 @@ Test for users viewset
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import override_settings
 
 import requests_mock
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.tests.base import create_admin_user
 from kaznet.apps.users.viewsets import UserProfileViewSet
@@ -20,12 +21,13 @@ from kaznet.apps.users.viewsets import UserProfileViewSet
     ONA_ORG_NAME="kaznet",
     ONA_MEMBERS_TEAM_ID=1337,
 )
-class TestUserProfileViewSet(TestCase):
+class TestUserProfileViewSet(MainTestBase):
     """
     Test class for UserProfileViewSet
     """
 
     def setUp(self):
+        super().setUp()
         self.factory = APIRequestFactory()
         self.ona_json = {
             'id': 1337,

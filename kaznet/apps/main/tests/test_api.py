@@ -13,8 +13,8 @@ import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.api import (create_submission, validate_location,
-                                  validate_submission_time, validate_user,
-                                  validate_submission_limit)
+                                  validate_submission_limit,
+                                  validate_submission_time, validate_user)
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
                                           LACKING_EXPERTISE,
@@ -24,8 +24,8 @@ from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import process_instance
 from kaznet.apps.ona.models import Instance
-from kaznet.apps.users.models import UserProfile
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
+from kaznet.apps.users.models import UserProfile
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -35,6 +35,9 @@ class TestAPIMethods(MainTestBase):
     """
     Test class for API Methods
     """
+
+    def setUp(self):
+        super().setUp()
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()

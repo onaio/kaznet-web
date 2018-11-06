@@ -4,7 +4,6 @@ Module for Main app utils tests
 
 from datetime import timedelta
 
-from django.test import TestCase
 from django.utils import timezone
 
 from dateutil.rrule import rrulestr
@@ -12,14 +11,18 @@ from model_mommy import mommy
 from tasking.utils import get_rrule_end, get_rrule_start
 
 from kaznet.apps.main.models import TaskOccurrence
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.main.utils import (create_occurrences,
                                     get_start_end_from_timing_rules)
 
 
-class TestUtils(TestCase):
+class TestUtils(MainTestBase):
     """
     Tests for Kanzet app utils
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_get_start_end_from_timing_rules(self):
         """

@@ -2,23 +2,22 @@
 Module containing all tests for Ona Apps
 viewsets.py
 """
-from django.test import TestCase
-
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import XForm
 from kaznet.apps.ona.viewsets import XFormViewSet
 from kaznet.apps.users.tests.base import create_admin_user
 
 
-class TestXFormViewSet(TestCase):
+class TestXFormViewSet(MainTestBase):
     """
     Tests for XFormViewSet
     """
 
     def setUp(self):
-        super(TestXFormViewSet, self).setUp()
+        super().setUp()
         self.factory = APIRequestFactory()
 
     def test_list_xform(self):

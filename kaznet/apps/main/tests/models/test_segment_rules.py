@@ -1,18 +1,19 @@
-# -*- coding: utf-8 -*-
 """
 Test for SegmentRule models
 """
-from __future__ import unicode_literals
-
-from django.test import TestCase
 
 from model_mommy import mommy
 
+from kaznet.apps.main.tests.base import MainTestBase
 
-class TestSegmentRule(TestCase):
+
+class TestSegmentRule(MainTestBase):
     """
     Test class for SegmentRule models
     """
+
+    def setUp(self):
+        super().setUp()
 
     def test_segment_rule_model_str(self):
         """
