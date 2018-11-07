@@ -494,6 +494,10 @@ def create_form_webhook(
     except XForm.DoesNotExist:  # pylint: disable=no-member
         return None
     else:
+        # we force name to be str in case KAZNET_WEBHOOK_NAME was a lazily
+        # translated object, which will fail when being converted to JSON
+        name = str(name)
+
         restservice_url = urljoin(settings.ONA_BASE_URL, 'api/v1/restservices')
         payload = {
             'xform': form_id,
