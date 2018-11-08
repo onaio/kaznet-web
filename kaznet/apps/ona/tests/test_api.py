@@ -15,7 +15,10 @@ from requests.exceptions import RetryError
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
-from kaznet.apps.main.common_tags import HAS_WEBHOOK_FIELD_NAME
+from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_WEBHOOK_FIELD_NAME,
+                                          WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
@@ -690,13 +693,6 @@ class TestApiMethods(MainTestBase):
 
         self.assertEqual(response, None)
 
-        # Request returns None for requests that aren't GET or POST or PUT
-
-        url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53')
-        response = request(url, method='DELETE')
-
-        self.assertEqual(response, None)
-
     def test_request_session_bad_url(self):
         """
         Test that an invalid url will fail
@@ -830,6 +826,8 @@ class TestApiMethods(MainTestBase):
 
         xform.refresh_from_db()
         self.assertTrue(xform.json[HAS_WEBHOOK_FIELD_NAME])
+        self.assertTrue(mocked_restservice in xform.json[WEBHOOK_FIELD_NAME])
+        self.assertEqual(1, len(xform.json[WEBHOOK_FIELD_NAME]))
 
     @requests_mock.Mocker()
     @patch('kaznet.apps.ona.api.cache')
@@ -1126,3 +1124,10 @@ class TestApiMethods(MainTestBase):
 
         self.assertEqual(4, mocked.call_count)
         self.assertDictEqual(last_payload, mocked.last_request.json())
+
+        xform.refresh_from_db()
+        self.assertTrue(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
+        self.assertEqual(
+            [mocked_dataview, mocked_dataview, mocked_dataview],
+            xform.json[FILTERED_DATASETS_FIELD_NAME])
+        self.assertEqual(3, len(xform.json[FILTERED_DATASETS_FIELD_NAME]))
