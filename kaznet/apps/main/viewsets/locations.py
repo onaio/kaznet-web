@@ -14,9 +14,9 @@ from kaznet.apps.users.permissions import IsAdminOrReadOnly
 
 
 # pylint: disable=too-many-ancestors
-class KaznetLocationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
-                            mixins.UpdateModelMixin, viewsets.GenericViewSet,
-                            mixins.RetrieveModelMixin, KaznetViewsetMixin,
+class KaznetLocationViewSet(KaznetViewsetMixin, mixins.CreateModelMixin,
+                            mixins.ListModelMixin, mixins.UpdateModelMixin,
+                            viewsets.GenericViewSet, mixins.RetrieveModelMixin,
                             mixins.DestroyModelMixin):
     """
     Viewset for Location

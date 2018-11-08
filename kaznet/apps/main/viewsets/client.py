@@ -12,10 +12,10 @@ from kaznet.apps.users.permissions import IsAdmin
 
 
 # pylint: disable=too-many-ancestors
-class ClientViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
-                    mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
-                    mixins.UpdateModelMixin, viewsets.GenericViewSet,
-                    KaznetViewsetMixin):
+class ClientViewSet(KaznetViewsetMixin, mixins.CreateModelMixin,
+                    mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                    mixins.DestroyModelMixin, mixins.UpdateModelMixin,
+                    viewsets.GenericViewSet):
     """
     Client ViewSet
     """

@@ -15,10 +15,10 @@ from kaznet.apps.users.serializers import UserProfileSerializer
 
 
 # pylint: disable=too-many-ancestors
-class UserProfileViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
-                         mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
-                         mixins.UpdateModelMixin, viewsets.GenericViewSet,
-                         KaznetViewsetMixin):
+class UserProfileViewSet(KaznetViewsetMixin, mixins.CreateModelMixin,
+                         mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                         mixins.DestroyModelMixin, mixins.UpdateModelMixin,
+                         viewsets.GenericViewSet):
     """
     ViewSet class for UserProfiles
     """

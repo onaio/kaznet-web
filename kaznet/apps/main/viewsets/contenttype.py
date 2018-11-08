@@ -11,7 +11,7 @@ from kaznet.apps.main.serializers import KaznetContentTypeSerializer
 
 
 # pylint: disable=too-many-ancestors
-class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet, KaznetViewsetMixin):
+class ContentTypeViewSet(KaznetViewsetMixin, viewsets.ReadOnlyModelViewSet):
     """
     Read Only Viewset for ContentType
     """
