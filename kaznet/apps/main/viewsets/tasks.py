@@ -16,10 +16,10 @@ from kaznet.apps.users.permissions import IsAdmin, IsAdminOrReadOnly
 
 
 # pylint: disable=too-many-ancestors
-class KaznetTaskViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin, mixins.DestroyModelMixin,
-                        mixins.UpdateModelMixin, viewsets.GenericViewSet,
-                        KaznetViewsetMixin):
+class KaznetTaskViewSet(KaznetViewsetMixin, mixins.CreateModelMixin,
+                        mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                        mixins.DestroyModelMixin, mixins.UpdateModelMixin,
+                        viewsets.GenericViewSet):
     """
     Main Task Viewset class
     """
