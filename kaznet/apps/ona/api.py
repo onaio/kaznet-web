@@ -17,8 +17,7 @@ from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
-                                          KAZNET_WEBHOOK_NAME,
-                                          WEBHOOK_FIELD_NAME)
+                                          KAZNET_WEBHOOK_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
