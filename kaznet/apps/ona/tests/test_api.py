@@ -17,14 +17,16 @@ from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.main.common_tags import HAS_WEBHOOK_FIELD_NAME
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.ona.api import (create_form_webhook, get_and_process_xforms,
-                                 get_instance, get_instances, get_project,
-                                 get_project_obj, get_projects, get_xform,
-                                 get_xform_obj, process_instance,
-                                 process_instances, process_project,
-                                 process_projects, process_xform,
-                                 process_xforms, request, request_session,
-                                 update_user_profile_metadata)
+from kaznet.apps.ona.api import (create_filtered_data_sets,
+                                 create_filtered_dataset, create_form_webhook,
+                                 delete_filtered_dataset,
+                                 get_and_process_xforms, get_instance,
+                                 get_instances, get_project, get_project_obj,
+                                 get_projects, get_xform, get_xform_obj,
+                                 process_instance, process_instances,
+                                 process_project, process_projects,
+                                 process_xform, process_xforms, request,
+                                 request_session, update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -893,3 +895,246 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(
             mocked_user_profile_data['gravatar'],
             profile.metadata['gravatar'])
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_create_filtered_dataset(self, mocked):
+        """
+        Test create_filtered_dataset
+        """
+        xform = mommy.make(
+            'ona.XForm', title="Red Dead Redemption", ona_pk=349451,
+            ona_project_id=64730)
+
+        mocked_dataview = {
+            'dataviewid': 708473,
+            'name': 'Red Dead Redemption - test',
+            'xform': 'https://mosh-ona.io/api/v1/forms/349451',
+            'project': 'https://mosh-ona.io/api/v1/projects/64730',
+            'columns': [
+                '_review_status',
+                '_review_comment',
+                'instanceID',
+                '_last_edited',
+                '_submitted_by',
+                '_media_all_received',
+                'resp_name',
+                'resp_age',
+                'live',
+                'rate',
+                'rate_label',
+                'feel',
+                'meta'
+            ],
+            'query': [
+                {
+                    'column': '_review_status',
+                    'filter': '=',
+                    'condition': 'or',
+                    'value': '1'
+                }
+            ],
+            'matches_parent': False,
+            'count': 0,
+            'instances_with_geopoints': False,
+            'last_submission_time': None,
+            'has_hxl_support': False,
+            'url': 'https://mosh-ona.io/api/v1/dataviews/708473',
+            'date_created': '2018-11-08T03:41:47.495132-05:00',
+            'deleted_at': None,
+            'deleted_by': None
+        }
+
+        payload = {
+            'xform': 'https://api.ona.io/api/v1/forms/349451',
+            'project': 'https://api.ona.io/api/v1/projects/64730',
+            'columns': [
+                '_review_status',
+                '_review_comment',
+                'instanceID',
+                '_last_edited',
+                '_submitted_by',
+                '_media_all_received',
+                'resp_name',
+                'resp_age',
+                'live',
+                'rate',
+                'rate_label',
+                'feel',
+                'meta'
+            ],
+            'name': 'Red Dead Redemption - test',
+            'query': [
+                {
+                    'column': '_review_status',
+                    'filter': '=',
+                    'value': '1',
+                    'condition': 'or'
+                }
+            ]
+        }
+
+        mocked.post(
+            url=f'{settings.ONA_BASE_URL}/api/v1/dataviews',
+            json=mocked_dataview,
+            status_code=201)
+
+        response = create_filtered_dataset(
+            form_id=xform.ona_pk,
+            payload=payload
+        )
+
+        self.assertTrue(mocked.called)
+        self.assertDictEqual(payload, mocked.last_request.json())
+
+        self.assertDictEqual(mocked_dataview, response.json())
+        self.assertEqual(201, response.status_code)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_delete_filtered_dataset(self, mocked):
+        """
+        Test delete_filtered_dataset
+        """
+        xform = mommy.make(
+            'ona.XForm', title="Red Dead Redemption", ona_pk=349452,
+            ona_project_id=64731)
+
+        dataset_url = f'{settings.ONA_BASE_URL}/api/v1/dataviews/1'
+
+        mocked.delete(
+            url=dataset_url,
+            text='',
+            status_code=204)
+
+        response = delete_filtered_dataset(
+            form_id=xform.ona_pk, dataset_url=dataset_url)
+
+        self.assertEqual('mosh-ona.io', mocked.last_request.hostname)
+        self.assertEqual('/api/v1/dataviews/1', mocked.last_request.path)
+        self.assertEqual(204, response.status_code)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_create_filtered_data_sets(self, mocked):
+        """
+        Test create_filtered_data_sets
+        """
+        xform = mommy.make(
+            'ona.XForm', title="Coconut", ona_pk=349455,
+            ona_project_id=64735)
+
+        mocked_form = {
+            "name": "attachment_test",
+            "title": "attachment_test",
+            "sms_keyword": "attachment_test",
+            "default_language": "default",
+            "version": "201710300941",
+            "id_string": "attachment_test",
+            "type": "survey",
+            "children": [{
+                "type": "text",
+                "name": "name",
+                "label": "Name"
+            }, {
+                "type": "photo",
+                "name": "image1",
+                "label": "Photo"
+            }, {
+                "control": {
+                    "bodyless": True
+                },
+                "type": "group",
+                "children": [{
+                    "bind": {
+                        "readonly": "true()",
+                        "calculate": "concat('uuid:', uuid())"
+                    },
+                    "type": "calculate",
+                    "name": "instanceID"
+                }],
+                "name": "meta"
+            }]
+        }
+
+        mocked_dataview = {
+            'dataviewid': 708477,
+            'name': 'Coconut - test',
+            'xform': 'https://mosh-ona.io/api/v1/forms/349455',
+            'project': 'https://mosh-ona.io/api/v1/projects/64735',
+            'columns': [
+                '_review_status',
+                '_review_comment',
+                'instanceID',
+                '_last_edited',
+                '_submitted_by',
+                '_media_all_received',
+                'name',
+                'image1',
+                'meta'
+            ],
+            'query': [
+                {
+                    'column': '_review_status',
+                    'filter': '=',
+                    'condition': 'or',
+                    'value': '1'
+                }
+            ],
+            'matches_parent': False,
+            'count': 0,
+            'instances_with_geopoints': False,
+            'last_submission_time': None,
+            'has_hxl_support': False,
+            'url': 'https://mosh-ona.io/api/v1/dataviews/708477',
+            'date_created': '2018-11-08T03:41:47.495132-05:00',
+            'deleted_at': None,
+            'deleted_by': None
+        }
+
+        last_payload = {
+            'xform': 'https://mosh-ona.io/api/v1/forms/349455',
+            'project': 'https://mosh-ona.io/api/v1/projects/64735',
+            'columns': [
+                '_review_status',
+                '_review_comment',
+                'instanceID',
+                '_last_edited',
+                '_submitted_by',
+                '_media_all_received',
+                'name',
+                'image1',
+                'meta'
+            ],
+            'name': 'Coconut - Pending Review',
+            'query': [
+                {
+                    'column': '_review_status',
+                    'filter': '=',
+                    'value': '3',
+                    'condition': 'or'
+                }
+            ]
+        }
+
+        mocked.post(
+            url=f'{settings.ONA_BASE_URL}/api/v1/dataviews',
+            json=mocked_dataview,
+            status_code=201)
+
+        mocked.get(
+            url=f'{settings.ONA_BASE_URL}/api/v1/forms/349455/form.json',
+            json=mocked_form,
+            status_code=200
+        )
+
+        response = create_filtered_data_sets(
+            form_id=xform.ona_pk,
+            project_id=xform.ona_project_id,
+            form_title="Coconut")
+
+        self.assertDictEqual(mocked_dataview, response.json())
+        self.assertEqual(201, response.status_code)
+
+        self.assertEqual(4, mocked.call_count)
+        self.assertDictEqual(last_payload, mocked.last_request.json())
