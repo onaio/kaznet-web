@@ -697,18 +697,6 @@ class TestApiMethods(MainTestBase):
 
         self.assertEqual(response, None)
 
-    def test_request_session(self):
-        """
-        Tests that request_session works the way it should
-        """
-        response = request_session('https://example.com', 'GET')
-        self.assertEqual(response.status_code, 200)
-
-        # Returns None for request methods that aren't GET or POST or PUT
-
-        response = request_session('https://example.com', 'DELETE')
-        self.assertEqual(response, None)
-
     def test_request_session_bad_url(self):
         """
         Test that an invalid url will fail
