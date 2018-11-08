@@ -17,7 +17,8 @@ from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
-                                          KAZNET_WEBHOOK_NAME)
+                                          KAZNET_WEBHOOK_NAME,
+                                          WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
@@ -538,7 +539,9 @@ def create_filtered_data_sets(
         # save the response that we received from Ona in the form metadata
         # this might be empty in case all datasets were either not successfully
         # created or were all deleted
-        form.json[FILTERED_DATASETS_FIELD_NAME] = dataview_responses
+        if not form.json.get(FILTERED_DATASETS_FIELD_NAME):
+            form.json[FILTERED_DATASETS_FIELD_NAME] = []
+        form.json[FILTERED_DATASETS_FIELD_NAME] += dataview_responses
 
         # keep track of whether this form has had datasets successfully created
         form.json[HAS_FILTERED_DATASETS_FIELD_NAME] = done
@@ -572,6 +575,9 @@ def create_form_webhook(
             url=restservice_url, method='POST', payload=payload)
 
         form.json[HAS_WEBHOOK_FIELD_NAME] = response.status_code in [200, 201]
+        if not form.json.get(WEBHOOK_FIELD_NAME):
+            form.json[WEBHOOK_FIELD_NAME] = []
+        form.json[WEBHOOK_FIELD_NAME].append(response.json())
         form.save()
 
         return response
