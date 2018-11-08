@@ -253,6 +253,10 @@ TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'instance'}
 ]
 
+# XForms
+AUTO_CREATE_SUBMISSION_WEBHOOKS = False
+AUTO_CREATE_FILTERED_DATASETS = False
+
 # crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
