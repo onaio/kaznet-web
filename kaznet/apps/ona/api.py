@@ -548,7 +548,7 @@ def create_filtered_data_sets(
 
         form.save()
 
-        return response
+        return form
 
 
 def create_form_webhook(
