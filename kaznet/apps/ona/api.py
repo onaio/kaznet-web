@@ -14,12 +14,16 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
-from kaznet.apps.main.common_tags import (HAS_FILTERED_DATASETS_FIELD_NAME,
+from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
+                                          HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
-                                          KAZNET_WEBHOOK_NAME)
+                                          KAZNET_WEBHOOK_NAME,
+                                          WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
+
+SUCCESS_STATUSES = [200, 201]
 
 
 def request_session(
@@ -71,6 +75,9 @@ def request_session(
     if method == 'PUT':
         response = session.put(
             url, auth=basic_auth, json=payload, headers=headers)
+        return response
+    if method == 'DELETE':
+        response = session.delete(url, auth=basic_auth, headers=headers)
         return response
 
     return None
@@ -421,6 +428,37 @@ def update_user_profile_metadata(ona_username: str, token_key: str = None):
                 profile.save()
 
 
+def create_filtered_dataset(form_id: int, payload: dict):
+    """
+    Calls the Ona API to create a filtered dataset for a form
+    """
+    try:
+        XForm.objects.get(ona_pk=form_id)  # check if valid form
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        return None
+    else:
+        dataviews_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
+
+        response = request_session(
+            url=dataviews_url, method='POST', payload=payload)
+
+        return response
+
+
+def delete_filtered_dataset(form_id: int, dataset_url: int):
+    """
+    Calls the Ona API to delete a filtered dataset for a form
+    """
+    try:
+        XForm.objects.get(ona_pk=form_id)  # make sure form exists
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        return None
+    else:
+        response = request_session(url=dataset_url, method='DELETE')
+
+        return response
+
+
 # pylint: disable=too-many-locals
 def create_filtered_data_sets(
         form_id: int, project_id: int, form_title: str):
@@ -433,11 +471,10 @@ def create_filtered_data_sets(
     except XForm.DoesNotExist:  # pylint: disable=no-member
         return None
     else:
-        data_views_url = urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews')
-        ona_form = urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
-        ona_project = urljoin(
+        ona_form_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/forms/{form_id}')
+        ona_project_url = urljoin(
             settings.ONA_BASE_URL, f'api/v1/projects/{project_id}')
-        response = []
 
         columns = ['_review_status', '_review_comment', 'instanceID',
                    '_last_edited', '_submitted_by', '_media_all_received']
@@ -454,10 +491,13 @@ def create_filtered_data_sets(
             columns += form_columns
 
         payload = {
-            'xform': ona_form,
-            'project': ona_project,
+            'xform': ona_form_url,
+            'project': ona_project_url,
             'columns': columns
         }
+
+        done = False
+        dataview_responses = []
 
         for status, status_name in Submission.STATUS_CHOICES:
             ona_status = convert_kaznet_to_ona_submission_status(
@@ -473,15 +513,42 @@ def create_filtered_data_sets(
                     }
                 ]
 
-                resp = request_session(
-                    url=data_views_url, method='POST', payload=payload)
-                response.append(resp.status_code)
+                response = create_filtered_dataset(
+                    form_id=form_id, payload=payload)
 
-        form.json[HAS_FILTERED_DATASETS_FIELD_NAME] = bool(
-            response in [201, 201, 201])
+                if response.status_code in SUCCESS_STATUSES:
+                    dataview_responses.append(response.json())
+
+        # the entire process is only successful when all the datasets were
+        # created successfully
+        done = len([
+            Submission.APPROVED,
+            Submission.REJECTED,
+            Submission.PENDING
+            ]) == len(dataview_responses)
+
+        if not done:
+            # we go ahead and delete the datasets that were created
+            for counter, dataview_response in enumerate(dataview_responses):
+                del_response = delete_filtered_dataset(
+                    form_id=form_id, dataset_url=dataview_response['url'])
+                if del_response.status_code == 204:
+                    # remove any successfully deleted datasets
+                    dataview_responses.pop(counter)
+
+        # save the response that we received from Ona in the form metadata
+        # this might be empty in case all datasets were either not successfully
+        # created or were all deleted
+        if not form.json.get(FILTERED_DATASETS_FIELD_NAME):
+            form.json[FILTERED_DATASETS_FIELD_NAME] = []
+        form.json[FILTERED_DATASETS_FIELD_NAME] += dataview_responses
+
+        # keep track of whether this form has had datasets successfully created
+        form.json[HAS_FILTERED_DATASETS_FIELD_NAME] = done
+
         form.save()
 
-        return response
+        return form
 
 
 def create_form_webhook(
@@ -508,6 +575,9 @@ def create_form_webhook(
             url=restservice_url, method='POST', payload=payload)
 
         form.json[HAS_WEBHOOK_FIELD_NAME] = response.status_code in [200, 201]
+        if not form.json.get(WEBHOOK_FIELD_NAME):
+            form.json[WEBHOOK_FIELD_NAME] = []
+        form.json[WEBHOOK_FIELD_NAME].append(response.json())
         form.save()
 
         return response

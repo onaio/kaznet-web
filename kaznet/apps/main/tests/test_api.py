@@ -3,13 +3,14 @@ Test Module for Main API Methods
 """
 import os
 from collections import OrderedDict
+from datetime import timedelta
 from urllib.parse import urljoin
 
+import requests_mock
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.test import override_settings
-
-import requests_mock
+from django.utils import timezone
 from model_mommy import mommy
 
 from kaznet.apps.main.api import (create_submission, validate_location,
@@ -198,15 +199,17 @@ class TestAPIMethods(MainTestBase):
         """
         instance = self._create_instance()
         data = instance.json
-
-        data['_submission_time'] = "2019-09-01T20:00:00"
-        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20210729T210000Z'
+        now = timezone.now()
+        rrule = f'FREQ=DAILY;INTERVAL=1;UNTIL={now.year + 1}0729T210000Z'
 
         task = mommy.make(
             'main.Task',
             timing_rule=rrule,
             target_content_type=self.xform_type,
             target_object_id=instance.xform.id)
+
+        data['_submission_time'] = (
+            task.start + timedelta(minutes=45)).isoformat()
 
         status, comment = validate_submission_time(
             task, data['_submission_time'])
