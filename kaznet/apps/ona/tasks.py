@@ -78,7 +78,7 @@ def task_fetch_all_instances():
     forms = XForm.objects.filter(deleted_at=None)
     for form in forms:
         if form.has_task:
-            the_task = form.task.first()
+            the_task = form.task
             if the_task is not None and the_task.status == Task.ACTIVE:
                 task_fetch_form_instances.delay(xform_id=form.id)
 

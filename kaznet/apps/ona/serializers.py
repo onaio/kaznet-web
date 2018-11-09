@@ -45,7 +45,7 @@ class XFormSerializer(serializers.ModelSerializer):
             return obj.json
         return None
 
-    def get_task_name(self, obj):
+    def get_task_name(self, obj):  # pylint: disable=no-self-use
         """
         Get the attached task name
         """
