@@ -58,6 +58,7 @@ class TestXFormSerializer(MainTestBase):
             'deleted_at',
             'title',
             'has_task',
+            'task_name',
             'created',
             'modified',
             'metadata',
