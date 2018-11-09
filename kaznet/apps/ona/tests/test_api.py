@@ -1114,13 +1114,10 @@ class TestApiMethods(MainTestBase):
             status_code=200
         )
 
-        response = create_filtered_data_sets(
+        create_filtered_data_sets(
             form_id=xform.ona_pk,
             project_id=xform.ona_project_id,
             form_title="Coconut")
-
-        self.assertDictEqual(mocked_dataview, response.json())
-        self.assertEqual(201, response.status_code)
 
         self.assertEqual(4, mocked.call_count)
         self.assertDictEqual(last_payload, mocked.last_request.json())
@@ -1131,3 +1128,87 @@ class TestApiMethods(MainTestBase):
             [mocked_dataview, mocked_dataview, mocked_dataview],
             xform.json[FILTERED_DATASETS_FIELD_NAME])
         self.assertEqual(3, len(xform.json[FILTERED_DATASETS_FIELD_NAME]))
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_create_filtered_data_sets_failure(self, mocked):
+        """
+        Test create_filtered_data_sets where at least one dataset is not
+        created successfully
+        """
+        xform = mommy.make(
+            'ona.XForm', title="Attachment Test", ona_pk=666,
+            ona_project_id=777)
+
+        mocked_form = {
+            "name": "attachment_test",
+            "title": "attachment_test",
+            "sms_keyword": "attachment_test",
+            "default_language": "default",
+            "version": "201710300941",
+            "id_string": "attachment_test",
+            "type": "survey",
+            "children": [{
+                "type": "text",
+                "name": "name",
+                "label": "Name"
+            }, {
+                "type": "photo",
+                "name": "image1",
+                "label": "Photo"
+            }, {
+                "control": {
+                    "bodyless": True
+                },
+                "type": "group",
+                "children": [{
+                    "bind": {
+                        "readonly": "true()",
+                        "calculate": "concat('uuid:', uuid())"
+                    },
+                    "type": "calculate",
+                    "name": "instanceID"
+                }],
+                "name": "meta"
+            }]
+        }
+
+        mocked_dataview = {
+            'dataviewid': 101010,
+            'url': 'https://mosh-ona.io/api/v1/dataviews/101010',
+        }
+
+        # make it such that we only create one dataset successfully
+        mocked.register_uri(
+            'POST',
+            f'{settings.ONA_BASE_URL}/api/v1/dataviews',
+            [
+                {'json': mocked_dataview, 'status_code': 201},
+                {'text': 'catastrophic error!', 'status_code': 500}
+            ]
+        )
+
+        mocked.get(
+            url=f'{settings.ONA_BASE_URL}/api/v1/forms/666/form.json',
+            json=mocked_form,
+            status_code=200
+        )
+
+        mocked.delete(
+            url=f'{settings.ONA_BASE_URL}/api/v1/dataviews/101010',
+            text='',
+            status_code=204
+        )
+
+        create_filtered_data_sets(
+            form_id=xform.ona_pk,
+            project_id=xform.ona_project_id,
+            form_title="Attachment Test")
+
+        self.assertEqual(5, mocked.call_count)
+        self.assertEqual('mosh-ona.io', mocked.last_request.hostname)
+        self.assertEqual('/api/v1/dataviews/101010', mocked.last_request.path)
+
+        xform.refresh_from_db()
+        self.assertFalse(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
+        self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
