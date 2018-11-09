@@ -17,7 +17,7 @@ def delete_xform(sender, instance, **kwargs):
     Pre delete signal handler for XForm objects
     """
     # get the task
-    task = instance.task.first()
+    task = instance.task
     if task is not None:
         # we need to mark the task as draft because it no longer has a form
         task.status = Task.DRAFT

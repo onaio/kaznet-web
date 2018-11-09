@@ -24,6 +24,22 @@ class TestXFormModel(MainTestBase):
         xform = mommy.make('ona.XForm', title='Test')
         self.assertEqual(str(xform), 'Test')
 
+    def test_xform_properties(self):
+        """
+        Test XForm model properties
+        """
+        xform = mommy.make('ona.XForm', title='Test')
+        task = mommy.make(
+            'main.Task', name='Coconut', status=Task.ACTIVE,
+            target_content_object=xform)
+        xform.refresh_from_db()
+        self.assertEqual(task, xform.task)
+        self.assertEqual('Coconut', xform.task.name)
+        self.assertTrue(xform.has_task)
+        self.assertEqual(
+            list(Task.objects.filter(target_object_id=xform.id)),
+            list(xform.tasks))
+
     def test_delete_xform(self):
         """
         Test that deleting at XForm does not delete the task
