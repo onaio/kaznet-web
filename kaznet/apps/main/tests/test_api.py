@@ -10,6 +10,7 @@ import requests_mock
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.test import override_settings
+from django.utils import timezone
 from model_mommy import mommy
 
 from kaznet.apps.main.api import (create_submission, validate_location,
@@ -198,7 +199,8 @@ class TestAPIMethods(MainTestBase):
         """
         instance = self._create_instance()
         data = instance.json
-        rrule = 'FREQ=DAILY;INTERVAL=1;UNTIL=20310729T210000Z'
+        now = timezone.now()
+        rrule = f'FREQ=DAILY;INTERVAL=1;UNTIL={now.year + 1}0729T210000Z'
 
         task = mommy.make(
             'main.Task',
