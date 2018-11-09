@@ -23,5 +23,5 @@ class XFormViewSet(KaznetViewsetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = XFormSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
     search_fields = ['title']
-    ordering_fields = ['title']
+    ordering_fields = ['title', 'modified']
     queryset = XForm.objects.all()  # pylint: disable=no-member
