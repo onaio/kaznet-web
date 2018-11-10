@@ -2,6 +2,8 @@
 Module containing all tests for Ona Apps
 viewsets.py
 """
+import pytz
+from dateutil.parser import parse
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -199,3 +201,32 @@ class TestXFormViewSet(MainTestBase):
         self.assertEqual(response.data['results'][0]['id'], form1.id)
         self.assertEqual(response.data['results'][-1]['title'], form2.title)
         self.assertEqual(response.data['results'][-1]['id'], form2.id)
+
+    def test_modified_ordering(self):
+        """
+        Test that you can filter by ordering
+        """
+        user = create_admin_user()
+        form1 = mommy.make('ona.XForm', title='Andalite Sunrise')
+        mommy.make('ona.XForm', title='Generic', _quantity=7)
+        form2 = mommy.make('ona.XForm', title='Zerg Conquest')
+
+        # Test we can sort by modified in ascending order
+        view = XFormViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/forms', {'ordering': '-modified'})
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 9)
+        self.assertEqual(
+            parse(response.data['results'][0]['modified']).astimezone(
+                pytz.utc),
+            form2.modified
+        )
+        self.assertEqual(response.data['results'][0]['id'], form2.id)
+        self.assertEqual(
+            parse(response.data['results'][-1]['modified']).astimezone(
+                pytz.utc),
+            form1.modified
+        )
+        self.assertEqual(response.data['results'][-1]['id'], form1.id)

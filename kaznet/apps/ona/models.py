@@ -121,7 +121,7 @@ class XForm(TimeStampedModel, models.Model):
 
     def get_task_queryset(self):
         """
-        Returns the attached task object
+        Returns the attached task objects
         """
         # pylint: disable=no-member
         return Task.objects.filter(
@@ -131,12 +131,19 @@ class XForm(TimeStampedModel, models.Model):
         """
         Custom method that returns whether task has_task or not
         """
-        return self.task.exists()  # pylint: disable=no-member
+        return self.tasks.exists()  # pylint: disable=no-member
 
     @property
     def task(self):
         """
         Property to get the task
+        """
+        return self.get_task_queryset().first()
+
+    @property
+    def tasks(self):
+        """
+        Property to get the tasks
         """
         return self.get_task_queryset()
 
@@ -192,4 +199,4 @@ class Instance(TimeStampedModel, models.Model):
         Get the task for this submission
         This might return None or might return a task
         """
-        return self.xform.task.first()  # pylint: disable=no-member
+        return self.xform.task  # pylint: disable=no-member

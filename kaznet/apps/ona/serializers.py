@@ -12,6 +12,7 @@ class XFormSerializer(serializers.ModelSerializer):
     """
     Serializer for XForm Model
     """
+    task_name = serializers.SerializerMethodField()
     metadata = serializers.SerializerMethodField()
 
     class Meta:  # pylint: disable=too-few-public-methods
@@ -31,6 +32,7 @@ class XFormSerializer(serializers.ModelSerializer):
             'modified',
             'deleted_at',
             'has_task',
+            'task_name',
             'project',
             'metadata'
         ]
@@ -41,6 +43,14 @@ class XFormSerializer(serializers.ModelSerializer):
         """
         if obj:
             return obj.json
+        return None
+
+    def get_task_name(self, obj):  # pylint: disable=no-self-use
+        """
+        Get the attached task name
+        """
+        if obj and obj.task:
+            return obj.task.name
         return None
 
 
