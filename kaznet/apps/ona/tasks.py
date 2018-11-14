@@ -64,8 +64,9 @@ def task_fetch_form_instances(xform_id: int):
         instances_iter = get_instances(xform_id=xform.ona_pk)
         for _ in instances_iter:
             instance_data_list = _
-            for instance_data in instance_data_list:
-                process_instance(instance_data=instance_data, xform=xform)
+            if isinstance(instance_data_list, list):
+                for instance_data in instance_data_list:
+                    process_instance(instance_data=instance_data, xform=xform)
 
 
 @celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
