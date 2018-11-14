@@ -369,3 +369,9 @@ class TestCeleryTasks(MainTestBase):
         mock.assert_called_with(
             form_id=1337,
             service_url="https://kaznet.com/webhook/")
+
+    def test_task_fetch_form_instances_404(self):
+        """
+        Test what happens when task_fetch_form_instances encounters 404 errors
+        """
+        self.fail()
