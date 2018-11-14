@@ -89,8 +89,8 @@ def request(url: str, args: dict = None, method: str = 'GET'):
     and confirms it has a valid JSON return
     """
     response = request_session(url, method, args)
-
     try:
+        # you only come here if we can understand the API response
         return response.json()
     except ValueError:
         return None
@@ -264,6 +264,12 @@ def get_instances(xform_id: int):
         url = urljoin(settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
         args = {'start': start, 'limit': 100}
         data = request(url, args)
+
+        if data is None:
+            # in this case our request was not successful
+            end_page = True
+            yield None
+
         start = start + 100
         if isinstance(data, list):
             if data == []:
