@@ -1212,3 +1212,48 @@ class TestApiMethods(MainTestBase):
         xform.refresh_from_db()
         self.assertFalse(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
         self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    # @patch('kaznet.apps.ona.api.request')
+    @requests_mock.Mocker()
+    def test_get_instances_404(self, request_mocker):
+        """
+        Test what happens when get_instances encounters 404
+
+        This is what should happen:
+            - it should immediately stop trying to get the data for that form
+            - it should start a process to check if the form is deleted
+        """
+        xform = mommy.make('ona.XForm', title="404 Test")
+
+        request_mocker.get(
+            url=f'{settings.ONA_BASE_URL}/api/v1/data/{xform.ona_pk}',
+            text='Nothing here bro',
+            status_code=404
+        )
+        results = get_instances(xform.ona_pk)
+        for result in results:
+            self.assertIsNone(result)
+        # assert called only once
+        self.assertEqual(1, request_mocker.call_count)
+
+    def test_request_session_retries(self):
+        """
+        Test how request_session does retries
+
+        Specifically:
+            - it only retries the set number of times
+            - it only retries for certain HTTP statuc codes
+            - the backoff factor between retries increases exponentially
+        """
+        self.fail()
+
+    def test_get_instances_pagination(self):
+        """
+        Test how get_instances handles pagination
+
+        It should:
+            - never send endless pagination requests
+            - sleep between pagination requests
+        """
+        self.fail()
