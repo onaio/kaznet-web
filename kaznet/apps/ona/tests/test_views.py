@@ -2,6 +2,8 @@
 Module containing all tests for Ona App
 Views
 """
+import json
+
 from model_mommy import mommy
 from rest_framework.test import APIRequestFactory
 
@@ -40,10 +42,13 @@ class TestViews(MainTestBase):
         mommy.make('ona.XForm', ona_pk=53)
 
         request = self.factory.post(
-            'api/v1/create_instance', data=instance_data)
+            'webhook',
+            data=json.dumps(instance_data),
+            content_type='application/json'
+        )
         self.assertEqual(Instance.objects.all().count(), 0)
         response = create_or_update_instance(request)
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['success'], True)
         self.assertEqual(Instance.objects.all().count(), 1)
