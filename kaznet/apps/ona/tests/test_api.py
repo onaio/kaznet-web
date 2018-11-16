@@ -28,7 +28,8 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  get_xform_obj, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
-                                 request_session, update_user_profile_metadata)
+                                 request_session, sync_updated_instances,
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -1353,6 +1354,41 @@ class TestApiMethods(MainTestBase):
         mocked_request.get(record_url, json=mocked_record_response)
 
         fetch_missing_instances(form_id=xform.ona_pk)
+
+        self.assertEqual(2, mocked_request.call_count)
+        self.assertEqual(1, mocked_process_instance.call_count)
+        mocked_process_instance.assert_called_with(
+            instance_data=mocked_record_response, xform=xform
+        )
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_sync_updated_instances(
+            self, mocked_request, mocked_process_instance):
+        """
+        Test sync_updated_instances
+        """
+        xform = mommy.make('ona.XForm', title="sync_updated_instances Test")
+        mocked_ids_response = [
+            {"_id": 155}
+        ]
+        mocked_record_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": xform.ona_pk,
+            "_id": 155
+        }
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        record_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}/155.json')
+        mocked_request.get(record_url, json=mocked_record_response)
+
+        sync_updated_instances(form_id=xform.ona_pk)
 
         self.assertEqual(2, mocked_request.call_count)
         self.assertEqual(1, mocked_process_instance.call_count)
