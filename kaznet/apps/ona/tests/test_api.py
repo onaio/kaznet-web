@@ -18,6 +18,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
+from kaznet.apps.main.models import Task
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
@@ -28,7 +29,8 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  get_xform_obj, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
-                                 request_session, sync_updated_instances,
+                                 request_session, sync_deleted_projects,
+                                 sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
@@ -79,8 +81,7 @@ class TestApiMethods(MainTestBase):
         correct data
         """
         mocked_projects_data = [{
-            "projectid":
-            18,
+            "projectid": 18,
             "forms": [{
                 "name": "Changed",
                 "formid": 53,
@@ -103,6 +104,78 @@ class TestApiMethods(MainTestBase):
         response = get_projects(username=settings.ONA_USERNAME)
 
         self.assertEqual(response, mocked_projects_data)
+
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
+    @requests_mock.Mocker()
+    def test_sync_deleted_projects(self, mocked):
+        """
+        Test sync_deleted_projects
+        """
+        Project.objects.all().delete()
+        proj = mommy.make('ona.Project', ona_pk=1337)
+        
+        # make 3 more projects
+        mommy.make('ona.Project', _quantity=3)
+        
+        # make some forms
+        proj_with_submissions = mommy.make('ona.Project')
+        xform = mommy.make('ona.XForm', ona_project_id=1337,
+                           project=proj_with_submissions)
+        
+        xform_id = xform.id
+        deleted_projects = Project.objects.exclude(
+            id=proj.id).values_list('id', flat=True)
+        
+        # make some instances
+        mommy.make('ona.Instance', _quantity=13, xform=xform)
+        instance = mommy.make('ona.Instance', xform=xform)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        mocked_projects_data = [{
+            "projectid": 1337,
+            "forms": [{
+                "name": "Changed",
+                "formid": 53,
+                "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "is_merged_dataset": False,
+                "version": "vQZYoAo96pzTHZHY2iWuQA",
+                "owner": "https://example.com/api/v1/users/kaznet",
+            }],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
+
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json=mocked_projects_data)
+        sync_deleted_projects(username=settings.ONA_USERNAME)
+
+        proj.refresh_from_db()
+        self.assertEqual(1, Project.objects.count())
+        self.assertEqual(proj, Project.objects.first())
+
+        self.assertEqual(
+            0, XForm.objects.filter(project__id__in=deleted_projects).count())
+        self.assertEqual(
+            0, Instance.objects.filter(xform__id=xform_id).count())
+
+        task.refresh_from_db()
+        self.assertEqual(Task.DRAFT, task.status)
+        self.assertEqual(0, task.get_submissions())
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
