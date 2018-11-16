@@ -37,6 +37,31 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# tasks
+CELERY_ROUTES = {
+    'kaznet.apps.ona.tasks.task_fetch_missing_instances': {
+        'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_fetch_form_missing_instances': {
+        'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_fetch_projects': {'queue': 'forms'},
+}
+
+CELERY_BEAT_SCHEDULE = {
+    'fetch_missing_instances': {
+        'task': 'task_fetch_missing_instances',
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 min
+    },
+    'fetch_projects': {
+        'task': 'task_fetch_projects',
+        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
+        'kwargs': {'username': 'the one username'}
+    },
+    'process_user_profiles': {
+        'task': 'task_process_user_profiles',
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
+    },
+}
+
 # Emails
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'localhost'
