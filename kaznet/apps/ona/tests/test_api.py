@@ -1301,6 +1301,7 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(form_data, mocked_response)
         self.assertTrue(mocked.called)
         # it was not called with any params
+        self.assertEqual('', mocked.last_request.query)
         self.assertEqual(None, mocked.last_request.text)
         # called once
         self.assertEqual(1, mocked.call_count)
@@ -1315,6 +1316,118 @@ class TestApiMethods(MainTestBase):
             one_submission_data, mocked_single_submission_response)
         self.assertTrue(mocked.called)
         # it was again not called with any params
+        self.assertEqual('', mocked.last_request.query)
         self.assertEqual(None, mocked.last_request.text)
         # now called twice
         self.assertEqual(2, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_dataids_only(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            }
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, dataids_only=[1755, 1766])
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual('fields=%5b%22_id%22%5d', mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_edited_only(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            }
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, edited_only=True)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual('query=%7b%22_edited%22%3a%22true%22%7d',
+                         mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_latest(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            }
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, latest=1754)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual(
+            'query=%7b%22_id%22%3a%7b%22%24gte%22%3a1754%7d%7d',
+            mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
