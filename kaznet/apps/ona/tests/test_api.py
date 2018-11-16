@@ -24,10 +24,9 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
                                  delete_filtered_dataset, fetch_form_data,
                                  fetch_missing_instances,
-                                 get_and_process_xforms, get_instance,
-                                 get_instances, get_project, get_project_obj,
-                                 get_projects, get_xform, get_xform_obj,
-                                 process_instance, process_instances,
+                                 get_and_process_xforms, get_project,
+                                 get_project_obj, get_projects, get_xform,
+                                 get_xform_obj, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
                                  request_session, update_user_profile_metadata)
@@ -107,34 +106,6 @@ class TestApiMethods(MainTestBase):
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
-    def test_get_instances(self, mocked):
-        """
-        Test to see that get_instances returns
-        the correct data
-        """
-        mocked_instances = [{
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_id": 1755
-        }]
-        mocked.get(
-            urljoin(settings.ONA_BASE_URL,
-                    '/api/v1/data/53?start=0&limit=100'),
-            json=mocked_instances)
-        mocked.get(
-            urljoin(settings.ONA_BASE_URL,
-                    '/api/v1/data/53?start=100&limit=100'),
-            json=[])
-
-        response = get_instances(53)
-        for i in response:
-            mocked_data = i
-        self.assertEqual(mocked_data, mocked_instances)
-
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
-    @requests_mock.Mocker()
     def test_get_project(self, mocked):
         """
         Test to see that get_project returns the correct
@@ -174,26 +145,6 @@ class TestApiMethods(MainTestBase):
         response = get_xform(53)
 
         self.assertTrue(response, mocked_xform_data)
-
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
-    @requests_mock.Mocker()
-    def test_get_instance(self, mocked):
-        """
-        Test to see that get_instance returns the correct
-        data
-        """
-        mocked_instance_data = {
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_id": 1755
-        }
-
-        url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53/142')
-        mocked.get(url, json=mocked_instance_data)
-        response = get_instance(53, 142)
-        self.assertTrue(response, mocked_instance_data)
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
@@ -469,26 +420,6 @@ class TestApiMethods(MainTestBase):
 
         self.assertEqual(Project.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
-
-    @patch('kaznet.apps.ona.api.process_instance')
-    def test_process_instances(self, mockclass):
-        """
-        Test that process_instances calls process_instance
-        """
-        mocked_instances = ([[{
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_submitted_by": "sluggie",
-            "_id": 1755
-        }]])
-
-        mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
-
-        # Test that when valid forms data is passed it calls process_instance
-        process_instances(mocked_instances, mocked_xform)
-        mockclass.assert_called_with(mocked_instances[0][0], mocked_xform)
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
@@ -1214,29 +1145,6 @@ class TestApiMethods(MainTestBase):
         self.assertFalse(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
         self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
 
-    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
-    @requests_mock.Mocker()
-    def test_get_instances_404(self, request_mocker):
-        """
-        Test what happens when get_instances encounters 404
-
-        This is what should happen:
-            - it should immediately stop trying to get the data for that form
-            - it should start a process to check if the form is deleted
-        """
-        xform = mommy.make('ona.XForm', title="404 Test")
-
-        request_mocker.get(
-            url=f'{settings.ONA_BASE_URL}/api/v1/data/{xform.ona_pk}',
-            text='Nothing here bro',
-            status_code=404
-        )
-        results = get_instances(xform.ona_pk)
-        for result in results:
-            self.assertIsNone(result)
-        # assert called only once
-        self.assertEqual(1, request_mocker.call_count)
-
     def test_request_session_retries(self):
         """
         Test how request_session does retries
@@ -1245,16 +1153,6 @@ class TestApiMethods(MainTestBase):
             - it only retries the set number of times
             - it only retries for certain HTTP statuc codes
             - the backoff factor between retries increases exponentially
-        """
-        self.fail()
-
-    def test_get_instances_pagination(self):
-        """
-        Test how get_instances handles pagination
-
-        It should:
-            - never send endless pagination requests
-            - sleep between pagination requests
         """
         self.fail()
 
@@ -1287,13 +1185,13 @@ class TestApiMethods(MainTestBase):
                 "_id": 1757
             }
         ]
-        mocked_single_submission_response = [{
+        mocked_single_submission_response = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "_edited": False,
             "_last_edited": "2018-05-30T07:51:59.187363+00:00",
             "_xform_id": 53,
             "_id": 1755
-        }]
+        }
 
         submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
         mocked.get(submissions_url, json=mocked_response)
@@ -1313,7 +1211,7 @@ class TestApiMethods(MainTestBase):
                    json=mocked_single_submission_response)
 
         one_submission_data = fetch_form_data(formid=53, dataid=1755)
-        self.assertEqual(
+        self.assertDictEqual(
             one_submission_data, mocked_single_submission_response)
         self.assertTrue(mocked.called)
         # it was again not called with any params

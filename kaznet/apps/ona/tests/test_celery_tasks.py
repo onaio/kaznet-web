@@ -17,8 +17,8 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_create_form_webhook,
-                                   task_fetch_all_instances,
-                                   task_fetch_form_instances,
+                                   task_fetch_missing_instances,
+                                   task_fetch_form_missing_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
@@ -218,22 +218,12 @@ class TestCeleryTasks(MainTestBase):
         self.assertTrue(XForm.objects.filter(ona_pk=7331).exists())
         self.assertTrue(XForm.objects.filter(ona_pk=310).exists())
 
-    @override_settings(ONA_BASE_URL="https://example.com")
-    @patch('kaznet.apps.ona.tasks.process_instance')
-    @requests_mock.Mocker()
-    def test_task_fetch_form_instances(self, process_instance_mock,
-                                       mocked_request):
+    @patch('kaznet.apps.ona.tasks.fetch_missing_instances')
+    def test_task_fetch_form_missing_instances(
+            self, fetch_missing_instances_mock):
         """
-        Test task_fetch_form_instances
+        Test task_fetch_form_missing_instances
         """
-        mocked_request.get(
-            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
-            json=MOCKED_ONA_FORM_DATA
-        )
-        mocked_request.post(
-            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
-            status_code=201
-        )
         mommy.make('auth.User', username='onasupport')
         xform = mommy.make(
             'ona.XForm',
@@ -241,61 +231,70 @@ class TestCeleryTasks(MainTestBase):
             ona_pk=897,
             id_string='attachment_test',
             title='attachment test')
-        # mock the request
-        mocked_request.get(
-            "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES)
-        mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
         # call the task
-        task_fetch_form_instances(xform_id=xform.id)
-        # process_instance_mock should have been called twice
-        self.assertEqual(2, process_instance_mock.call_count)
+        task_fetch_form_missing_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, fetch_missing_instances_mock.call_count)
 
         expected_calls = [
-            call(instance_data=MOCKED_INSTANCES[0], xform=xform),
-            call(instance_data=MOCKED_INSTANCES[1], xform=xform)
+            call(form_id=xform.ona_pk)
         ]
 
-        process_instance_mock.assert_has_calls(expected_calls)
+        fetch_missing_instances_mock.assert_has_calls(expected_calls)
 
     @override_settings(ONA_BASE_URL="https://example.com")
     @requests_mock.Mocker()
-    def test_task_fetch_form_instances_integration(self, mocked_request):
+    def test_task_fetch_form_missing_instances_integration(
+            self, mocked_request):
         """
-        Test task_fetch_form_instances results in actual instances
+        Test task_fetch_form_missing_instances results in actual instances
         """
         mommy.make('auth.User', username='onasupport')
+        Instance.objects.all().delete()
+
+        # mock the request to get submission ids
+        mocked_ids = [
+            {"_id": 21311495},
+            {"_id": 21311503},
+        ]
         mocked_request.get(
-            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
-            json=MOCKED_ONA_FORM_DATA
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897.json'),
+            json=mocked_ids
         )
+
+        # mock the request to create a webook
         mocked_request.post(
             urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
             status_code=201
         )
+
+        # create XForm
         xform = mommy.make(
             'ona.XForm',
             id=7,
             ona_pk=897,
             id_string='attachment_test',
             title='attachment test')
-        # mock the request
+
+        # mock the requests for individual submissions
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES)
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897/21311495.json'),
+            json=MOCKED_INSTANCES[0])
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897/21311503.json'),
+            json=MOCKED_INSTANCES[1])
+
         # call the task
-        task_fetch_form_instances(xform_id=xform.id)
+        task_fetch_form_missing_instances(xform_id=xform.id)
+
         # should result in two instances
         self.assertTrue(Instance.objects.filter(ona_pk=21311503).exists())
         self.assertTrue(Instance.objects.filter(ona_pk=21311495).exists())
 
-    @patch('kaznet.apps.ona.tasks.task_fetch_form_instances.delay')
-    def test_task_fetch_all_instances(self, mock):
+    @patch('kaznet.apps.ona.tasks.task_fetch_form_missing_instances.delay')
+    def test_task_fetch_missing_instances(self, mock):
         """
-        Test task_fetch_all_instances
+        Test task_fetch_missing_instances
         """
         mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
         mommy.make('ona.XForm', id=67, deleted_at=None)
@@ -311,7 +310,7 @@ class TestCeleryTasks(MainTestBase):
         mommy.make(
             'main.Task', status=Task.ACTIVE, target_content_object=form2)
 
-        task_fetch_all_instances()
+        task_fetch_missing_instances()
         mock.assert_called_once_with(xform_id=7)
 
     @patch('kaznet.apps.ona.tasks.task_update_user_profile.delay')
@@ -370,8 +369,9 @@ class TestCeleryTasks(MainTestBase):
             form_id=1337,
             service_url="https://kaznet.com/webhook/")
 
-    def test_task_fetch_form_instances_404(self):
+    def test_task_fetch_form_missing_instances_404(self):
         """
-        Test what happens when task_fetch_form_instances encounters 404 errors
+        Test what happens when task_fetch_form_missing_instances encounters
+        404 errors
         """
         self.fail()
