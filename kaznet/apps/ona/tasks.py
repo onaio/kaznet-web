@@ -15,7 +15,7 @@ from kaznet.apps.main.models import Task
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_form_webhook, fetch_missing_instances,
                                  get_and_process_xforms, get_projects,
-                                 process_projects,
+                                 process_projects, sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 
@@ -61,6 +61,34 @@ def task_fetch_form_missing_instances(xform_id: int):
         pass
     else:
         fetch_missing_instances(form_id=xform.ona_pk)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_form_updated_instances")
+def task_sync_form_updated_instances(xform_id: int):
+    """
+    Checks for updated instances for a form and then updates them
+    """
+    try:
+        xform = XForm.objects.get(id=xform_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        sync_updated_instances(form_id=xform.ona_pk)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_updated_instances")
+def task_sync_updated_instances():
+    """
+    Checks for updated instances for all forms and then updates them
+    """
+    xforms = XForm.objects.filter(deleted_at=None)
+    for xform in xforms:
+        if xform.has_task:
+            task = xform.task
+            if task is not None and task.status == Task.ACTIVE:
+                task_sync_form_updated_instances.delay(xform_id=xform.id)
 
 
 # pylint: disable=not-callable
