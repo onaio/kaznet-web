@@ -36,7 +36,7 @@ def request_session(
         username: str = settings.ONA_USERNAME,
         password: str = settings.ONA_PASSWORD,
         retries=3,
-        backoff_factor=1,
+        backoff_factor=1.1,
         status_forcelist=(500, 502, 504),
 ):  # pylint: disable=too-many-arguments
     """
@@ -44,7 +44,10 @@ def request_session(
     retries, backoff_factor and status_forcelist. It creates a Request
     Session and Retry Object and mounts a HTTP Adapter to the
     Session and Sends a request to the url. It then returns the Response.
-    """
+
+    The backoff policy is documented here:
+    https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.retry
+    """  # noqa
     session = requests.Session()
     retries = Retry(
         total=retries,
