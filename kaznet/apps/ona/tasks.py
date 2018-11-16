@@ -5,20 +5,18 @@ from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
+from celery import task as celery_task
 from django.contrib.auth.models import User
-from django.utils import timezone
 from django.contrib.sites.models import Site
 from django.urls import reverse
-
-from celery import task as celery_task
+from django.utils import timezone
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.api import (get_and_process_xforms, get_instances,
-                                 get_projects, process_instance,
+from kaznet.apps.ona.api import (create_filtered_data_sets,
+                                 create_form_webhook, fetch_missing_instances,
+                                 get_and_process_xforms, get_projects,
                                  process_projects,
-                                 update_user_profile_metadata,
-                                 create_filtered_data_sets,
-                                 create_form_webhook)
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 
 
@@ -51,8 +49,9 @@ def task_process_project_xforms(forms: list, project_id: int):
     get_and_process_xforms(forms_data=forms, project_id=project_id)
 
 
-@celery_task(name="task_fetch_form_instances")  # pylint: disable=not-callable
-def task_fetch_form_instances(xform_id: int):
+# pylint: disable=not-callable
+@celery_task(name="task_fetch_form_missing_instances")
+def task_fetch_form_missing_instances(xform_id: int):
     """
     Gets and processes instances from Onadata's API
     """
@@ -61,19 +60,13 @@ def task_fetch_form_instances(xform_id: int):
     except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
-        instances_iter = get_instances(xform_id=xform.ona_pk)
-        for _ in instances_iter:
-            instance_data_list = _
-            if isinstance(instance_data_list, list):
-                for instance_data in instance_data_list:
-                    process_instance(instance_data=instance_data, xform=xform)
+        fetch_missing_instances(form_id=xform.ona_pk)
 
 
-@celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
-def task_fetch_all_instances():
+# pylint: disable=not-callable
+@celery_task(name="task_fetch_missing_instances")
+def task_fetch_missing_instances():
     """
-    DEPRECATED.  USE WEBHOOKS
-
     Gets and processes instances for all known XForms
     """
     forms = XForm.objects.filter(deleted_at=None)
@@ -81,7 +74,7 @@ def task_fetch_all_instances():
         if form.has_task:
             the_task = form.task
             if the_task is not None and the_task.status == Task.ACTIVE:
-                task_fetch_form_instances.delay(xform_id=form.id)
+                task_fetch_form_missing_instances.delay(xform_id=form.id)
 
 
 @celery_task(name="task_process_user_profiles")  # pylint: disable=not-callable
