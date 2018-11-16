@@ -306,7 +306,7 @@ def fetch_missing_instances(form_id: int):
     """
     try:
         xform = XForm.objects.get(ona_pk=form_id)
-    except XForm.DoesNotExist:
+    except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
         # does this form even have submissions?
@@ -329,54 +329,6 @@ def fetch_missing_instances(form_id: int):
                 # save it locally
                 process_instance(
                     instance_data=record, xform=xform)
-
-
-def get_instances(xform_id: int):
-    """
-    Custom Method that Takes in an XForm Object and Retrieves
-    and returns Data on its Instances from OnaData
-    """
-    end_page = None
-    start = 0
-
-    while end_page is None:
-        url = urljoin(settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
-        args = {'start': start, 'limit': 100}
-        data = request(url, args)
-
-        if data is None:
-            # in this case our request was not successful
-            end_page = True
-            yield None
-
-        start = start + 100
-        if isinstance(data, list):
-            if data == []:
-                end_page = True
-                break
-            yield data
-
-
-def get_instance(xform_id: int, instance_id: int):
-    """
-    Custom Method that takes in an XFormID and InstanceID
-    and retrieves instance data
-    """
-    return request(
-        urljoin(settings.ONA_BASE_URL,
-                f'api/v1/data/{xform_id}/{instance_id}'))
-
-
-def process_instances(instances_data: iter, xform: object = None):
-    """
-    Custom Method that takes in a Dictionary containing Data
-    of Instances and an XForm object then processes the Instances
-    by sending each one to process_instance
-    """
-    if instances_data is not None:
-        for instance_data_list in instances_data:
-            for instance_data in instance_data_list:
-                process_instance(instance_data, xform)
 
 
 def process_instance(instance_data: dict, xform: object = None):
