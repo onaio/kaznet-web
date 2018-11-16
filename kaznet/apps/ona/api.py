@@ -649,3 +649,18 @@ def create_form_webhook(
         form.save()
 
         return response
+
+
+def sync_deleted_projects(username: str = settings.ONA_USERNAME):
+    """
+    Checks for deleted projects on Onadata
+    If it finds any, it deletes them locally
+    """
+    onadata_projects = get_projects(username=username)
+    onadata_project_pks = [rec['projectid'] for rec in onadata_projects] 
+    local_projects = Project.objects.filter(deleted_at=None)
+    deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
+
+    # delete in such a way that any signals are sent
+    for proj in deleted_projects:
+        proj.delete()

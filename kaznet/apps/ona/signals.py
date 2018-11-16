@@ -7,6 +7,7 @@ from django.db.models.signals import post_save, pre_delete
 from kaznet.apps.main.common_tags import (HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Task
+from kaznet.apps.ona.models import Instance, XForm
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_create_form_webhook)
 
@@ -23,6 +24,24 @@ def delete_xform(sender, instance, **kwargs):
         task.status = Task.DRAFT
         task.target_content_object = None
         task.save()
+
+        # delete submissions in a way that signals are called
+        for sub in task.submission_set.all():
+            sub.delete()
+
+
+def delete_project(sender, instance, **kwargs):
+    """
+    Predelete signal handler for Project objects
+    """
+    # delete any Instances in a way that signals are called
+    ona_instances = Instance.objects.filter(xform__project=instance)
+    for ona_instance in ona_instances:
+        ona_instance.delete()
+    # delete any XForms in a way that signals are called
+    xforms = XForm.objects.filter(project=instance)
+    for xform in xforms:
+        xform.delete()
 
 
 # pylint: disable=unused-argument
@@ -55,6 +74,11 @@ pre_delete.connect(
     delete_xform,
     sender='ona.XForm',
     dispatch_uid='delete_xform')
+
+pre_delete.connect(
+    delete_project,
+    sender='ona.Project',
+    dispatch_uid='delete_project')
 
 post_save.connect(
     auto_create_ona_filtered_data_sets,
