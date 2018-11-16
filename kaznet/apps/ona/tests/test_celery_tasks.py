@@ -313,6 +313,109 @@ class TestCeleryTasks(MainTestBase):
         task_fetch_missing_instances()
         mock.assert_called_once_with(xform_id=7)
 
+    @override_settings(
+        CELERY_TASK_ALWAYS_EAGER=True,
+        ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_task_fetch_missing_instances_404_at_form(
+            self, mocked_request, process_instance_mock):
+        """
+        Test what happens when task_fetch_missing_instances encounters
+        404 errors
+        """
+        XForm.objects.all().delete()
+
+        # create two forms
+        form1 = mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        form2 = mommy.make('ona.XForm', id=67, deleted_at=None)
+
+        # create tasks for the two forms
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        # should get 404 at form level
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}.json')
+        mocked_request.get(raw_ids_url, text='Not Found', status_code=404)
+
+        # only form 2 should run
+        task_fetch_missing_instances()
+
+        # should only have called the requests mock once
+        self.assertEqual(1, mocked_request.call_count)
+
+        # you'll never get to process_instance
+        self.assertFalse(process_instance_mock.called)
+
+    @override_settings(
+        CELERY_TASK_ALWAYS_EAGER=True,
+        ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_task_fetch_missing_instances_404_at_instance(
+            self, mocked_request, process_instance_mock):
+        """
+        Test what happens when task_fetch_missing_instances encounters
+        404 errors
+        """
+        XForm.objects.all().delete()
+        Instance.objects.all().delete()
+
+        # create two forms
+        form1 = mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        form2 = mommy.make('ona.XForm', id=67, deleted_at=None)
+
+        # create tasks for the two forms
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        # should not get 404 at form level
+        mocked_ids_response = [
+            {"_id": 1755}, {"_id": 1757}
+        ]
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}.json')
+        mocked_request.get(
+            raw_ids_url, json=mocked_ids_response, status_code=200)
+
+        # should get 404 at one instance
+        sub2_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": form2.ona_pk,
+            "_id": 1757
+        }
+
+        submission1_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}/1755.json')
+        mocked_request.get(
+            submission1_url,
+            text='Not found',
+            status_code=404)
+
+        submission2_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}/1757.json')
+        mocked_request.get(
+            submission2_url,
+            json=sub2_response,
+            status_code=200)
+
+        # only form 2 should run as it is not deleted
+        task_fetch_missing_instances()
+
+        # should have called the requests mock once
+        self.assertEqual(3, mocked_request.call_count)
+
+        # you'll get to process_instance only once
+        self.assertEqual(1, process_instance_mock.call_count)
+        process_instance_mock.assert_called_once_with(
+            instance_data=sub2_response, xform=form2
+        )
+
     @patch('kaznet.apps.ona.tasks.task_update_user_profile.delay')
     def test_task_process_user_profiles(self, mock):
         """
@@ -368,10 +471,3 @@ class TestCeleryTasks(MainTestBase):
         mock.assert_called_with(
             form_id=1337,
             service_url="https://kaznet.com/webhook/")
-
-    def test_task_fetch_form_missing_instances_404(self):
-        """
-        Test what happens when task_fetch_form_missing_instances encounters
-        404 errors
-        """
-        self.fail()
