@@ -2,13 +2,15 @@
 Module containing methods that communicate
 with the OnaData API
 """
+import json
 from urllib.parse import urljoin
 
-import dateutil.parser
-import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
+
+import dateutil.parser
+import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
@@ -250,6 +252,52 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
         ona_project_id = project_data.get('projectid')
         process_project(project_data)
         return Project.objects.get(ona_pk=ona_project_id)
+
+
+def fetch_form_data(  # pylint: disable=too-many-arguments
+    formid,  # pylint: disable=bad-continuation
+    latest=None,  # pylint: disable=bad-continuation
+    dataid=None,  # pylint: disable=bad-continuation
+    dataids_only=False,  # pylint: disable=bad-continuation
+    edited_only=False,  # pylint: disable=bad-continuation
+    query=None,  # pylint: disable=bad-continuation
+):
+    """Fetch submission data from Ona API data endpoint.
+
+    Keyword arguments:
+    latest -- fetch only recent records.
+    dataid -- fetch a record with the matching dataid
+    dataids_only -- fetch only record ids.
+    edited_only -- fetch only the records that have been edited
+    query -- apply a specific query when fetching records.
+
+    Originally copied from: https://github.com/onaio/mspray
+    """
+    query_params = None
+    if latest:
+        query_params = {"query": '{"_id":{"$gte":%s}}' % (latest)}
+    if dataids_only:
+        query_params = {} if query_params is None else query_params
+        query_params["fields"] = '["_id"]'
+    if edited_only:
+        query_params = {"query": '{"_edited":"true"}'}
+
+    if query:
+        if query_params and "query" in query_params:
+            _query = json.loads(query_params["query"])
+            if isinstance(_query, dict):
+                _query.update(query)
+                query_params["query"] = json.dumps(_query)
+        else:
+            query_params = {"query": json.dumps(query)}
+
+    if dataid is not None:
+        url = urljoin(
+            settings.ONA_BASE_URL, f"/api/v1/data/{formid}/{dataid}.json")
+    else:
+        url = urljoin(settings.ONA_BASE_URL, f"/api/v1/data/{formid}.json")
+
+    return request(url=url, method='GET', args=query_params)
 
 
 def get_instances(xform_id: int):
