@@ -329,9 +329,10 @@ def fetch_missing_instances(form_id: int):
             # next, we fetch data for these ids
             for dataid in missing_ids:
                 record = fetch_form_data(formid=form_id, dataid=dataid)
-                # save it locally
-                process_instance(
-                    instance_data=record, xform=xform)
+                if record and isinstance(record, dict):
+                    # save it locally
+                    process_instance(
+                        instance_data=record, xform=xform)
 
 
 def process_instance(instance_data: dict, xform: object = None):
