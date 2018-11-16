@@ -4,12 +4,11 @@ Test module for celery tasks for Ona app
 from unittest.mock import call, patch
 from urllib.parse import urljoin
 
+import requests_mock
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
 from django.utils import timezone
-
-import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
@@ -17,11 +16,13 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_create_form_webhook,
-                                   task_fetch_missing_instances,
                                    task_fetch_form_missing_instances,
+                                   task_fetch_missing_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
+                                   task_sync_form_updated_instances,
+                                   task_sync_updated_instances,
                                    task_update_user_profile)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
@@ -296,6 +297,7 @@ class TestCeleryTasks(MainTestBase):
         """
         Test task_fetch_missing_instances
         """
+        XForm.objects.all().delete()
         mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
         mommy.make('ona.XForm', id=67, deleted_at=None)
         form1 = mommy.make('ona.XForm', id=99)
@@ -471,3 +473,50 @@ class TestCeleryTasks(MainTestBase):
         mock.assert_called_with(
             form_id=1337,
             service_url="https://kaznet.com/webhook/")
+
+    @patch('kaznet.apps.ona.tasks.task_sync_form_updated_instances.delay')
+    def test_task_sync_updated_instances(self, mock):
+        """
+        Test task_sync_updated_instances
+        """
+        XForm.objects.all().delete()
+        mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        mommy.make('ona.XForm', id=67, deleted_at=None)
+        form1 = mommy.make('ona.XForm', id=99)
+        form2 = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        task_sync_updated_instances()
+        mock.assert_called_once_with(xform_id=7)
+
+    @patch('kaznet.apps.ona.tasks.sync_updated_instances')
+    def test_task_sync_form_updated_instances(
+            self, sync_updated_instances_mock):
+        """
+        Test task_sync_form_updated_instances
+        """
+        mommy.make('auth.User', username='onasupport')
+        xform = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+        # call the task
+        task_sync_form_updated_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, sync_updated_instances_mock.call_count)
+
+        expected_calls = [
+            call(form_id=xform.ona_pk)
+        ]
+
+        sync_updated_instances_mock.assert_has_calls(expected_calls)
