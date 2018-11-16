@@ -1405,7 +1405,7 @@ class TestApiMethods(MainTestBase):
         Test fetch_missing_instances when we have existing records
         """
         xform = mommy.make('ona.XForm', title="fetch_missing_instances Test")
-        mommy.make('ona.Instance', xform=xform, id=1755)
+        mommy.make('ona.Instance', xform=xform, ona_pk=1755)
         mocked_ids_response = [
             {"_id": 1755}, {"_id": 1756}
         ]

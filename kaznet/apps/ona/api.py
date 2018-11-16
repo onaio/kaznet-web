@@ -340,7 +340,7 @@ def fetch_missing_instances(form_id: int):
 
             # lets get existing ids
             existing_ids = Instance.objects.filter(
-                xform__ona_pk=form_id).values_list('id', flat=True)
+                xform__ona_pk=form_id).values_list('ona_pk', flat=True)
 
             # now we get the missing ids
             missing_ids = sorted(list(set(all_ids) - set(existing_ids)))
