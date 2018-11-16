@@ -2,7 +2,6 @@
 Module containing tests for
 Ona Apps api.py methods
 """
-
 from unittest.mock import patch
 from urllib.parse import urljoin
 
@@ -627,9 +626,9 @@ class TestApiMethods(MainTestBase):
 
     def test_request_session_bad_url(self):
         """
-        Test that an invalid url will fail
-        eventually
+        Test that an invalid url will fail eventually
         """
+
         with self.assertRaises(RetryError):
             request_session(
                 url='http://httpbin.org/status/500',
@@ -1145,16 +1144,18 @@ class TestApiMethods(MainTestBase):
         self.assertFalse(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
         self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
 
-    def test_request_session_retries(self):
+    @patch('kaznet.apps.ona.api.Retry._sleep_backoff')
+    def test_request_session_no_retries_404(self, mock):
         """
-        Test how request_session does retries
-
-        Specifically:
-            - it only retries the set number of times
-            - it only retries for certain HTTP statuc codes
-            - the backoff factor between retries increases exponentially
+        Test how that 404s are not retried
         """
-        self.fail()
+        request_session(
+            url='http://httpbin.org/status/404',
+            method='GET',
+            retries=2,
+            backoff_factor=0)
+        # no retries!!
+        self.assertFalse(mock.called)
 
     @override_settings(ONA_BASE_URL='https://mosh-ona.io')
     @requests_mock.Mocker()
