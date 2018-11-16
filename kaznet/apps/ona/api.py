@@ -303,6 +303,25 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
     return request(url=url, method='GET', args=query_params)
 
 
+def sync_updated_instances(form_id: int):
+    """
+    Attempts to get and sync updated instances from Onadata
+    """
+    try:
+        the_xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        raw_ids = fetch_form_data(
+            formid=the_xform.ona_pk,
+            dataids_only=True,
+            edited_only=True)
+        if isinstance(raw_ids, list) and raw_ids:
+            pks = [rec['_id'] for rec in raw_ids]
+            # next, we fetch data for these ids
+            process_instance_ids(list_of_ids=pks, xform=the_xform)
+
+
 def fetch_missing_instances(form_id: int):
     """
     Attempts to fetch missing instances from Onadata
@@ -327,12 +346,19 @@ def fetch_missing_instances(form_id: int):
             missing_ids = sorted(list(set(all_ids) - set(existing_ids)))
 
             # next, we fetch data for these ids
-            for dataid in missing_ids:
-                record = fetch_form_data(formid=form_id, dataid=dataid)
-                if record and isinstance(record, dict):
-                    # save it locally
-                    process_instance(
-                        instance_data=record, xform=xform)
+            process_instance_ids(list_of_ids=missing_ids, xform=xform)
+
+
+def process_instance_ids(list_of_ids: list, xform: object):
+    """
+    Takes a list of Onadata Instance ids and processes them
+    """
+    for dataid in list_of_ids:
+        record = fetch_form_data(formid=xform.ona_pk, dataid=dataid)
+        if record and isinstance(record, dict):  
+            # save it locally
+            process_instance(
+                instance_data=record, xform=xform)
 
 
 def process_instance(instance_data: dict, xform: object = None):
