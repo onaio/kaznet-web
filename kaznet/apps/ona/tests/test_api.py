@@ -22,7 +22,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
-                                 delete_filtered_dataset,
+                                 delete_filtered_dataset, fetch_form_data,
                                  get_and_process_xforms, get_instance,
                                  get_instances, get_project, get_project_obj,
                                  get_projects, get_xform, get_xform_obj,
@@ -1214,7 +1214,6 @@ class TestApiMethods(MainTestBase):
         self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
 
     @override_settings(ONA_BASE_URL='https://mosh-ona.io')
-    # @patch('kaznet.apps.ona.api.request')
     @requests_mock.Mocker()
     def test_get_instances_404(self, request_mocker):
         """
@@ -1257,3 +1256,65 @@ class TestApiMethods(MainTestBase):
             - sleep between pagination requests
         """
         self.fail()
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1757
+            }
+        ]
+        mocked_single_submission_response = [{
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": 53,
+            "_id": 1755
+        }]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+        single_submission_url = urljoin(
+            settings.ONA_BASE_URL, 'api/v1/data/53/1755.json')
+        mocked.get(single_submission_url,
+                   json=mocked_single_submission_response)
+
+        one_submission_data = fetch_form_data(formid=53, dataid=1755)
+        self.assertEqual(
+            one_submission_data, mocked_single_submission_response)
+        self.assertTrue(mocked.called)
+        # it was again not called with any params
+        self.assertEqual(None, mocked.last_request.text)
+        # now called twice
+        self.assertEqual(2, mocked.call_count)
