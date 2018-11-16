@@ -43,6 +43,10 @@ CELERY_ROUTES = {
         'queue': 'submissions'},
     'kaznet.apps.ona.tasks.task_fetch_form_missing_instances': {
         'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_sync_updated_instances': {
+        'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_sync_form_updated_instances': {
+        'queue': 'submissions'},
     'kaznet.apps.ona.tasks.task_fetch_projects': {'queue': 'forms'},
 }
 
@@ -50,6 +54,10 @@ CELERY_BEAT_SCHEDULE = {
     'fetch_missing_instances': {
         'task': 'task_fetch_missing_instances',
         'schedule': crontab(hour='*', minute='*/30'),  # every 30 min
+    },
+    'sync_updated_instances': {
+        'task': 'task_sync_updated_instances',
+        'schedule': crontab(hour='*/1'),  # every 1 hr
     },
     'fetch_projects': {
         'task': 'task_fetch_projects',
