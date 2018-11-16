@@ -300,6 +300,37 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
     return request(url=url, method='GET', args=query_params)
 
 
+def fetch_missing_instances(form_id: int):
+    """
+    Attempts to fetch missing instances from Onadata
+    """
+    try:
+        xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:
+        pass
+    else:
+        # does this form even have submissions?
+        raw_id_data = fetch_form_data(formid=form_id, dataids_only=True)
+        if isinstance(raw_id_data, list) and raw_id_data:
+            # we have some submissions, lets get the submissions ids from Ona
+            all_ids = [rec['_id'] for rec in raw_id_data]
+            all_ids.sort()
+
+            # lets get existing ids
+            existing_ids = Instance.objects.filter(
+                xform__ona_pk=form_id).values_list('id', flat=True)
+
+            # now we get the missing ids
+            missing_ids = sorted(list(set(all_ids) - set(existing_ids)))
+
+            # next, we fetch data for these ids
+            for dataid in missing_ids:
+                record = fetch_form_data(formid=form_id, dataid=dataid)
+                # save it locally
+                process_instance(
+                    instance_data=record, xform=xform)
+
+
 def get_instances(xform_id: int):
     """
     Custom Method that Takes in an XForm Object and Retrieves
@@ -366,6 +397,7 @@ def process_instance(instance_data: dict, xform: object = None):
             user = User.objects.get(
                 username=instance_data.get("_submitted_by"))
         except User.DoesNotExist:  # pylint: disable=no-member
+            # the user who collected this data does not exist locally
             pass
         else:
             if xform is not None:
