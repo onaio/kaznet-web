@@ -355,7 +355,7 @@ def process_instance_ids(list_of_ids: list, xform: object):
     """
     for dataid in list_of_ids:
         record = fetch_form_data(formid=xform.ona_pk, dataid=dataid)
-        if record and isinstance(record, dict):  
+        if record and isinstance(record, dict):
             # save it locally
             process_instance(
                 instance_data=record, xform=xform)
