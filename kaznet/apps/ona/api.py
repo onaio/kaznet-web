@@ -255,12 +255,12 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
 
 
 def fetch_form_data(  # pylint: disable=too-many-arguments
-    formid,  # pylint: disable=bad-continuation
-    latest=None,  # pylint: disable=bad-continuation
-    dataid=None,  # pylint: disable=bad-continuation
-    dataids_only=False,  # pylint: disable=bad-continuation
-    edited_only=False,  # pylint: disable=bad-continuation
-    query=None,  # pylint: disable=bad-continuation
+    formid: int,  # pylint: disable=bad-continuation
+    latest: int = None,  # pylint: disable=bad-continuation
+    dataid: int = None,  # pylint: disable=bad-continuation
+    dataids_only: bool = False,  # pylint: disable=bad-continuation
+    edited_only: bool = False,  # pylint: disable=bad-continuation
+    query: dict = None,  # pylint: disable=bad-continuation
 ):
     """Fetch submission data from Ona API data endpoint.
 
