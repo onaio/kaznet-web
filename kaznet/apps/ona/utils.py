@@ -2,11 +2,12 @@
 utils module for Ona app
 """
 from django.db import transaction
+from django.db.models import Q
 
 from tasking.utils import get_allowed_contenttypes
 
 from kaznet.apps.main.models import Submission
-from kaznet.apps.ona.models import Instance
+from kaznet.apps.ona.models import Instance, XForm
 
 
 @transaction.atomic
@@ -45,3 +46,21 @@ def delete_xform(xform: object):
         delete_instance(instance)
     # finally delete the XForm in a way that singals are sent
     xform.delete()
+
+
+@transaction.atomic
+def delete_project(project: object):
+    """
+    This method attempts to cleanly delete an Onadata Project as well as all
+    associated XForms, Instances and Submissions.  The entire transaction is
+    atomic and is only successfully committed to the database when everything
+    PASSES
+    """
+    # get all XForms
+    xforms = XForm.objects.filter(  # pylint: disable=no-member
+        Q(ona_project_id=project.ona_pk) | Q(project=project))
+    # delete all XForms safely
+    for xform in xforms:
+        delete_xform(xform)
+    # finally delete the Project in a way that signals are called
+    project.delete()
