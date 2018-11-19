@@ -12,8 +12,8 @@ from model_mommy import mommy
 
 from kaznet.apps.main.models import Bounty, Location, Submission, Task
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.ona.models import Instance, XForm
-from kaznet.apps.ona.utils import delete_instance, delete_xform
+from kaznet.apps.ona.models import Instance, XForm, Project
+from kaznet.apps.ona.utils import delete_instance, delete_project, delete_xform
 
 
 class TestUtils(MainTestBase):
@@ -158,7 +158,7 @@ class TestUtils(MainTestBase):
 
     def test_delete_xform_atomic(self):
         """
-        Test delete_xform
+        Test delete_xform is atomic
         """
         xform = mommy.make('ona.XForm')
         instance = mommy.make('ona.Instance', xform=xform)
@@ -216,6 +216,155 @@ class TestUtils(MainTestBase):
 
         # nothing was deleted
         self.assertTrue(XForm.objects.filter(id=xform.id).exists())
+        self.assertTrue(Instance.objects.filter(id=instance.id).exists())
+        self.assertTrue(Submission.objects.filter(id=submission.id).exists())
+        self.assertTrue(Bounty.objects.filter(id=bounty.id).exists())
+        self.assertTrue(Location.objects.filter(id=location.id).exists())
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+        self.assertTrue(Task.objects.filter(id=task.id).exists())
+
+        # the task status did not change
+        task.refresh_from_db()
+        self.assertEqual(Task.ACTIVE, task.status)
+
+    def test_delete_project(self):
+        """
+        Test delete_xform
+        """
+        project = mommy.make('ona.Project')
+        xform = mommy.make('ona.XForm', project=project)
+        xform2 = mommy.make('ona.XForm', ona_project_id=project.ona_pk)
+        instance = mommy.make('ona.Instance', xform=xform)
+        task = mommy.make(
+            'main.Task', name='Quest',
+            target_object_id=xform.id,
+            target_content_type=self.xform_type,
+            status=Task.ACTIVE
+        )
+        location = mommy.make('main.Location', name='Voi')
+        user = mommy.make('auth.User', first_name='Coco')
+        bounty = mommy.make(
+            'main.Bounty', task=task, amount=Money('50', 'KES'))
+        submission = mommy.make(
+            'main.Submission',
+            task=task,
+            location=location,
+            user=user,
+            submission_time=parse("2018-09-04T00:00:00+00:00"),
+            status=Submission.APPROVED,
+            target_object_id=instance.id,
+            target_content_type=self.instance_type
+        )
+
+        delete_project(project=project)
+
+        # the Project, XForm, Instance and Submission were deleted
+        self.assertFalse(Project.objects.filter(id=project.id).exists())
+        self.assertFalse(XForm.objects.filter(id=xform.id).exists())
+        self.assertFalse(XForm.objects.filter(id=xform2.id).exists())
+        self.assertFalse(Instance.objects.filter(id=instance.id).exists())
+        self.assertFalse(Submission.objects.filter(id=submission.id).exists())
+
+        # these other models were not deleted
+        self.assertTrue(Bounty.objects.filter(id=bounty.id).exists())
+        self.assertTrue(Location.objects.filter(id=location.id).exists())
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+        self.assertTrue(Task.objects.filter(id=task.id).exists())
+
+        # the task is now draft
+        task.refresh_from_db()
+        self.assertEqual(Task.DRAFT, task.status)
+
+    def test_delete_project_atomic(self):
+        """
+        Test delete_project is atomic
+        """
+        project = mommy.make('ona.Project')
+        xform = mommy.make('ona.XForm', project=project)
+        xform2 = mommy.make('ona.XForm', ona_project_id=project.ona_pk)
+        instance = mommy.make('ona.Instance', xform=xform)
+        task = mommy.make(
+            'main.Task', name='Quest',
+            target_object_id=xform.id,
+            target_content_type=self.xform_type,
+            status=Task.ACTIVE
+        )
+        location = mommy.make('main.Location', name='Voi')
+        user = mommy.make('auth.User', first_name='Coco')
+        bounty = mommy.make(
+            'main.Bounty', task=task, amount=Money('50', 'KES'))
+        submission = mommy.make(
+            'main.Submission',
+            task=task,
+            location=location,
+            user=user,
+            submission_time=parse("2018-09-04T00:00:00+00:00"),
+            status=Submission.APPROVED,
+            target_object_id=instance.id,
+            target_content_type=self.instance_type
+        )
+
+        with patch('kaznet.apps.ona.models.Project.delete') as mock:
+            # we want a database-level error to happen when we attempt to
+            # delete a project
+            mock.side_effect = IntegrityError
+
+            # this is necessary so that this test does not fail here
+            with self.assertRaises(IntegrityError):
+                delete_project(project=project)
+
+        # nothing deleted
+        self.assertTrue(Project.objects.filter(id=project.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
+        self.assertTrue(Instance.objects.filter(id=instance.id).exists())
+        self.assertTrue(Submission.objects.filter(id=submission.id).exists())
+        self.assertTrue(Bounty.objects.filter(id=bounty.id).exists())
+        self.assertTrue(Location.objects.filter(id=location.id).exists())
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+        self.assertTrue(Task.objects.filter(id=task.id).exists())
+
+        # the task status did not change
+        task.refresh_from_db()
+        self.assertEqual(Task.ACTIVE, task.status)
+
+        with patch('kaznet.apps.ona.utils.delete_xform') as mock:
+            # we want a database-level error to happen when we attempt to
+            # delete an xform, instance or submission
+            mock.side_effect = IntegrityError
+
+            # this is necessary so that this test does not fail here
+            with self.assertRaises(IntegrityError):
+                delete_project(project=project)
+
+        # nothing deleted
+        self.assertTrue(Project.objects.filter(id=project.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
+        self.assertTrue(Instance.objects.filter(id=instance.id).exists())
+        self.assertTrue(Submission.objects.filter(id=submission.id).exists())
+        self.assertTrue(Bounty.objects.filter(id=bounty.id).exists())
+        self.assertTrue(Location.objects.filter(id=location.id).exists())
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+        self.assertTrue(Task.objects.filter(id=task.id).exists())
+
+        # the task status did not change
+        task.refresh_from_db()
+        self.assertEqual(Task.ACTIVE, task.status)
+
+        with patch('kaznet.apps.ona.utils.delete_instance') as mock:
+            # we want a database-level error to happen when we attempt to
+            # delete an instance or a submission
+            mock.side_effect = IntegrityError
+
+            # this is necessary so that this test does not fail here
+            with self.assertRaises(IntegrityError):
+                delete_project(project=project)
+
+        # nothing deleted
+        self.assertTrue(Project.objects.filter(id=project.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
         self.assertTrue(Instance.objects.filter(id=instance.id).exists())
         self.assertTrue(Submission.objects.filter(id=submission.id).exists())
         self.assertTrue(Bounty.objects.filter(id=bounty.id).exists())
