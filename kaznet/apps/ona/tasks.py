@@ -5,20 +5,20 @@ from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
+from celery import task as celery_task
 from django.contrib.auth.models import User
-from django.utils import timezone
 from django.contrib.sites.models import Site
 from django.urls import reverse
-
-from celery import task as celery_task
+from django.utils import timezone
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.api import (get_and_process_xforms, get_instances,
-                                 get_projects, process_instance,
-                                 process_projects,
-                                 update_user_profile_metadata,
-                                 create_filtered_data_sets,
-                                 create_form_webhook)
+from kaznet.apps.ona.api import (create_filtered_data_sets,
+                                 create_form_webhook, fetch_missing_instances,
+                                 get_and_process_xforms, get_projects,
+                                 process_projects, sync_deleted_instances,
+                                 sync_deleted_projects, sync_deleted_xforms,
+                                 sync_updated_instances,
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 
 
@@ -51,8 +51,9 @@ def task_process_project_xforms(forms: list, project_id: int):
     get_and_process_xforms(forms_data=forms, project_id=project_id)
 
 
-@celery_task(name="task_fetch_form_instances")  # pylint: disable=not-callable
-def task_fetch_form_instances(xform_id: int):
+# pylint: disable=not-callable
+@celery_task(name="task_fetch_form_missing_instances")
+def task_fetch_form_missing_instances(xform_id: int):
     """
     Gets and processes instances from Onadata's API
     """
@@ -61,18 +62,41 @@ def task_fetch_form_instances(xform_id: int):
     except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
-        instances_iter = get_instances(xform_id=xform.ona_pk)
-        for _ in instances_iter:
-            instance_data_list = _
-            for instance_data in instance_data_list:
-                process_instance(instance_data=instance_data, xform=xform)
+        fetch_missing_instances(form_id=xform.ona_pk)
 
 
-@celery_task(name="task_fetch_all_instances")  # pylint: disable=not-callable
-def task_fetch_all_instances():
+# pylint: disable=not-callable
+@celery_task(name="task_sync_form_updated_instances")
+def task_sync_form_updated_instances(xform_id: int):
     """
-    DEPRECATED.  USE WEBHOOKS
+    Checks for updated instances for a form and then updates them
+    """
+    try:
+        xform = XForm.objects.get(id=xform_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        sync_updated_instances(form_id=xform.ona_pk)
 
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_updated_instances")
+def task_sync_updated_instances():
+    """
+    Checks for updated instances for all forms and then updates them
+    """
+    xforms = XForm.objects.filter(deleted_at=None)
+    for xform in xforms:
+        if xform.has_task:
+            task = xform.task
+            if task is not None and task.status == Task.ACTIVE:
+                task_sync_form_updated_instances.delay(xform_id=xform.id)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_fetch_missing_instances")
+def task_fetch_missing_instances():
+    """
     Gets and processes instances for all known XForms
     """
     forms = XForm.objects.filter(deleted_at=None)
@@ -80,7 +104,7 @@ def task_fetch_all_instances():
         if form.has_task:
             the_task = form.task
             if the_task is not None and the_task.status == Task.ACTIVE:
-                task_fetch_form_instances.delay(xform_id=form.id)
+                task_fetch_form_missing_instances.delay(xform_id=form.id)
 
 
 @celery_task(name="task_process_user_profiles")  # pylint: disable=not-callable
@@ -127,3 +151,46 @@ def task_create_form_webhook(form_id: int):
         form_id=form_id,
         service_url=service_url
     )
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_form_deleted_instances")
+def task_sync_form_deleted_instances(xform_id: int):
+    """
+    Checks for deleted instances for a form and then syncs them
+    """
+    try:
+        the_xform = XForm.objects.get(id=xform_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        sync_deleted_instances(form_id=the_xform.ona_pk)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_instances")
+def task_sync_deleted_instances():
+    """
+    Checks for deleted instances for all forms and then syncs them
+    """
+    xforms = XForm.objects.filter(deleted_at=None)
+    for xform in xforms:
+        task_sync_form_deleted_instances.delay(xform_id=xform.id)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_xforms")
+def task_sync_deleted_xforms(username: str):
+    """
+    checks for deleted xforms and syncs them
+    """
+    sync_deleted_xforms(username=username)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_projects")
+def task_sync_deleted_projects(username: str):
+    """
+    checks for deleted projects and syncs them
+    """
+    sync_deleted_projects(username=username)

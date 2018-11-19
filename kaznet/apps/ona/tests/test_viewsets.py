@@ -167,6 +167,8 @@ class TestXFormViewSet(MainTestBase):
         """
         Test that you can search by title
         """
+        XForm.objects.all().delete()
+
         user = create_admin_user()
         mommy.make('ona.XForm', title='Coconut')
         mommy.make('ona.XForm', title='Generic', _quantity=7)

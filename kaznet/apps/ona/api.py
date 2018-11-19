@@ -2,13 +2,15 @@
 Module containing methods that communicate
 with the OnaData API
 """
+import json
 from urllib.parse import urljoin
 
-import dateutil.parser
-import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
+
+import dateutil.parser
+import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
@@ -21,6 +23,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.ona.utils import delete_project, delete_xform, delete_instance
 from kaznet.apps.users.models import UserProfile
 
 SUCCESS_STATUSES = [200, 201]
@@ -34,7 +37,7 @@ def request_session(
         username: str = settings.ONA_USERNAME,
         password: str = settings.ONA_PASSWORD,
         retries=3,
-        backoff_factor=1,
+        backoff_factor=1.1,
         status_forcelist=(500, 502, 504),
 ):  # pylint: disable=too-many-arguments
     """
@@ -42,7 +45,10 @@ def request_session(
     retries, backoff_factor and status_forcelist. It creates a Request
     Session and Retry Object and mounts a HTTP Adapter to the
     Session and Sends a request to the url. It then returns the Response.
-    """
+
+    The backoff policy is documented here:
+    https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.retry
+    """  # noqa
     session = requests.Session()
     retries = Retry(
         total=retries,
@@ -89,8 +95,8 @@ def request(url: str, args: dict = None, method: str = 'GET'):
     and confirms it has a valid JSON return
     """
     response = request_session(url, method, args)
-
     try:
+        # you only come here if we can understand the API response
         return response.json()
     except ValueError:
         return None
@@ -252,46 +258,130 @@ def get_project_obj(ona_project_id: int = None, project_url: str = None):
         return Project.objects.get(ona_pk=ona_project_id)
 
 
-def get_instances(xform_id: int):
-    """
-    Custom Method that Takes in an XForm Object and Retrieves
-    and returns Data on its Instances from OnaData
-    """
-    end_page = None
-    start = 0
+def fetch_form_data(  # pylint: disable=too-many-arguments
+    formid: int,  # pylint: disable=bad-continuation
+    latest: int = None,  # pylint: disable=bad-continuation
+    dataid: int = None,  # pylint: disable=bad-continuation
+    dataids_only: bool = False,  # pylint: disable=bad-continuation
+    edited_only: bool = False,  # pylint: disable=bad-continuation
+    query: dict = None,  # pylint: disable=bad-continuation
+):
+    """Fetch submission data from Ona API data endpoint.
 
-    while end_page is None:
-        url = urljoin(settings.ONA_BASE_URL, f'api/v1/data/{xform_id}')
-        args = {'start': start, 'limit': 100}
-        data = request(url, args)
-        start = start + 100
-        if isinstance(data, list):
-            if data == []:
-                end_page = True
-                break
-            yield data
+    Keyword arguments:
+    latest -- fetch only recent records.
+    dataid -- fetch a record with the matching dataid
+    dataids_only -- fetch only record ids.
+    edited_only -- fetch only the records that have been edited
+    query -- apply a specific query when fetching records.
+
+    Originally copied from: https://github.com/onaio/mspray
+    """
+    query_params = None
+    if latest:
+        query_params = {"query": '{"_id":{"$gte":%s}}' % (latest)}
+    if dataids_only:
+        query_params = {} if query_params is None else query_params
+        query_params["fields"] = '["_id"]'
+    if edited_only:
+        query_params = {"query": '{"_edited":"true"}'}
+
+    if query:
+        if query_params and "query" in query_params:
+            _query = json.loads(query_params["query"])
+            if isinstance(_query, dict):
+                _query.update(query)
+                query_params["query"] = json.dumps(_query)
+        else:
+            query_params = {"query": json.dumps(query)}
+
+    if dataid is not None:
+        url = urljoin(
+            settings.ONA_BASE_URL, f"/api/v1/data/{formid}/{dataid}.json")
+    else:
+        url = urljoin(settings.ONA_BASE_URL, f"/api/v1/data/{formid}.json")
+
+    return request(url=url, method='GET', args=query_params)
 
 
-def get_instance(xform_id: int, instance_id: int):
+def sync_updated_instances(form_id: int):
     """
-    Custom Method that takes in an XFormID and InstanceID
-    and retrieves instance data
+    Attempts to get and sync updated instances from Onadata
     """
-    return request(
-        urljoin(settings.ONA_BASE_URL,
-                f'api/v1/data/{xform_id}/{instance_id}'))
+    try:
+        the_xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        raw_ids = fetch_form_data(
+            formid=the_xform.ona_pk,
+            dataids_only=True,
+            edited_only=True)
+        if isinstance(raw_ids, list) and raw_ids:
+            pks = [rec['_id'] for rec in raw_ids]
+            # next, we fetch data for these ids
+            process_instance_ids(list_of_ids=pks, xform=the_xform)
 
 
-def process_instances(instances_data: iter, xform: object = None):
+def sync_deleted_instances(form_id: int):
     """
-    Custom Method that takes in a Dictionary containing Data
-    of Instances and an XForm object then processes the Instances
-    by sending each one to process_instance
+    Attempts to get and sync deleted instances from Onadata
     """
-    if instances_data is not None:
-        for instance_data_list in instances_data:
-            for instance_data in instance_data_list:
-                process_instance(instance_data, xform)
+    try:
+        the_xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        raw_ids = fetch_form_data(
+            formid=the_xform.ona_pk,
+            dataids_only=True)
+        if isinstance(raw_ids, list) and raw_ids:
+            onadata_instance_pks = [rec['_id'] for rec in raw_ids]
+            local_instances = Instance.objects.filter(xform=the_xform)
+            deleted_instances = local_instances.exclude(
+                ona_pk__in=onadata_instance_pks)
+            # delete safely
+            for instance in deleted_instances:
+                delete_instance(instance)
+
+
+def fetch_missing_instances(form_id: int):
+    """
+    Attempts to fetch missing instances from Onadata
+    """
+    try:
+        xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        # does this form even have submissions?
+        raw_id_data = fetch_form_data(formid=form_id, dataids_only=True)
+        if isinstance(raw_id_data, list) and raw_id_data:
+            # we have some submissions, lets get the submissions ids from Ona
+            all_ids = [rec['_id'] for rec in raw_id_data]
+            all_ids.sort()
+
+            # lets get existing ids
+            existing_ids = Instance.objects.filter(
+                xform__ona_pk=form_id).values_list('ona_pk', flat=True)
+
+            # now we get the missing ids
+            missing_ids = sorted(list(set(all_ids) - set(existing_ids)))
+
+            # next, we fetch data for these ids
+            process_instance_ids(list_of_ids=missing_ids, xform=xform)
+
+
+def process_instance_ids(list_of_ids: list, xform: object):
+    """
+    Takes a list of Onadata Instance ids and processes them
+    """
+    for dataid in list_of_ids:
+        record = fetch_form_data(formid=xform.ona_pk, dataid=dataid)
+        if record and isinstance(record, dict):
+            # save it locally
+            process_instance(
+                instance_data=record, xform=xform)
 
 
 def process_instance(instance_data: dict, xform: object = None):
@@ -312,6 +402,7 @@ def process_instance(instance_data: dict, xform: object = None):
             user = User.objects.get(
                 username=instance_data.get("_submitted_by"))
         except User.DoesNotExist:  # pylint: disable=no-member
+            # the user who collected this data does not exist locally
             pass
         else:
             if xform is not None:
@@ -581,3 +672,42 @@ def create_form_webhook(
         form.save()
 
         return response
+
+
+def sync_deleted_projects(username: str = settings.ONA_USERNAME):
+    """
+    Checks for deleted projects on Onadata
+    If it finds any, it deletes them locally
+    """
+    onadata_projects = get_projects(username=username)
+    if isinstance(onadata_projects, list) and onadata_projects:
+        onadata_project_pks = [rec['projectid'] for rec in onadata_projects]
+        local_projects = Project.objects.filter(deleted_at=None)
+        deleted_projects = local_projects.exclude(
+            ona_pk__in=onadata_project_pks)
+
+        # delete projects safely
+        for proj in deleted_projects:
+            delete_project(proj)
+
+
+def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
+    """
+    Checks for deleted xforms on Onadata
+    If it finds any, it deletes them locally
+    """
+    onadata_projects = get_projects(username=username)
+    onadata_xform_ids = []
+    if isinstance(onadata_projects, list) and onadata_projects:
+        for project in onadata_projects:
+            project_forms = project.get('forms')
+            xform_ids = [x['formid'] for x in project_forms if x.get('formid')]
+            onadata_xform_ids = onadata_xform_ids + xform_ids
+
+    local_xforms = XForm.objects.filter(deleted_at=None)
+
+    deleted_xforms = local_xforms.exclude(ona_pk__in=onadata_xform_ids)
+
+    # delete xforms safely
+    for xform in deleted_xforms:
+        delete_xform(xform)

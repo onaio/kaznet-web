@@ -2,7 +2,6 @@
 Module containing tests for
 Ona Apps api.py methods
 """
-
 from unittest.mock import patch
 from urllib.parse import urljoin
 
@@ -19,17 +18,21 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
+from kaznet.apps.main.models import Task, Submission
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
-                                 delete_filtered_dataset,
-                                 get_and_process_xforms, get_instance,
-                                 get_instances, get_project, get_project_obj,
-                                 get_projects, get_xform, get_xform_obj,
-                                 process_instance, process_instances,
+                                 delete_filtered_dataset, fetch_form_data,
+                                 fetch_missing_instances,
+                                 get_and_process_xforms, get_project,
+                                 get_project_obj, get_projects, get_xform,
+                                 get_xform_obj, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
-                                 request_session, update_user_profile_metadata)
+                                 request_session, sync_deleted_instances,
+                                 sync_deleted_projects, sync_deleted_xforms,
+                                 sync_updated_instances,
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -79,8 +82,7 @@ class TestApiMethods(MainTestBase):
         correct data
         """
         mocked_projects_data = [{
-            "projectid":
-            18,
+            "projectid": 18,
             "forms": [{
                 "name": "Changed",
                 "formid": 53,
@@ -104,33 +106,81 @@ class TestApiMethods(MainTestBase):
 
         self.assertEqual(response, mocked_projects_data)
 
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
     @requests_mock.Mocker()
-    def test_get_instances(self, mocked):
+    def test_sync_deleted_projects(self, mocked):
         """
-        Test to see that get_instances returns
-        the correct data
+        Test sync_deleted_projects
         """
-        mocked_instances = [{
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_id": 1755
-        }]
-        mocked.get(
-            urljoin(settings.ONA_BASE_URL,
-                    '/api/v1/data/53?start=0&limit=100'),
-            json=mocked_instances)
-        mocked.get(
-            urljoin(settings.ONA_BASE_URL,
-                    '/api/v1/data/53?start=100&limit=100'),
-            json=[])
+        Project.objects.all().delete()
+        XForm.objects.all().delete()
+        Instance.objects.all().delete()
+        Submission.objects.all().delete()
 
-        response = get_instances(53)
-        for i in response:
-            mocked_data = i
-        self.assertEqual(mocked_data, mocked_instances)
+        proj = mommy.make('ona.Project', ona_pk=1337)
+
+        # make 3 more projects
+        mommy.make('ona.Project', _quantity=3)
+
+        # make some forms
+        proj_with_submissions = mommy.make('ona.Project')
+        xform = mommy.make('ona.XForm', ona_project_id=1337,
+                           project=proj_with_submissions)
+
+        xform_id = xform.id
+        deleted_projects = Project.objects.exclude(
+            id=proj.id).values_list('id', flat=True)
+
+        # make some instances
+        mommy.make('ona.Instance', _quantity=13, xform=xform)
+        instance = mommy.make('ona.Instance', xform=xform)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        mocked_projects_data = [{
+            "projectid": 1337,
+            "forms": [{
+                "name": "Changed",
+                "formid": 53,
+                "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "is_merged_dataset": False,
+                "version": "vQZYoAo96pzTHZHY2iWuQA",
+                "owner": "https://example.com/api/v1/users/kaznet",
+            }],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
+
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json=mocked_projects_data)
+        sync_deleted_projects(username=settings.ONA_USERNAME)
+
+        proj.refresh_from_db()
+        self.assertEqual(1, Project.objects.count())
+        self.assertEqual(proj, Project.objects.first())
+
+        self.assertEqual(
+            0, XForm.objects.filter(project__id__in=deleted_projects).count())
+        self.assertEqual(
+            0, Instance.objects.filter(xform__id=xform_id).count())
+
+        task.refresh_from_db()
+        self.assertEqual(Task.DRAFT, task.status)
+        self.assertEqual(0, task.get_submissions())
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
@@ -173,26 +223,6 @@ class TestApiMethods(MainTestBase):
         response = get_xform(53)
 
         self.assertTrue(response, mocked_xform_data)
-
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
-    @requests_mock.Mocker()
-    def test_get_instance(self, mocked):
-        """
-        Test to see that get_instance returns the correct
-        data
-        """
-        mocked_instance_data = {
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_id": 1755
-        }
-
-        url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53/142')
-        mocked.get(url, json=mocked_instance_data)
-        response = get_instance(53, 142)
-        self.assertTrue(response, mocked_instance_data)
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
@@ -469,26 +499,6 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(Project.objects.all().count(), 0)
         self.assertEqual(XForm.objects.all().count(), 0)
 
-    @patch('kaznet.apps.ona.api.process_instance')
-    def test_process_instances(self, mockclass):
-        """
-        Test that process_instances calls process_instance
-        """
-        mocked_instances = ([[{
-            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "_edited": True,
-            "_last_edited": "2018-05-30T07:51:59.187363Z",
-            "_xform_id": 53,
-            "_submitted_by": "sluggie",
-            "_id": 1755
-        }]])
-
-        mocked_xform = mommy.make('ona.XForm', ona_pk=1755)
-
-        # Test that when valid forms data is passed it calls process_instance
-        process_instances(mocked_instances, mocked_xform)
-        mockclass.assert_called_with(mocked_instances[0][0], mocked_xform)
-
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
     def test_process_instance_good_data(self, mocked):
@@ -695,9 +705,9 @@ class TestApiMethods(MainTestBase):
 
     def test_request_session_bad_url(self):
         """
-        Test that an invalid url will fail
-        eventually
+        Test that an invalid url will fail eventually
         """
+
         with self.assertRaises(RetryError):
             request_session(
                 url='http://httpbin.org/status/500',
@@ -1212,3 +1222,387 @@ class TestApiMethods(MainTestBase):
         xform.refresh_from_db()
         self.assertFalse(xform.json[HAS_FILTERED_DATASETS_FIELD_NAME])
         self.assertEqual([], xform.json[FILTERED_DATASETS_FIELD_NAME])
+
+    @patch('kaznet.apps.ona.api.Retry._sleep_backoff')
+    def test_request_session_no_retries_404(self, mock):
+        """
+        Test how that 404s are not retried
+        """
+        request_session(
+            url='http://httpbin.org/status/404',
+            method='GET',
+            retries=2,
+            backoff_factor=0)
+        # no retries!!
+        self.assertFalse(mock.called)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1757
+            }
+        ]
+        mocked_single_submission_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": 53,
+            "_id": 1755
+        }
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual('', mocked.last_request.query)
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+        single_submission_url = urljoin(
+            settings.ONA_BASE_URL, 'api/v1/data/53/1755.json')
+        mocked.get(single_submission_url,
+                   json=mocked_single_submission_response)
+
+        one_submission_data = fetch_form_data(formid=53, dataid=1755)
+        self.assertDictEqual(
+            one_submission_data, mocked_single_submission_response)
+        self.assertTrue(mocked.called)
+        # it was again not called with any params
+        self.assertEqual('', mocked.last_request.query)
+        self.assertEqual(None, mocked.last_request.text)
+        # now called twice
+        self.assertEqual(2, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_dataids_only(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {"_id": 24873628},
+            {"_id": 24873620},
+            {"_id": 24873235},
+            {"_id": 24873232},
+            {"_id": 18179780},
+            {"_id": 18179451},
+            {"_id": 18179438}
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, dataids_only=True)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual('fields=%5b%22_id%22%5d', mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_edited_only(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            }
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, edited_only=True)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual('query=%7b%22_edited%22%3a%22true%22%7d',
+                         mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_fetch_form_data_latest(self, mocked):
+        """
+        Test fetch_form_data
+        """
+        mocked_response = [
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1755
+            },
+            {
+                "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+                "_edited": False,
+                "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+                "_xform_id": 53,
+                "_id": 1756
+            }
+        ]
+
+        submissions_url = urljoin(settings.ONA_BASE_URL, 'api/v1/data/53.json')
+        mocked.get(submissions_url, json=mocked_response)
+
+        form_data = fetch_form_data(formid=53, latest=1754)
+        self.assertEqual(form_data, mocked_response)
+        self.assertTrue(mocked.called)
+        # it was not called with any params
+        self.assertEqual(
+            'query=%7b%22_id%22%3a%7b%22%24gte%22%3a1754%7d%7d',
+            mocked.last_request.query)
+        # nothing in the request body
+        self.assertEqual(None, mocked.last_request.text)
+        # called once
+        self.assertEqual(1, mocked.call_count)
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_fetch_missing_instances(
+            self, mocked_request, mocked_process_instance):
+        """
+        Test fetch_missing_instances
+        """
+        xform = mommy.make('ona.XForm', title="fetch_missing_instances Test")
+        mocked_ids_response = [
+            {"_id": 1755}
+        ]
+        mocked_record_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": xform.ona_pk,
+            "_id": 1755
+        }
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        record_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}/1755.json')
+        mocked_request.get(record_url, json=mocked_record_response)
+
+        fetch_missing_instances(form_id=xform.ona_pk)
+
+        self.assertEqual(2, mocked_request.call_count)
+        self.assertEqual(1, mocked_process_instance.call_count)
+        mocked_process_instance.assert_called_with(
+            instance_data=mocked_record_response, xform=xform
+        )
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_sync_updated_instances(
+            self, mocked_request, mocked_process_instance):
+        """
+        Test sync_updated_instances
+        """
+        xform = mommy.make('ona.XForm', title="sync_updated_instances Test")
+        mocked_ids_response = [
+            {"_id": 155}
+        ]
+        mocked_record_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": xform.ona_pk,
+            "_id": 155
+        }
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        record_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}/155.json')
+        mocked_request.get(record_url, json=mocked_record_response)
+
+        sync_updated_instances(form_id=xform.ona_pk)
+
+        self.assertEqual(2, mocked_request.call_count)
+        self.assertEqual(1, mocked_process_instance.call_count)
+        mocked_process_instance.assert_called_with(
+            instance_data=mocked_record_response, xform=xform
+        )
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_fetch_missing_instances_with_existing(
+            self, mocked_request, mocked_process_instance):
+        """
+        Test fetch_missing_instances when we have existing records
+        """
+        xform = mommy.make('ona.XForm', title="fetch_missing_instances Test")
+        mommy.make('ona.Instance', xform=xform, ona_pk=1755)
+        mocked_ids_response = [
+            {"_id": 1755}, {"_id": 1756}
+        ]
+        mocked_record_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": xform.ona_pk,
+            "_id": 1756
+        }
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        record_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}/1756.json')
+        mocked_request.get(record_url, json=mocked_record_response)
+
+        fetch_missing_instances(form_id=xform.ona_pk)
+
+        self.assertEqual(2, mocked_request.call_count)
+        self.assertEqual(1, mocked_process_instance.call_count)
+        mocked_process_instance.assert_called_with(
+            instance_data=mocked_record_response, xform=xform
+        )
+
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
+    @requests_mock.Mocker()
+    def test_sync_deleted_xforms(self, mocked):
+        """
+        Test sync_deleted_xforms
+        """
+        XForm.objects.all().delete()
+        Instance.objects.all().delete()
+        Submission.objects.all().delete()
+
+        xform = mommy.make('ona.XForm', ona_pk=53)
+
+        # make one more xform
+        xform2 = mommy.make('ona.XForm', ona_pk=530798)
+
+        # make some instances
+        mommy.make('ona.Instance', _quantity=13, xform=xform)
+        instance = mommy.make('ona.Instance', xform=xform)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        mocked_projects_data = [{
+            "projectid": 1337,
+            "forms": [
+                {
+                    "name": "Alive",
+                    "formid": 530798,
+                    "id_string": "iAmAlive",
+                    "is_merged_dataset": False,
+                    "version": "2",
+                    "owner": "https://example.com/api/v1/users/kaznet",
+                }
+            ],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
+
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json=mocked_projects_data)
+
+        sync_deleted_xforms(username=settings.ONA_USERNAME)
+
+        self.assertFalse(XForm.objects.filter(id=xform.id).exists())
+        self.assertFalse(Instance.objects.filter(xform__id=xform.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
+        task.refresh_from_db()
+        self.assertEqual(Task.DRAFT, task.status)
+        self.assertEqual(0, task.get_submissions())
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_sync_deleted_instances(self, mocked_request):
+        """
+        Test sync_deleted_instances
+        """
+        Instance.objects.all().delete()
+        xform = mommy.make('ona.XForm', title="sync_deleted_instances Test")
+        mocked_ids_response = [
+            {"_id": 159}
+        ]
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        # make some instances
+        instance1 = mommy.make('ona.Instance', xform=xform, ona_pk=155)
+        instance2 = mommy.make('ona.Instance', xform=xform, ona_pk=159)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance1,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        sync_deleted_instances(form_id=xform.ona_pk)
+
+        self.assertFalse(Instance.objects.filter(id=instance1.id).exists())
+        self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
+        task.refresh_from_db()
+        self.assertEqual(0, task.get_submissions())

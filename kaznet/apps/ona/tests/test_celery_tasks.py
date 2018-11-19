@@ -4,12 +4,11 @@ Test module for celery tasks for Ona app
 from unittest.mock import call, patch
 from urllib.parse import urljoin
 
+import requests_mock
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
 from django.utils import timezone
-
-import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
@@ -17,11 +16,17 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_create_form_webhook,
-                                   task_fetch_all_instances,
-                                   task_fetch_form_instances,
+                                   task_fetch_form_missing_instances,
+                                   task_fetch_missing_instances,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
+                                   task_sync_deleted_instances,
+                                   task_sync_deleted_projects,
+                                   task_sync_deleted_xforms,
+                                   task_sync_form_deleted_instances,
+                                   task_sync_form_updated_instances,
+                                   task_sync_updated_instances,
                                    task_update_user_profile)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
@@ -218,22 +223,12 @@ class TestCeleryTasks(MainTestBase):
         self.assertTrue(XForm.objects.filter(ona_pk=7331).exists())
         self.assertTrue(XForm.objects.filter(ona_pk=310).exists())
 
-    @override_settings(ONA_BASE_URL="https://example.com")
-    @patch('kaznet.apps.ona.tasks.process_instance')
-    @requests_mock.Mocker()
-    def test_task_fetch_form_instances(self, process_instance_mock,
-                                       mocked_request):
+    @patch('kaznet.apps.ona.tasks.fetch_missing_instances')
+    def test_task_fetch_form_missing_instances(
+            self, fetch_missing_instances_mock):
         """
-        Test task_fetch_form_instances
+        Test task_fetch_form_missing_instances
         """
-        mocked_request.get(
-            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
-            json=MOCKED_ONA_FORM_DATA
-        )
-        mocked_request.post(
-            urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
-            status_code=201
-        )
         mommy.make('auth.User', username='onasupport')
         xform = mommy.make(
             'ona.XForm',
@@ -241,62 +236,72 @@ class TestCeleryTasks(MainTestBase):
             ona_pk=897,
             id_string='attachment_test',
             title='attachment test')
-        # mock the request
-        mocked_request.get(
-            "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES)
-        mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
         # call the task
-        task_fetch_form_instances(xform_id=xform.id)
-        # process_instance_mock should have been called twice
-        self.assertEqual(2, process_instance_mock.call_count)
+        task_fetch_form_missing_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, fetch_missing_instances_mock.call_count)
 
         expected_calls = [
-            call(instance_data=MOCKED_INSTANCES[0], xform=xform),
-            call(instance_data=MOCKED_INSTANCES[1], xform=xform)
+            call(form_id=xform.ona_pk)
         ]
 
-        process_instance_mock.assert_has_calls(expected_calls)
+        fetch_missing_instances_mock.assert_has_calls(expected_calls)
 
     @override_settings(ONA_BASE_URL="https://example.com")
     @requests_mock.Mocker()
-    def test_task_fetch_form_instances_integration(self, mocked_request):
+    def test_task_fetch_form_missing_instances_integration(
+            self, mocked_request):
         """
-        Test task_fetch_form_instances results in actual instances
+        Test task_fetch_form_missing_instances results in actual instances
         """
         mommy.make('auth.User', username='onasupport')
+        Instance.objects.all().delete()
+
+        # mock the request to get submission ids
+        mocked_ids = [
+            {"_id": 21311495},
+            {"_id": 21311503},
+        ]
         mocked_request.get(
-            urljoin(settings.ONA_BASE_URL, '/api/v1/forms/897/form.json'),
-            json=MOCKED_ONA_FORM_DATA
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897.json'),
+            json=mocked_ids
         )
+
+        # mock the request to create a webook
         mocked_request.post(
             urljoin(settings.ONA_BASE_URL, 'api/v1/dataviews'),
             status_code=201
         )
+
+        # create XForm
         xform = mommy.make(
             'ona.XForm',
             id=7,
             ona_pk=897,
             id_string='attachment_test',
             title='attachment test')
-        # mock the request
+
+        # mock the requests for individual submissions
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=0&limit=100",
-            json=MOCKED_INSTANCES)
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897/21311495.json'),
+            json=MOCKED_INSTANCES[0])
         mocked_request.get(
-            "https://example.com/api/v1/data/897?start=100&limit=100", json=[])
+            urljoin(settings.ONA_BASE_URL, '/api/v1/data/897/21311503.json'),
+            json=MOCKED_INSTANCES[1])
+
         # call the task
-        task_fetch_form_instances(xform_id=xform.id)
+        task_fetch_form_missing_instances(xform_id=xform.id)
+
         # should result in two instances
         self.assertTrue(Instance.objects.filter(ona_pk=21311503).exists())
         self.assertTrue(Instance.objects.filter(ona_pk=21311495).exists())
 
-    @patch('kaznet.apps.ona.tasks.task_fetch_form_instances.delay')
-    def test_task_fetch_all_instances(self, mock):
+    @patch('kaznet.apps.ona.tasks.task_fetch_form_missing_instances.delay')
+    def test_task_fetch_missing_instances(self, mock):
         """
-        Test task_fetch_all_instances
+        Test task_fetch_missing_instances
         """
+        XForm.objects.all().delete()
         mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
         mommy.make('ona.XForm', id=67, deleted_at=None)
         form1 = mommy.make('ona.XForm', id=99)
@@ -311,8 +316,111 @@ class TestCeleryTasks(MainTestBase):
         mommy.make(
             'main.Task', status=Task.ACTIVE, target_content_object=form2)
 
-        task_fetch_all_instances()
+        task_fetch_missing_instances()
         mock.assert_called_once_with(xform_id=7)
+
+    @override_settings(
+        CELERY_TASK_ALWAYS_EAGER=True,
+        ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_task_fetch_missing_instances_404_at_form(
+            self, mocked_request, process_instance_mock):
+        """
+        Test what happens when task_fetch_missing_instances encounters
+        404 errors
+        """
+        XForm.objects.all().delete()
+
+        # create two forms
+        form1 = mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        form2 = mommy.make('ona.XForm', id=67, deleted_at=None)
+
+        # create tasks for the two forms
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        # should get 404 at form level
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}.json')
+        mocked_request.get(raw_ids_url, text='Not Found', status_code=404)
+
+        # only form 2 should run
+        task_fetch_missing_instances()
+
+        # should only have called the requests mock once
+        self.assertEqual(1, mocked_request.call_count)
+
+        # you'll never get to process_instance
+        self.assertFalse(process_instance_mock.called)
+
+    @override_settings(
+        CELERY_TASK_ALWAYS_EAGER=True,
+        ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    @patch('kaznet.apps.ona.api.process_instance')
+    def test_task_fetch_missing_instances_404_at_instance(
+            self, mocked_request, process_instance_mock):
+        """
+        Test what happens when task_fetch_missing_instances encounters
+        404 errors
+        """
+        XForm.objects.all().delete()
+        Instance.objects.all().delete()
+
+        # create two forms
+        form1 = mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        form2 = mommy.make('ona.XForm', id=67, deleted_at=None)
+
+        # create tasks for the two forms
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        # should not get 404 at form level
+        mocked_ids_response = [
+            {"_id": 1755}, {"_id": 1757}
+        ]
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}.json')
+        mocked_request.get(
+            raw_ids_url, json=mocked_ids_response, status_code=200)
+
+        # should get 404 at one instance
+        sub2_response = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_edited": False,
+            "_last_edited": "2018-05-30T07:51:59.187363+00:00",
+            "_xform_id": form2.ona_pk,
+            "_id": 1757
+        }
+
+        submission1_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}/1755.json')
+        mocked_request.get(
+            submission1_url,
+            text='Not found',
+            status_code=404)
+
+        submission2_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{form2.ona_pk}/1757.json')
+        mocked_request.get(
+            submission2_url,
+            json=sub2_response,
+            status_code=200)
+
+        # only form 2 should run as it is not deleted
+        task_fetch_missing_instances()
+
+        # should have called the requests mock once
+        self.assertEqual(3, mocked_request.call_count)
+
+        # you'll get to process_instance only once
+        self.assertEqual(1, process_instance_mock.call_count)
+        process_instance_mock.assert_called_once_with(
+            instance_data=sub2_response, xform=form2
+        )
 
     @patch('kaznet.apps.ona.tasks.task_update_user_profile.delay')
     def test_task_process_user_profiles(self, mock):
@@ -369,3 +477,115 @@ class TestCeleryTasks(MainTestBase):
         mock.assert_called_with(
             form_id=1337,
             service_url="https://kaznet.com/webhook/")
+
+    @patch('kaznet.apps.ona.tasks.task_sync_form_updated_instances.delay')
+    def test_task_sync_updated_instances(self, mock):
+        """
+        Test task_sync_updated_instances
+        """
+        XForm.objects.all().delete()
+        mommy.make('ona.XForm', id=709, deleted_at=timezone.now())
+        mommy.make('ona.XForm', id=67, deleted_at=None)
+        form1 = mommy.make('ona.XForm', id=99)
+        form2 = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+
+        mommy.make('main.Task', status=Task.DRAFT, target_content_object=form1)
+        mommy.make(
+            'main.Task', status=Task.ACTIVE, target_content_object=form2)
+
+        task_sync_updated_instances()
+        mock.assert_called_once_with(xform_id=7)
+
+    @patch('kaznet.apps.ona.tasks.sync_updated_instances')
+    def test_task_sync_form_updated_instances(
+            self, sync_updated_instances_mock):
+        """
+        Test task_sync_form_updated_instances
+        """
+        mommy.make('auth.User', username='onasupport')
+        xform = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+        # call the task
+        task_sync_form_updated_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, sync_updated_instances_mock.call_count)
+
+        expected_calls = [
+            call(form_id=xform.ona_pk)
+        ]
+
+        sync_updated_instances_mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.task_sync_form_deleted_instances.delay')
+    def test_task_sync_deleted_instances(self, mock):
+        """
+        Test task_sync_deleted_instances
+        """
+        XForm.objects.all().delete()
+        form1 = mommy.make('ona.XForm', id=67, deleted_at=None)
+        form2 = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+
+        task_sync_deleted_instances()
+
+        expected_calls = [
+            call(xform_id=form2.id),
+            call(xform_id=form1.id),
+        ]
+
+        mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_instances')
+    def test_task_sync_form_deleted_instances(
+            self, sync_deleted_instances_mock):
+        """
+        Test task_sync_form_deleted_instances
+        """
+        mommy.make('auth.User', username='onasupport')
+        xform = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+        # call the task
+        task_sync_form_deleted_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, sync_deleted_instances_mock.call_count)
+
+        expected_calls = [
+            call(form_id=xform.ona_pk)
+        ]
+
+        sync_deleted_instances_mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_xforms')
+    def test_task_sync_deleted_xforms(self, mock):
+        """
+        Test task_sync_deleted_xforms
+        """
+        # call the task
+        task_sync_deleted_xforms(username="mosh")
+        mock.assert_called_once_with(username="mosh")
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_projects')
+    def test_task_sync_deleted_projects(self, mock):
+        """
+        Test task_sync_deleted_projects
+        """
+        # call the task
+        task_sync_deleted_projects(username="mosh")
+        mock.assert_called_once_with(username="mosh")
