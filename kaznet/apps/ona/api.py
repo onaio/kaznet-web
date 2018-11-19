@@ -680,13 +680,15 @@ def sync_deleted_projects(username: str = settings.ONA_USERNAME):
     If it finds any, it deletes them locally
     """
     onadata_projects = get_projects(username=username)
-    onadata_project_pks = [rec['projectid'] for rec in onadata_projects]
-    local_projects = Project.objects.filter(deleted_at=None)
-    deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
+    if isinstance(onadata_projects, list) and onadata_projects:
+        onadata_project_pks = [rec['projectid'] for rec in onadata_projects]
+        local_projects = Project.objects.filter(deleted_at=None)
+        deleted_projects = local_projects.exclude(
+            ona_pk__in=onadata_project_pks)
 
-    # delete projects safely
-    for proj in deleted_projects:
-        delete_project(proj)
+        # delete projects safely
+        for proj in deleted_projects:
+            delete_project(proj)
 
 
 def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
@@ -696,10 +698,11 @@ def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
     """
     onadata_projects = get_projects(username=username)
     onadata_xform_ids = []
-    for project in onadata_projects:
-        project_forms = project.get('forms')
-        xform_ids = [x['formid'] for x in project_forms if x.get('formid')]
-        onadata_xform_ids = onadata_xform_ids + xform_ids
+    if isinstance(onadata_projects, list) and onadata_projects:
+        for project in onadata_projects:
+            project_forms = project.get('forms')
+            xform_ids = [x['formid'] for x in project_forms if x.get('formid')]
+            onadata_xform_ids = onadata_xform_ids + xform_ids
 
     local_xforms = XForm.objects.filter(deleted_at=None)
 
