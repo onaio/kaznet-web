@@ -4,11 +4,12 @@ Test module for celery tasks for Ona app
 from unittest.mock import call, patch
 from urllib.parse import urljoin
 
-import requests_mock
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
 from django.utils import timezone
+
+import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
@@ -21,6 +22,8 @@ from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_fetch_projects,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
+                                   task_sync_deleted_instances,
+                                   task_sync_form_deleted_instances,
                                    task_sync_form_updated_instances,
                                    task_sync_updated_instances,
                                    task_update_user_profile)
@@ -520,3 +523,50 @@ class TestCeleryTasks(MainTestBase):
         ]
 
         sync_updated_instances_mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.task_sync_form_deleted_instances.delay')
+    def test_task_sync_deleted_instances(self, mock):
+        """
+        Test task_sync_deleted_instances
+        """
+        XForm.objects.all().delete()
+        form1 = mommy.make('ona.XForm', id=67, deleted_at=None)
+        form2 = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+
+        task_sync_deleted_instances()
+
+        expected_calls = [
+            call(xform_id=form2.id),
+            call(xform_id=form1.id),
+        ]
+
+        mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_instances')
+    def test_task_sync_form_deleted_instances(
+            self, sync_deleted_instances_mock):
+        """
+        Test task_sync_form_deleted_instances
+        """
+        mommy.make('auth.User', username='onasupport')
+        xform = mommy.make(
+            'ona.XForm',
+            id=7,
+            ona_pk=897,
+            id_string='attachment_test',
+            title='attachment test')
+        # call the task
+        task_sync_form_deleted_instances(xform_id=xform.id)
+        # fetch_missing_instances_mock should have been called once
+        self.assertEqual(1, sync_deleted_instances_mock.call_count)
+
+        expected_calls = [
+            call(form_id=xform.ona_pk)
+        ]
+
+        sync_deleted_instances_mock.assert_has_calls(expected_calls)
