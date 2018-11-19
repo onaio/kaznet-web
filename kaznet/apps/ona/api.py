@@ -23,7 +23,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.utils import delete_project
+from kaznet.apps.ona.utils import delete_project, delete_xform
 from kaznet.apps.users.models import UserProfile
 
 SUCCESS_STATUSES = [200, 201]
@@ -662,6 +662,27 @@ def sync_deleted_projects(username: str = settings.ONA_USERNAME):
     local_projects = Project.objects.filter(deleted_at=None)
     deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
 
-    # delete project safely
+    # delete projects safely
     for proj in deleted_projects:
         delete_project(proj)
+
+
+def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
+    """
+    Checks for deleted projects on Onadata
+    If it finds any, it deletes them locally
+    """
+    onadata_projects = get_projects(username=username)
+    onadata_xform_ids = []
+    for project in onadata_projects:
+        project_forms = project.get('forms')
+        xform_ids = [x['formid'] for x in project_forms if x.get('formid')]
+        onadata_xform_ids = onadata_xform_ids + xform_ids
+
+    local_xforms = XForm.objects.filter(deleted_at=None)
+
+    deleted_xforms = local_xforms.exclude(ona_pk__in=onadata_xform_ids)
+
+    # delete xforms safely
+    for xform in deleted_xforms:
+        delete_xform(xform)
