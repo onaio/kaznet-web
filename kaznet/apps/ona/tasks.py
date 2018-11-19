@@ -5,18 +5,18 @@ from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
+from celery import task as celery_task
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.utils import timezone
-
-from celery import task as celery_task
 
 from kaznet.apps.main.models import Task
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_form_webhook, fetch_missing_instances,
                                  get_and_process_xforms, get_projects,
                                  process_projects, sync_deleted_instances,
+                                 sync_deleted_projects, sync_deleted_xforms,
                                  sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
@@ -176,3 +176,21 @@ def task_sync_deleted_instances():
     xforms = XForm.objects.filter(deleted_at=None)
     for xform in xforms:
         task_sync_form_deleted_instances.delay(xform_id=xform.id)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_xforms")
+def task_sync_deleted_xforms(username: str):
+    """
+    checks for deleted xforms and syncs them
+    """
+    sync_deleted_xforms(username=username)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_projects")
+def task_sync_deleted_projects(username: str):
+    """
+    checks for deleted projects and syncs them
+    """
+    sync_deleted_projects(username=username)
