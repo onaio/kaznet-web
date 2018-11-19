@@ -29,8 +29,9 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  get_xform_obj, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
-                                 request_session, sync_deleted_projects,
-                                 sync_deleted_xforms, sync_updated_instances,
+                                 request_session, sync_deleted_instances,
+                                 sync_deleted_projects, sync_deleted_xforms,
+                                 sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
@@ -1562,4 +1563,39 @@ class TestApiMethods(MainTestBase):
         self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
         task.refresh_from_db()
         self.assertEqual(Task.DRAFT, task.status)
+        self.assertEqual(0, task.get_submissions())
+
+    @override_settings(ONA_BASE_URL='https://mosh-ona.io')
+    @requests_mock.Mocker()
+    def test_sync_deleted_instances(self, mocked_request):
+        """
+        Test sync_deleted_instances
+        """
+        Instance.objects.all().delete()
+        xform = mommy.make('ona.XForm', title="sync_deleted_instances Test")
+        mocked_ids_response = [
+            {"_id": 159}
+        ]
+        raw_ids_url = urljoin(
+            settings.ONA_BASE_URL, f'api/v1/data/{xform.ona_pk}.json')
+        mocked_request.get(raw_ids_url, json=mocked_ids_response)
+
+        # make some instances
+        instance1 = mommy.make('ona.Instance', xform=xform, ona_pk=155)
+        instance2 = mommy.make('ona.Instance', xform=xform, ona_pk=159)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance1,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        sync_deleted_instances(form_id=xform.ona_pk)
+
+        self.assertFalse(Instance.objects.filter(id=instance1.id).exists())
+        self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
+        task.refresh_from_db()
         self.assertEqual(0, task.get_submissions())
