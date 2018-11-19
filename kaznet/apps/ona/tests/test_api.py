@@ -18,7 +18,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Task, Submission
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_filtered_dataset, create_form_webhook,
@@ -114,6 +114,10 @@ class TestApiMethods(MainTestBase):
         Test sync_deleted_projects
         """
         Project.objects.all().delete()
+        XForm.objects.all().delete()
+        Instance.objects.all().delete()
+        Submission.objects.all().delete()
+
         proj = mommy.make('ona.Project', ona_pk=1337)
 
         # make 3 more projects
@@ -1514,6 +1518,9 @@ class TestApiMethods(MainTestBase):
         Test sync_deleted_xforms
         """
         XForm.objects.all().delete()
+        Instance.objects.all().delete()
+        Submission.objects.all().delete()
+
         xform = mommy.make('ona.XForm', ona_pk=53)
 
         # make one more xform
