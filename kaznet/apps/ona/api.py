@@ -23,7 +23,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.utils import delete_project, delete_xform
+from kaznet.apps.ona.utils import delete_project, delete_xform, delete_instance
 from kaznet.apps.users.models import UserProfile
 
 SUCCESS_STATUSES = [200, 201]
@@ -321,6 +321,28 @@ def sync_updated_instances(form_id: int):
             pks = [rec['_id'] for rec in raw_ids]
             # next, we fetch data for these ids
             process_instance_ids(list_of_ids=pks, xform=the_xform)
+
+
+def sync_deleted_instances(form_id: int):
+    """
+    Attempts to get and sync deleted instances from Onadata
+    """
+    try:
+        the_xform = XForm.objects.get(ona_pk=form_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        raw_ids = fetch_form_data(
+            formid=the_xform.ona_pk,
+            dataids_only=True)
+        if isinstance(raw_ids, list) and raw_ids:
+            onadata_instance_pks = [rec['_id'] for rec in raw_ids]
+            local_instances = Instance.objects.filter(xform=the_xform)
+            deleted_instances = local_instances.exclude(
+                ona_pk__in=onadata_instance_pks)
+            # delete safely
+            for instance in deleted_instances:
+                delete_instance(instance)
 
 
 def fetch_missing_instances(form_id: int):
@@ -669,7 +691,7 @@ def sync_deleted_projects(username: str = settings.ONA_USERNAME):
 
 def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
     """
-    Checks for deleted projects on Onadata
+    Checks for deleted xforms on Onadata
     If it finds any, it deletes them locally
     """
     onadata_projects = get_projects(username=username)
