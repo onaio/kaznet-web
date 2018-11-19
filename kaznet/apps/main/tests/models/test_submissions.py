@@ -15,8 +15,6 @@ class TestSubmission(MainTestBase):
 
     def setUp(self):
         super().setUp()
-        self.instance_type = get_allowed_contenttypes().filter(
-            model='instance').first()
 
     def test_submission_model_str(self):
         """
