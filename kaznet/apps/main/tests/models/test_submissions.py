@@ -3,7 +3,6 @@ Test for Submission model
 """
 
 from model_mommy import mommy
-from tasking.utils import get_allowed_contenttypes
 
 from kaznet.apps.main.tests.base import MainTestBase
 
