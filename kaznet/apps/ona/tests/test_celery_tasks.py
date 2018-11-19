@@ -4,12 +4,11 @@ Test module for celery tasks for Ona app
 from unittest.mock import call, patch
 from urllib.parse import urljoin
 
+import requests_mock
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.test import override_settings
 from django.utils import timezone
-
-import requests_mock
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Task
@@ -23,6 +22,8 @@ from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_process_project_xforms,
                                    task_process_user_profiles,
                                    task_sync_deleted_instances,
+                                   task_sync_deleted_projects,
+                                   task_sync_deleted_xforms,
                                    task_sync_form_deleted_instances,
                                    task_sync_form_updated_instances,
                                    task_sync_updated_instances,
@@ -570,3 +571,21 @@ class TestCeleryTasks(MainTestBase):
         ]
 
         sync_deleted_instances_mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_xforms')
+    def test_task_sync_deleted_xforms(self, mock):
+        """
+        Test task_sync_deleted_xforms
+        """
+        # call the task
+        task_sync_deleted_xforms(username="mosh")
+        mock.assert_called_once_with(username="mosh")
+
+    @patch('kaznet.apps.ona.tasks.sync_deleted_projects')
+    def test_task_sync_deleted_projects(self, mock):
+        """
+        Test task_sync_deleted_projects
+        """
+        # call the task
+        task_sync_deleted_projects(username="mosh")
+        mock.assert_called_once_with(username="mosh")
