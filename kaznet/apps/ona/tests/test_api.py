@@ -30,7 +30,7 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
                                  request_session, sync_deleted_projects,
-                                 sync_updated_instances,
+                                 sync_deleted_xforms, sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
@@ -1504,3 +1504,62 @@ class TestApiMethods(MainTestBase):
         mocked_process_instance.assert_called_with(
             instance_data=mocked_record_response, xform=xform
         )
+
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
+    @requests_mock.Mocker()
+    def test_sync_deleted_xforms(self, mocked):
+        """
+        Test sync_deleted_xforms
+        """
+        XForm.objects.all().delete()
+        xform = mommy.make('ona.XForm', ona_pk=53)
+
+        # make one more xform
+        xform2 = mommy.make('ona.XForm', ona_pk=530798)
+
+        # make some instances
+        mommy.make('ona.Instance', _quantity=13, xform=xform)
+        instance = mommy.make('ona.Instance', xform=xform)
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        mocked_projects_data = [{
+            "projectid": 1337,
+            "forms": [
+                {
+                    "name": "Alive",
+                    "formid": 530798,
+                    "id_string": "iAmAlive",
+                    "is_merged_dataset": False,
+                    "version": "2",
+                    "owner": "https://example.com/api/v1/users/kaznet",
+                }
+            ],
+            "name":
+            "Changed2",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
+
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json=mocked_projects_data)
+
+        sync_deleted_xforms(username=settings.ONA_USERNAME)
+
+        self.assertFalse(XForm.objects.filter(id=xform.id).exists())
+        self.assertFalse(Instance.objects.filter(xform__id=xform.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
+        task.refresh_from_db()
+        self.assertEqual(Task.DRAFT, task.status)
+        self.assertEqual(0, task.get_submissions())
