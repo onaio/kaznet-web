@@ -4,9 +4,10 @@ Test for KaznetSubmissionSerializer
 from collections import OrderedDict
 from decimal import Decimal
 
-import pytz
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+
+import pytz
 from model_mommy import mommy
 
 from kaznet.apps.main.models import Submission
