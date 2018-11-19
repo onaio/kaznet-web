@@ -23,6 +23,7 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.ona.utils import delete_project
 from kaznet.apps.users.models import UserProfile
 
 SUCCESS_STATUSES = [200, 201]
@@ -661,6 +662,6 @@ def sync_deleted_projects(username: str = settings.ONA_USERNAME):
     local_projects = Project.objects.filter(deleted_at=None)
     deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
 
-    # delete in such a way that any signals are sent
+    # delete project safely
     for proj in deleted_projects:
-        proj.delete()
+        delete_project(proj)

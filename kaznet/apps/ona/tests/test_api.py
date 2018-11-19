@@ -114,19 +114,19 @@ class TestApiMethods(MainTestBase):
         """
         Project.objects.all().delete()
         proj = mommy.make('ona.Project', ona_pk=1337)
-        
+
         # make 3 more projects
         mommy.make('ona.Project', _quantity=3)
-        
+
         # make some forms
         proj_with_submissions = mommy.make('ona.Project')
         xform = mommy.make('ona.XForm', ona_project_id=1337,
                            project=proj_with_submissions)
-        
+
         xform_id = xform.id
         deleted_projects = Project.objects.exclude(
             id=proj.id).values_list('id', flat=True)
-        
+
         # make some instances
         mommy.make('ona.Instance', _quantity=13, xform=xform)
         instance = mommy.make('ona.Instance', xform=xform)
