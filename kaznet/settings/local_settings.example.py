@@ -47,6 +47,10 @@ CELERY_ROUTES = {
         'queue': 'submissions'},
     'kaznet.apps.ona.tasks.task_sync_form_updated_instances': {
         'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_sync_deleted_instances': {
+        'queue': 'submissions'},
+    'kaznet.apps.ona.tasks.task_sync_form_deleted_instances': {
+        'queue': 'submissions'},
     'kaznet.apps.ona.tasks.task_fetch_projects': {'queue': 'forms'},
 }
 
@@ -59,9 +63,23 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'task_sync_updated_instances',
         'schedule': crontab(hour='*/1'),  # every 1 hr
     },
+    'sync_deleted_instances': {
+        'task': 'task_sync_deleted_instances',
+        'schedule': crontab(hour='*/1'),  # every 1 hr
+    },
     'fetch_projects': {
         'task': 'task_fetch_projects',
         'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
+        'kwargs': {'username': 'the one username'}
+    },
+    'sync_deleted_forms': {
+        'task': 'task_sync_deleted_xforms',
+        'schedule': crontab(hour='*/6', minute='0'),  # every 6 hours
+        'kwargs': {'username': 'the one username'}
+    },
+    'sync_deleted_projects': {
+        'task': ' task_sync_deleted_projects',
+        'schedule': crontab(hour='*/12', minute='0'),  # every 12 hurs
         'kwargs': {'username': 'the one username'}
     },
     'process_user_profiles': {
