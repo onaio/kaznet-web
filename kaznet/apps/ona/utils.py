@@ -18,7 +18,7 @@ def delete_instance(instance: object):
     # get the instance contenttype
     instance_type = get_allowed_contenttypes().filter(model='instance').first()
     # get all related submissions
-    submissions = Submission.objects.filter(
+    submissions = Submission.objects.filter(  # pylint: disable=no-member
         target_object_id=instance.id,
         target_content_type=instance_type
     )

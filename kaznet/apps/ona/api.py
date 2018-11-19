@@ -657,7 +657,7 @@ def sync_deleted_projects(username: str = settings.ONA_USERNAME):
     If it finds any, it deletes them locally
     """
     onadata_projects = get_projects(username=username)
-    onadata_project_pks = [rec['projectid'] for rec in onadata_projects] 
+    onadata_project_pks = [rec['projectid'] for rec in onadata_projects]
     local_projects = Project.objects.filter(deleted_at=None)
     deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
 
