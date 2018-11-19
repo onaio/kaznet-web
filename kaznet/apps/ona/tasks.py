@@ -5,17 +5,19 @@ from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
-from celery import task as celery_task
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.utils import timezone
 
+from celery import task as celery_task
+
 from kaznet.apps.main.models import Task
 from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  create_form_webhook, fetch_missing_instances,
                                  get_and_process_xforms, get_projects,
-                                 process_projects, sync_updated_instances,
+                                 process_projects, sync_deleted_instances,
+                                 sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 
@@ -149,3 +151,28 @@ def task_create_form_webhook(form_id: int):
         form_id=form_id,
         service_url=service_url
     )
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_form_deleted_instances")
+def task_sync_form_deleted_instances(xform_id: int):
+    """
+    Checks for deleted instances for a form and then syncs them
+    """
+    try:
+        the_xform = XForm.objects.get(id=xform_id)
+    except XForm.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        sync_deleted_instances(form_id=the_xform.ona_pk)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_deleted_instances")
+def task_sync_deleted_instances():
+    """
+    Checks for deleted instances for all forms and then syncs them
+    """
+    xforms = XForm.objects.filter(deleted_at=None)
+    for xform in xforms:
+        task_sync_form_deleted_instances.delay(xform_id=xform.id)
