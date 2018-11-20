@@ -6,7 +6,7 @@ from django.utils import timezone
 from celery import task as celery_task
 
 from kaznet.apps.main.api import create_submission
-from kaznet.apps.main.models import Task
+from kaznet.apps.main.models import Task, Bounty
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.utils import create_occurrences
 from kaznet.apps.ona.models import Instance
@@ -64,3 +64,18 @@ def task_has_no_more_occurences():
     for task in tasks:
         task.status = Task.EXPIRED
         task.save()
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_ensure_bounty_exists")
+def task_ensure_bounty_exists():
+    """
+    Ensure that all tasks have an attached Bounty object
+    """
+    tasks = Task.objects.filter(bounty=None)
+    for task in tasks:
+        bounty = Bounty(
+            task=task,
+            amount=0
+        )
+        bounty.save()

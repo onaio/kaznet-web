@@ -21,22 +21,6 @@ DATABASES = {
 CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
 
-CELERY_BEAT_SCHEDULE = {
-    'fetch_all_instances': {
-        'task': 'task_fetch_all_instances',
-        'schedule': crontab(hour='*', minute='*/30'),  # every 30 min
-    },
-    'fetch_projects': {
-        'task': 'task_fetch_projects',
-        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
-        'kwargs': {'username': 'the one username'}
-    },
-    'process_user_profiles': {
-        'task': 'task_process_user_profiles',
-        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
-    },
-}
-
 # tasks
 CELERY_ROUTES = {
     'kaznet.apps.ona.tasks.task_fetch_missing_instances': {
@@ -57,34 +41,59 @@ CELERY_ROUTES = {
 CELERY_BEAT_SCHEDULE = {
     'fetch_missing_instances': {
         'task': 'task_fetch_missing_instances',
-        'schedule': crontab(hour='*', minute='*/30'),  # every 30 min
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
     },
     'sync_updated_instances': {
         'task': 'task_sync_updated_instances',
-        'schedule': crontab(hour='*/1'),  # every 1 hr
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
     },
     'sync_deleted_instances': {
         'task': 'task_sync_deleted_instances',
-        'schedule': crontab(hour='*/1'),  # every 1 hr
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
     },
-    'fetch_projects': {
+    # onadata org forms and projects
+    'fetch_org_projects': {
         'task': 'task_fetch_projects',
-        'schedule': crontab(hour='*', minute='*/15'),  # every 15 minutes
-        'kwargs': {'username': 'the one username'}
-    },
-    'sync_deleted_forms': {
-        'task': 'task_sync_deleted_xforms',
-        'schedule': crontab(hour='*/6', minute='0'),  # every 6 hours
-        'kwargs': {'username': 'the one username'}
+        'schedule': crontab(hour='*', minute='*/5'),  # every 5 minutes
+        'kwargs': {'username': 'kaznet'}
     },
     'sync_deleted_projects': {
-        'task': ' task_sync_deleted_projects',
-        'schedule': crontab(hour='*/12', minute='0'),  # every 12 hurs
-        'kwargs': {'username': 'the one username'}
+        'task': 'task_sync_deleted_projects',
+        'schedule': crontab(hour='*/12', minute='0'),  # every 12 hours
+        'kwargs': {'username': 'kaznet'}
     },
-    'process_user_profiles': {
-        'task': 'task_process_user_profiles',
-        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
+    'sync_deleted_xforms': {
+        'task': 'task_sync_deleted_xforms',
+        'schedule': crontab(hour='*/6', minute='0'),  # every 6 hours
+        'kwargs': {'username': 'kaznet'}
+    },
+    # onadata user forms and projects
+    'fetch_user_projects': {
+        'task': 'task_fetch_projects',
+        'schedule': crontab(hour='*', minute='*/5'),  # every 5 minutes
+        'kwargs': {'username': 'kaznettest'}
+    },
+    'sync_deleted_user_projects': {
+        'task': 'task_sync_deleted_projects',
+        'schedule': crontab(hour='*/12', minute='30'),  # every 12 hours
+        'kwargs': {'username': 'kaznettest'}
+    },
+    'sync_deleted_user_xforms': {
+        'task': 'task_sync_deleted_xforms',
+        'schedule': crontab(hour='*/6', minute='30'),  # every 6 hours
+        'kwargs': {'username': 'kaznettest'}
+    },
+    'task_past_end_date': {
+        'task': 'task_past_end_date',
+        'schedule': crontab(hour='1', minute='0'),  # once a day
+    },
+    'task_has_no_more_occurences': {
+        'task': 'task_has_no_more_occurences',
+        'schedule': crontab(hour='1', minute='30'),  # once a day
+    },
+    'task_ensure_bounty_exists': {
+        'task': 'task_ensure_bounty_exists',
+        'schedule': crontab(hour='*/6', minute='30'),  # every 6 hours
     },
 }
 
