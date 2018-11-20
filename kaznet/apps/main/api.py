@@ -51,7 +51,8 @@ def create_submission(ona_instance: object):
     if settings.ONA_STATUS_FIELD in data:
         validated_data['status'] = convert_ona_to_kaznet_submission_status(
             ona_status=data[settings.ONA_STATUS_FIELD])
-        validated_data['comments'] = str(data[settings.ONA_COMMENTS_FIELD])
+        validated_data['comments'] = str(
+            data.get(settings.ONA_COMMENTS_FIELD, ""))
 
     # if submission hasn't had a review(pending), or no review information of
     # submission
