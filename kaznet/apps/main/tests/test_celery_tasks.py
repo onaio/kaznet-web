@@ -84,7 +84,7 @@ class TestCeleryTasks(MainTestBase):
         # initially one task has no Bounty
         self.assertTrue(task1.bounty_set.all().exists())
         self.assertTrue(task2.bounty_set.all().exists())
-        self.assertFalse(task3.bounty_set.all().exists())        
+        self.assertFalse(task3.bounty_set.all().exists())
 
         task_ensure_bounty_exists()
 
