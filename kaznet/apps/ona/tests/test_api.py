@@ -1517,14 +1517,20 @@ class TestApiMethods(MainTestBase):
         """
         Test sync_deleted_xforms
         """
+        Project.objects.all().delete()
         XForm.objects.all().delete()
         Instance.objects.all().delete()
         Submission.objects.all().delete()
 
-        xform = mommy.make('ona.XForm', ona_pk=53)
+        project1 = mommy.make('ona.Project')
+        project2 = mommy.make('ona.Project')
+
+        xform = mommy.make(
+            'ona.XForm', ona_pk=53, ona_project_id=project1.ona_pk)
 
         # make one more xform
-        xform2 = mommy.make('ona.XForm', ona_pk=530798)
+        xform2 = mommy.make('ona.XForm', ona_pk=530798, project=project1)
+        xform3 = mommy.make('ona.XForm', project=project2)
 
         # make some instances
         mommy.make('ona.Instance', _quantity=13, xform=xform)
@@ -1540,7 +1546,7 @@ class TestApiMethods(MainTestBase):
             _fill_optional=['user', 'comment', 'submission_time'])
 
         mocked_projects_data = [{
-            "projectid": 1337,
+            "projectid": project1.ona_pk,
             "forms": [
                 {
                     "name": "Alive",
@@ -1568,6 +1574,7 @@ class TestApiMethods(MainTestBase):
         self.assertFalse(XForm.objects.filter(id=xform.id).exists())
         self.assertFalse(Instance.objects.filter(xform__id=xform.id).exists())
         self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
+        self.assertTrue(XForm.objects.filter(id=xform3.id).exists())
         task.refresh_from_db()
         self.assertEqual(Task.DRAFT, task.status)
         self.assertEqual(0, task.get_submissions())
