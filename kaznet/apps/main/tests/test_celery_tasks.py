@@ -10,6 +10,7 @@ from model_mommy import mommy
 from kaznet.apps.main.models import Task, TaskOccurrence
 from kaznet.apps.main.tasks import (task_create_occurrences,
                                     task_create_submission,
+                                    task_ensure_bounty_exists,
                                     task_has_no_more_occurences,
                                     task_past_end_date)
 from kaznet.apps.main.tests.base import MainTestBase
@@ -61,6 +62,36 @@ class TestCeleryTasks(MainTestBase):
         self.assertEqual(Task.EXPIRED, task1.status)
         self.assertEqual(Task.EXPIRED, task2.status)
         self.assertEqual(Task.ACTIVE, task3.status)
+
+    def test_task_ensure_bounty_exists(self):
+        """
+        Test task_ensure_bounty_exists
+        """
+        task1 = mommy.make(
+            "main.Task", status=Task.ACTIVE,
+            end=timezone.now() - timezone.timedelta(days=1))
+        task2 = mommy.make(
+            "main.Task", status=Task.EXPIRED,
+            end=timezone.now() - timezone.timedelta(days=1))
+        task3 = mommy.make(
+            "main.Task", status=Task.ACTIVE,
+            end=timezone.now() + timezone.timedelta(days=1))
+
+        # create some Bounty objects
+        mommy.make('main.Bounty', task=task1, amount=40)
+        mommy.make('main.Bounty', task=task2, amount=40)
+
+        # initially one task has no Bounty
+        self.assertTrue(task1.bounty_set.all().exists())
+        self.assertTrue(task2.bounty_set.all().exists())
+        self.assertFalse(task3.bounty_set.all().exists())        
+
+        task_ensure_bounty_exists()
+
+        # now all tasks have a Bounty
+        self.assertTrue(task1.bounty_set.all().exists())
+        self.assertTrue(task2.bounty_set.all().exists())
+        self.assertTrue(task3.bounty_set.all().exists())
 
     def test_task_has_no_more_occurences(self):
         """
