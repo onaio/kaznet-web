@@ -441,6 +441,83 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(Project.objects.all().count(), 2)
 
+    def test_process_xform_duplicate_id_strings(self):
+        """
+        Test that process_xform handles duplicate id strings
+        """
+        project = mommy.make('ona.Project')
+
+        the_xform = mommy.make(
+            'ona.XForm',
+            title="First Title",
+            ona_project_id=project.ona_pk,
+            id_string='I-LOVE-OOV'
+        )
+
+        mocked_form_data = {
+            "title": "Title Changed",
+            "formid": the_xform.ona_pk,
+            "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "owner": "https://example.com/api/v1/users/kaznet",
+            "id_string": "I-LOVE-OOV",
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z",
+            "last_updated_at": "2018-02-15T07:55:59.267839Z",
+        }
+
+        process_xform(mocked_form_data, project.ona_pk)
+
+        the_xform.refresh_from_db()
+
+        self.assertEqual("Title Changed", the_xform.title)
+
+    def test_process_xform_duplicate_id_strings_diff_projects(self):
+        """
+        Test that process_xform handles duplicate id strings in different
+        projects
+        """
+        project = mommy.make('ona.Project')
+        project2 = mommy.make('ona.Project')
+
+        the_xform = mommy.make(
+            'ona.XForm',
+            title="First Title",
+            ona_project_id=project.ona_pk,
+            id_string='I-LOVE-OOV',
+            version='1',
+            last_updated="2018-02-15T07:55:59.267839Z",
+            json=dict(
+                owner="kaznet",
+                owner_url="https://example.com/api/v1/users/kaznet"
+            )
+        )
+
+        the_xform2 = mommy.make(
+            'ona.XForm',
+            title="Other Title",
+            ona_project_id=project2.ona_pk,
+            id_string='I-LOVE-OOV'
+        )
+
+        mocked_form_data = {
+            "title": "First Title",
+            "formid": the_xform.ona_pk,
+            "version": "1",
+            "owner": "https://example.com/api/v1/users/kaznet",
+            "id_string": "I-LOVE-OOV",
+            "is_merged_dataset": False,
+            "date_modified": "2018-02-15T07:51:59.267839Z",
+            "last_updated_at": "2018-02-15T07:55:59.267839Z",
+        }
+
+        process_xform(mocked_form_data, project.ona_pk)
+
+        the_xform.refresh_from_db()
+        the_xform2.refresh_from_db()
+
+        self.assertEqual("First Title", the_xform.title)
+        self.assertEqual("Other Title", the_xform2.title)
+
     def test_process_xform_updates_fields(self):
         """
         Test that certain fields are always updated if different
