@@ -315,7 +315,7 @@ class TestApiMethods(MainTestBase):
         mocked_forms_data = None
 
         process_xforms(mocked_forms_data, project_id=18)
-        mockclass.assert_called_once()        
+        mockclass.assert_called_once()
 
     @patch('kaznet.apps.ona.api.process_xform')
     @patch('kaznet.apps.ona.api.get_xform')
