@@ -60,7 +60,7 @@ CELERY_BEAT_SCHEDULE = {
     'sync_deleted_projects': {
         'task': 'task_sync_deleted_projects',
         'schedule': crontab(hour='*/12', minute='0'),  # every 12 hours
-        'kwargs': {'username': 'kaznet'}
+        'kwargs': {'usernames': ['kaznet', 'kaznettest']}
     },
     'sync_deleted_xforms': {
         'task': 'task_sync_deleted_xforms',
@@ -71,11 +71,6 @@ CELERY_BEAT_SCHEDULE = {
     'fetch_user_projects': {
         'task': 'task_fetch_projects',
         'schedule': crontab(hour='*', minute='*/5'),  # every 5 minutes
-        'kwargs': {'username': 'kaznettest'}
-    },
-    'sync_deleted_user_projects': {
-        'task': 'task_sync_deleted_projects',
-        'schedule': crontab(hour='*/12', minute='30'),  # every 12 hours
         'kwargs': {'username': 'kaznettest'}
     },
     'sync_deleted_user_xforms': {

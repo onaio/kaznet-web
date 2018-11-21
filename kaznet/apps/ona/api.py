@@ -674,21 +674,24 @@ def create_form_webhook(
         return response
 
 
-def sync_deleted_projects(username: str = settings.ONA_USERNAME):
+def sync_deleted_projects(usernames: list):
     """
     Checks for deleted projects on Onadata
     If it finds any, it deletes them locally
     """
-    onadata_projects = get_projects(username=username)
-    if isinstance(onadata_projects, list) and onadata_projects:
-        onadata_project_pks = [rec['projectid'] for rec in onadata_projects]
-        local_projects = Project.objects.filter(deleted_at=None)
-        deleted_projects = local_projects.exclude(
-            ona_pk__in=onadata_project_pks)
+    onadata_project_pks = []
+    for username in usernames:
+        onadata_projects = get_projects(username=username)
+        if isinstance(onadata_projects, list) and onadata_projects:
+            onadata_project_pks = onadata_project_pks + [
+                    rec['projectid'] for rec in onadata_projects]
 
-        # delete projects safely
-        for proj in deleted_projects:
-            delete_project(proj)
+    local_projects = Project.objects.filter(deleted_at=None)
+    deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
+
+    # delete projects safely
+    for proj in deleted_projects:
+        delete_project(proj)
 
 
 def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
