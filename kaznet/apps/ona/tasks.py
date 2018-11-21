@@ -189,8 +189,8 @@ def task_sync_deleted_xforms(username: str):
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_deleted_projects")
-def task_sync_deleted_projects(username: str):
+def task_sync_deleted_projects(usernames: list):
     """
     checks for deleted projects and syncs them
     """
-    sync_deleted_projects(username=username)
+    sync_deleted_projects(usernames=usernames)

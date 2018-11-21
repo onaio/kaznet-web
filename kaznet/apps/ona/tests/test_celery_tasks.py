@@ -587,5 +587,5 @@ class TestCeleryTasks(MainTestBase):
         Test task_sync_deleted_projects
         """
         # call the task
-        task_sync_deleted_projects(username="mosh")
-        mock.assert_called_once_with(username="mosh")
+        task_sync_deleted_projects(usernames=["coco", "mosh"])
+        mock.assert_called_once_with(usernames=["coco", "mosh"])

@@ -119,6 +119,7 @@ class TestApiMethods(MainTestBase):
         Submission.objects.all().delete()
 
         proj = mommy.make('ona.Project', ona_pk=1337)
+        mosh_proj = mommy.make('ona.Project')
 
         # make 3 more projects
         mommy.make('ona.Project', _quantity=3)
@@ -127,10 +128,11 @@ class TestApiMethods(MainTestBase):
         proj_with_submissions = mommy.make('ona.Project')
         xform = mommy.make('ona.XForm', ona_project_id=1337,
                            project=proj_with_submissions)
+        mosh_xform = mommy.make('ona.XForm', project=mosh_proj)
 
         xform_id = xform.id
         deleted_projects = Project.objects.exclude(
-            id=proj.id).values_list('id', flat=True)
+            id__in=[proj.id, mosh_proj.id]).values_list('id', flat=True)
 
         # make some instances
         mommy.make('ona.Instance', _quantity=13, xform=xform)
@@ -164,19 +166,43 @@ class TestApiMethods(MainTestBase):
             None
         }]
 
+        mocked_mosh_projects_data = [{
+            "projectid": mosh_proj.ona_pk,
+            "forms": [{
+                "name": "20T",
+                "formid": mosh_xform.ona_pk,
+                "id_string": "mosh2",
+                "is_merged_dataset": False,
+                "version": "A",
+                "owner": "https://example.com/api/v1/users/mosh",
+            }],
+            "name":
+            "moshley",
+            "date_modified":
+            "2018-05-30T07:51:59.267839Z",
+            "deleted_at":
+            None
+        }]
+
         mocked.get(
             urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
             json=mocked_projects_data)
-        sync_deleted_projects(username=settings.ONA_USERNAME)
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=mosh'),
+            json=mocked_mosh_projects_data)
+
+        sync_deleted_projects(usernames=[settings.ONA_USERNAME, 'mosh'])
 
         proj.refresh_from_db()
-        self.assertEqual(1, Project.objects.count())
-        self.assertEqual(proj, Project.objects.first())
+        self.assertEqual(2, Project.objects.count())
+        self.assertTrue(Project.objects.filter(id=proj.id).exists())
+        self.assertTrue(Project.objects.filter(id=mosh_proj.id).exists())
 
         self.assertEqual(
             0, XForm.objects.filter(project__id__in=deleted_projects).count())
         self.assertEqual(
             0, Instance.objects.filter(xform__id=xform_id).count())
+        self.assertTrue(XForm.objects.filter(id=mosh_xform.id).exists())
 
         task.refresh_from_db()
         self.assertEqual(Task.DRAFT, task.status)
