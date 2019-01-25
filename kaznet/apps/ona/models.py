@@ -41,6 +41,7 @@ class Project(TimeStampedModel, models.Model):
         null=True,
         blank=True,
         default=None)
+    json = JSONField(_("Data"), default=dict, null=False)
 
     objects = GenericSoftDeleteManager()
 
