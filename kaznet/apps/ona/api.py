@@ -148,7 +148,8 @@ def process_project(project_data: dict):
             defaults={
                 'name': project_data.get('name'),
                 'deleted_at': project_data.get('deleted_at'),
-                'last_updated': project_data.get('date_modified')
+                'last_updated': project_data.get('date_modified'),
+                'json': project_data,
             })
 
         if not created:
@@ -164,6 +165,7 @@ def process_project(project_data: dict):
                     obj.name = project_data.get('name')
                     obj.last_updated = project_data.get('date_modified')
                     obj.deleted_at = project_data.get('deleted_at')
+                    obj.json = project_data
                     obj.save()
 
 

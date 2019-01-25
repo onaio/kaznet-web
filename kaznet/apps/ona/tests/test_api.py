@@ -11,6 +11,7 @@ from django.test import override_settings
 from django.utils import timezone
 from model_mommy import mommy
 from requests.exceptions import RetryError
+from dateutil import parser
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
@@ -301,6 +302,25 @@ class TestApiMethods(MainTestBase):
         self.assertEqual(Project.objects.all().count(), 0)
         process_project(project_data)
         self.assertEqual(Project.objects.all().count(), 1)
+        project = Project.objects.get(ona_pk=18)
+        self.assertEqual(18, project.ona_pk)
+        self.assertEqual('Changed2', project.name)
+        self.assertEqual(
+            parser.parse('2018-05-30T07:51:59.267839Z'), project.last_updated)
+        self.assertDictEqual(project_data, project.json)
+
+        # now test that an update works
+        new_project_data = project_data.copy()
+        new_project_data["name"] = "New Awesome!"
+        new_project_data["date_modified"] = "2018-06-11T07:51:59.267839Z"
+        process_project(new_project_data)
+        self.assertEqual(Project.objects.all().count(), 1)
+        project = Project.objects.get(ona_pk=18)
+        self.assertEqual(18, project.ona_pk)
+        self.assertEqual('New Awesome!', project.name)
+        self.assertEqual(
+            parser.parse('2018-06-11T07:51:59.267839Z'), project.last_updated)
+        self.assertDictEqual(new_project_data, project.json)
 
     def test_process_project_bad_data(self):
         """
