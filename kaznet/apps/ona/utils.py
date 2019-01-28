@@ -81,7 +81,7 @@ def check_if_users_can_submit_to_form(xform: object):
     elif xform.ona_project_id:
         try:
             the_project = Project.objects.get(ona_pk=xform.ona_project_id)
-        except Project.DoesNotExist:
+        except Project.DoesNotExist:  # pylint:disable=no-member
             # the XForm has no valid Project
             xform.json[settings.ONA_XFORM_CONFIGURED_FIELD] = XForm.NO_PROJECT
         else:
@@ -92,13 +92,8 @@ def check_if_users_can_submit_to_form(xform: object):
             if project_teams:
                 the_team = None
                 for entry in project_teams:
-                    try:
-                        if entry["name"] == expected_team_name:
-                            the_team = entry
-                    except KeyError:
-                        pass
-                    else:
-                        break
+                    if entry["name"] == expected_team_name:
+                        the_team = entry
 
                 if the_team is None:
                     # we didn't find a valid team
