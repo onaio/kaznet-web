@@ -518,3 +518,17 @@ class TestUtils(MainTestBase):
             XForm.NO_TEAMS_AT_ALL,
             xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
         )
+
+        # test NO_PROJECT
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=0,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_PROJECT,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
