@@ -491,3 +491,30 @@ class TestUtils(MainTestBase):
             XForm.NO_VALID_TEAM,
             xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
         )
+
+        # test NO_TEAMS_AT_ALL
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_TEAMS_AT_ALL,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
