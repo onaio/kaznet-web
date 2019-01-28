@@ -551,7 +551,7 @@ class TestUtils(MainTestBase):
             xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
         )
 
-        # test NO_PROJECT
+        # test WRONG_OWNER
         xform = mommy.make(
             'ona.XForm',
             title="Test Form",
