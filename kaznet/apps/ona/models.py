@@ -60,6 +60,13 @@ class XForm(TimeStampedModel, models.Model):
     """
     XForm model from onadata
     """
+    CORRECTLY_CONFIGURED = 1
+    MEMBERS_CANT_SUBMIT = 2
+    NO_VALID_TEAM = 3
+    NO_TEAMS_AT_ALL = 4
+    NO_PROJECT = 5
+    WRONG_OWNER = 6
+
     ona_pk = models.PositiveIntegerField(
         _("Onadata Primary Key"),
         db_index=True,
