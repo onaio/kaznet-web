@@ -96,5 +96,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             'created',
             'modified',
             'name',
-            'deleted_at'
+            'deleted_at',
+            'json',
         ]

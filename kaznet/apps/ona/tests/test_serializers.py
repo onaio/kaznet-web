@@ -156,7 +156,8 @@ class TestProjectSerializer(MainTestBase):
             id=1,
             ona_pk=59,
             organization=12,
-            name='Project Zero'
+            name='Project Zero',
+            json={"foo": "bar"},
         )
 
         serializer_data = ProjectSerializer(mocked_project).data
@@ -169,6 +170,7 @@ class TestProjectSerializer(MainTestBase):
             'name',
             'created',
             'modified',
+            'json',
             'deleted_at'
         }
 
@@ -178,3 +180,4 @@ class TestProjectSerializer(MainTestBase):
         self.assertEqual(59, serializer_data['ona_pk'])
         self.assertEqual(12, serializer_data['organization'])
         self.assertEqual('Project Zero', serializer_data['name'])
+        self.assertDictEqual({"foo": "bar"}, serializer_data['json'])
