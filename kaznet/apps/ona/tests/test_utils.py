@@ -3,8 +3,10 @@ Module for testing the Ona app utils
 """
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.test import override_settings
 
 from dateutil.parser import parse
 from django_prices.models import Money
@@ -12,8 +14,10 @@ from model_mommy import mommy
 
 from kaznet.apps.main.models import Bounty, Location, Submission, Task
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.ona.models import Instance, XForm, Project
-from kaznet.apps.ona.utils import delete_instance, delete_project, delete_xform
+from kaznet.apps.ona.models import Instance, Project, XForm
+from kaznet.apps.ona.utils import (check_if_users_can_submit_to_form,
+                                   delete_instance, delete_project,
+                                   delete_xform)
 
 
 class TestUtils(MainTestBase):
@@ -375,3 +379,201 @@ class TestUtils(MainTestBase):
         # the task status did not change
         task.refresh_from_db()
         self.assertEqual(Task.ACTIVE, task.status)
+
+    @override_settings(
+        ONA_ORG_NAME='onasystemsinc',
+        ONA_XFORM_CONFIGURED_FIELD='configuration_status',
+        ONA_CONTRIBUTER_ROLE="dataentry"
+    )
+    def test_check_if_users_can_submit_to_form(self):
+        """Test check_if_users_can_submit_to_form"""
+        # test correct
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [{
+                    "name": "onasystemsinc#members",
+                    "role": "dataentry",
+                    "users": ["mosh"]
+                }, {
+                    "name": "onasystemsinc#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                }],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.CORRECTLY_CONFIGURED,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test MEMBERS_CANT_SUBMIT
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [{
+                    "name": "onasystemsinc#members",
+                    "role": "somethingelse",
+                    "users": ["mosh"]
+                }, {
+                    "name": "onasystemsinc#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                }],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.MEMBERS_CANT_SUBMIT,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test NO_VALID_TEAM
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [{
+                    "name": "iloveoov#members",
+                    "role": "dataentry",
+                    "users": ["mosh"]
+                }, {
+                    "name": "onasystemsinc#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                }],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_VALID_TEAM,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test NO_TEAMS_AT_ALL
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_TEAMS_AT_ALL,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={}
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_TEAMS_AT_ALL,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test NO_PROJECT
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=0,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.NO_PROJECT,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test WRONG_OWNER
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=0,
+            json={"owner": "kaznet"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.WRONG_OWNER,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=0,
+            json={}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.WRONG_OWNER,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
