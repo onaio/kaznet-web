@@ -90,6 +90,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'task_ensure_bounty_exists',
         'schedule': crontab(hour='*/6', minute='30'),  # every 6 hours
     },
+    'task_sync_xform_can_submit_checks': {
+        'task': 'task_sync_xform_can_submit_checks',
+        'schedule': crontab(hour='*/1'),  # every 1 hours
+    },
 }
 
 # Emails
