@@ -20,6 +20,7 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  sync_updated_instances,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
+from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -194,3 +195,17 @@ def task_sync_deleted_projects(usernames: list):
     checks for deleted projects and syncs them
     """
     sync_deleted_projects(usernames=usernames)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_check_if_users_can_submit_to_form")
+def task_check_if_users_can_submit_to_form(xform_id):
+    """
+    Check if users can submit to the form
+    """
+    try:
+        xform = XForm.objects.get(pk=xform_id)
+    except XForm.DoesNotExist:
+        pass
+    else:
+        check_if_users_can_submit_to_form(xform=xform)
