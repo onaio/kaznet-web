@@ -610,3 +610,15 @@ class TestCeleryTasks(MainTestBase):
         ]
 
         mock.assert_has_calls(expected_calls)
+
+    @patch('kaznet.apps.ona.tasks.check_if_users_can_submit_to_form')
+    def test_task_check_if_users_can_submit_to_form(self, mock):
+        """
+        Test task_check_if_users_can_submit_to_form
+        """
+        XForm.objects.all().delete()
+        form1 = mommy.make('ona.XForm', deleted_at=None)
+
+        task_check_if_users_can_submit_to_form(xform_id=form1.id)
+
+        mock.assert_called_once_with(xform=form1)
