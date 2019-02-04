@@ -209,3 +209,14 @@ def task_check_if_users_can_submit_to_form(xform_id):
         pass
     else:
         check_if_users_can_submit_to_form(xform=xform)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_xform_can_submit_checks")
+def task_sync_xform_can_submit_checks():
+    """
+    Checks if forms are configured correctly to allow users to make submissions
+    """
+    xforms = XForm.objects.filter(deleted_at=None)
+    for xform in xforms:
+        task_check_if_users_can_submit_to_form.delay(xform_id=xform.id)
