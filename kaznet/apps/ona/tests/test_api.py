@@ -385,7 +385,12 @@ class TestApiMethods(MainTestBase):
             xform_data, 29
         )
 
-    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io',
+        ONA_ORG_NAME='kaznet',
+        ONA_XFORM_CONFIGURED_FIELD='configuration_status',
+        ONA_CONTRIBUTER_ROLE="dataentry"
+    )
     @requests_mock.Mocker()
     def test_process_xform_good_data(self, mocked):
         """
@@ -408,7 +413,19 @@ class TestApiMethods(MainTestBase):
             "projectid": 18,
             "name": "Changed2",
             "date_modified": "2018-05-30T07:51:59.267839Z",
-            "deleted_at": None
+            "deleted_at": None,
+            "teams": [
+                {
+                    "name": "kaznet#members",
+                    "role": "dataentry",
+                    "users": ["mosh"]
+                }, 
+                {
+                    "name": "kaznet#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                },
+            ],
         }
 
         mocked.get(
@@ -442,6 +459,8 @@ class TestApiMethods(MainTestBase):
         self.assertEqual("kaznet", the_xform.json['owner'])
         self.assertEqual(18, the_xform.ona_project_id)
         self.assertEqual(53, the_xform.ona_pk)
+        self.assertEqual(
+            XForm.CORRECTLY_CONFIGURED, the_xform.json['configuration_status'])
 
         # Doesnt create a project if present
 
