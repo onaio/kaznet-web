@@ -92,7 +92,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'task_sync_xform_can_submit_checks': {
         'task': 'task_sync_xform_can_submit_checks',
-        'schedule': crontab(hour='*/1'),  # every 1 hours
+        'schedule': crontab(hour='*/6'),  # every 6 hours
     },
 }
 
