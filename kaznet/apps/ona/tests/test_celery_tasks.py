@@ -609,7 +609,7 @@ class TestCeleryTasks(MainTestBase):
             call(xform_id=form1.id),
         ]
 
-        mock.assert_has_calls(expected_calls)
+        mock.assert_has_calls(expected_calls, any_order=True)
 
     @patch('kaznet.apps.ona.tasks.check_if_users_can_submit_to_form')
     def test_task_check_if_users_can_submit_to_form(self, mock):

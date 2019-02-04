@@ -419,7 +419,7 @@ class TestApiMethods(MainTestBase):
                     "name": "kaznet#members",
                     "role": "dataentry",
                     "users": ["mosh"]
-                }, 
+                },
                 {
                     "name": "kaznet#Owners",
                     "role": "owner",
