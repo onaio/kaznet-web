@@ -205,7 +205,7 @@ def task_check_if_users_can_submit_to_form(xform_id):
     """
     try:
         xform = XForm.objects.get(pk=xform_id)
-    except XForm.DoesNotExist:
+    except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
         check_if_users_can_submit_to_form(xform=xform)
