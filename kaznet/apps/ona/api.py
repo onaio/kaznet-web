@@ -5,12 +5,11 @@ with the OnaData API
 import json
 from urllib.parse import urljoin
 
+import dateutil.parser
+import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
-
-import dateutil.parser
-import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
@@ -23,7 +22,9 @@ from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           WEBHOOK_FIELD_NAME)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.ona.models import Instance, Project, XForm
-from kaznet.apps.ona.utils import delete_project, delete_xform, delete_instance
+from kaznet.apps.ona.utils import (check_if_users_can_submit_to_form,
+                                   delete_instance, delete_project,
+                                   delete_xform)
 from kaznet.apps.users.models import UserProfile
 
 SUCCESS_STATUSES = [200, 201]
@@ -148,7 +149,8 @@ def process_project(project_data: dict):
             defaults={
                 'name': project_data.get('name'),
                 'deleted_at': project_data.get('deleted_at'),
-                'last_updated': project_data.get('date_modified')
+                'last_updated': project_data.get('date_modified'),
+                'json': project_data,
             })
 
         if not created:
@@ -164,6 +166,7 @@ def process_project(project_data: dict):
                     obj.name = project_data.get('name')
                     obj.last_updated = project_data.get('date_modified')
                     obj.deleted_at = project_data.get('deleted_at')
+                    obj.json = project_data
                     obj.save()
 
 
@@ -226,7 +229,7 @@ def process_xform(xform_data: dict, project_id: int = None):
             owner_url=owner_url
         )
 
-        XForm.objects.update_or_create(
+        xform, _ = XForm.objects.update_or_create(
             ona_pk=xform_id,
             defaults={
                 'title': title,
@@ -236,6 +239,9 @@ def process_xform(xform_data: dict, project_id: int = None):
                 'last_updated': xform_data.get('last_updated_at'),
                 'json': json_data
             })
+
+        # check if configured correctly
+        check_if_users_can_submit_to_form(xform=xform)
 
 
 def get_project_obj(ona_project_id: int = None, project_url: str = None):

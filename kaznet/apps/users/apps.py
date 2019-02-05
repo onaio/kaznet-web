@@ -12,5 +12,5 @@ class UsersConfig(AppConfig):
     name = 'kaznet.apps.users'
 
     def ready(self):
-        # pylint: disable=unused-variable
+        # pylint: disable=unused-import
         import kaznet.apps.users.signals  # noqa

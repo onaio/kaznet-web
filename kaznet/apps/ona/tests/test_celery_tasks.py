@@ -15,6 +15,7 @@ from kaznet.apps.main.models import Task
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
+                                   task_check_if_users_can_submit_to_form,
                                    task_create_form_webhook,
                                    task_fetch_form_missing_instances,
                                    task_fetch_missing_instances,
@@ -27,6 +28,7 @@ from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_sync_form_deleted_instances,
                                    task_sync_form_updated_instances,
                                    task_sync_updated_instances,
+                                   task_sync_xform_can_submit_checks,
                                    task_update_user_profile)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
@@ -589,3 +591,34 @@ class TestCeleryTasks(MainTestBase):
         # call the task
         task_sync_deleted_projects(usernames=["coco", "mosh"])
         mock.assert_called_once_with(usernames=["coco", "mosh"])
+
+    @patch(
+        'kaznet.apps.ona.tasks.task_check_if_users_can_submit_to_form.delay')
+    def test_task_sync_xform_can_submit_checks(self, mock):
+        """
+        Test task_sync_xform_can_submit_checks
+        """
+        XForm.objects.all().delete()
+        form1 = mommy.make('ona.XForm', deleted_at=None)
+        form2 = mommy.make('ona.XForm', deleted_at=None)
+
+        task_sync_xform_can_submit_checks()
+
+        expected_calls = [
+            call(xform_id=form2.id),
+            call(xform_id=form1.id),
+        ]
+
+        mock.assert_has_calls(expected_calls, any_order=True)
+
+    @patch('kaznet.apps.ona.tasks.check_if_users_can_submit_to_form')
+    def test_task_check_if_users_can_submit_to_form(self, mock):
+        """
+        Test task_check_if_users_can_submit_to_form
+        """
+        XForm.objects.all().delete()
+        form1 = mommy.make('ona.XForm', deleted_at=None)
+
+        task_check_if_users_can_submit_to_form(xform_id=form1.id)
+
+        mock.assert_called_once_with(xform=form1)
