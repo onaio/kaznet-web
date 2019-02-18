@@ -4,13 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-"e1839a8" = {editable = true, path = "."}
-ona-tasking = {editable = true, git = "https://github.com/onaio/tasking.git", ref = "v0.2.0"}
+e1839a8 = {editable = true,path = "."}
+ona-tasking = {editable = true,git = "https://github.com/onaio/tasking.git",ref = "v0.2.0"}
 redis = "*"
-allauth-onadata = {git = "https://github.com/onaio/django-allauth-onadata.git", ref = "v0.0.2", editable = true}
+allauth-onadata = {git = "https://github.com/onaio/django-allauth-onadata.git",ref = "v0.0.2",editable = true}
 djangorestframework-csv = "*"
 django-crispy-forms = "*"
 future = "*"
+kaznet = {editable = true,path = "."}
 
 [dev-packages]
 "flake8" = "*"
