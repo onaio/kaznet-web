@@ -242,7 +242,8 @@ class TestApiMethods(MainTestBase):
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "version": "vQZYoAo96pzTHZHY2iWuQA",
             "owner": "https://example.com/api/v1/users/kaznet",
-            "is_merged_dataset": False
+            "is_merged_dataset": False,
+            "downloadable": True,
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53')
@@ -406,7 +407,8 @@ class TestApiMethods(MainTestBase):
             "version": "vQZYoAo96pzTHZHY2iWuQA",
             "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
-            "date_modified": "2018-02-15T07:51:59.267839Z"
+            "date_modified": "2018-02-15T07:51:59.267839Z",
+            "downloadable": True,
         }
 
         mocked_project_data = {
@@ -457,6 +459,7 @@ class TestApiMethods(MainTestBase):
             the_xform.json['owner_url']
         )
         self.assertEqual("kaznet", the_xform.json['owner'])
+        self.assertEqual(True, the_xform.json['downloadable'])
         self.assertEqual(18, the_xform.ona_project_id)
         self.assertEqual(53, the_xform.ona_pk)
         self.assertEqual(
@@ -497,6 +500,7 @@ class TestApiMethods(MainTestBase):
             "id_string": "aFEjJKzULJlQYsmQzKcpL9",
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z",
+            "downloadable": True,
         }
 
         self.assertEqual(XForm.objects.all().count(), 2)
@@ -594,6 +598,7 @@ class TestApiMethods(MainTestBase):
             json={
                 "owner": "1",
                 "owner_url": "http://example.com/1",
+                "downloadable": True
             },
             ona_pk=1337,
             last_updated="2018-02-15T07:51:59.267839Z"
@@ -608,6 +613,7 @@ class TestApiMethods(MainTestBase):
             "is_merged_dataset": False,
             "date_modified": "2018-02-15T07:51:59.267839Z",
             "last_updated_at": "2018-02-15T07:55:59.267839Z",
+            "downloadable": False,
         }
 
         process_xform(mocked_form_data, mommy.make('ona.Project').ona_pk)
@@ -617,6 +623,7 @@ class TestApiMethods(MainTestBase):
         self.assertEqual("Big Form", the_xform.title)
         self.assertEqual("vQZYoAo96pzTHZHY2iWuQA", the_xform.version)
         self.assertEqual("kaznet", the_xform.json['owner'])
+        self.assertEqual(False, the_xform.json['downloadable'])
         self.assertEqual(
             "2018-02-15T07:55:59.267839+00:00",
             the_xform.last_updated.isoformat())
