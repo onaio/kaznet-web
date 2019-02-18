@@ -226,7 +226,8 @@ def process_xform(xform_data: dict, project_id: int = None):
 
         json_data = dict(
             owner=owner,
-            owner_url=owner_url
+            owner_url=owner_url,
+            downloadable=xform_data.get("downloadable", False)
         )
 
         xform, _ = XForm.objects.update_or_create(
