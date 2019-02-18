@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4be4e30ee6c97893722f45c8f0746330a26f58eeffcc543bef82d0d9c03791d2"
+            "sha256": "0b011cd3eee9b8c9469883c5d0cc46040c509cafc7904b573fd239850c70115d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -251,7 +251,7 @@
         "ona-tasking": {
             "editable": true,
             "git": "https://github.com/onaio/tasking.git",
-            "ref": "c3ee4a3bc29dfea086ce297e54d1f9230222ecae"
+            "ref": "37ccd616df37f7797fb6904498f9780501fc8ec7"
         },
         "phonenumberslite": {
             "hashes": [
