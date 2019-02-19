@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='kaznet',
-    version="1.0.7",
+    version="1.0.8",
     description='Tasking application built on top of Onadata',
     license='Apache 2.0',
     author='Ona Systems Inc',
@@ -13,7 +13,7 @@ setup(
     url='https://github.com/onaio/kaznet-web',
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=[
-        'Django >=2.0.10, < 2.1',
+        'Django >=2.0.13, < 2.1',
         'djangorestframework',
         'psycopg2-binary',
         'django-prices',
