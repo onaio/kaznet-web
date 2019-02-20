@@ -144,7 +144,7 @@ def process_project(project_data: dict):
     project_id = project_data.get('projectid')
 
     if project_id is not None:
-        obj, created = Project.objects.get_or_create(
+        Project.objects.update_or_create(
             ona_pk=project_id,
             defaults={
                 'name': project_data.get('name'),
@@ -152,22 +152,6 @@ def process_project(project_data: dict):
                 'last_updated': project_data.get('date_modified'),
                 'json': project_data,
             })
-
-        if not created:
-            # If object was not created this means it exists so we check
-            # if it needs updating or not.
-
-            # Turns the project_data['date_modified'] into a datetime object
-            # for easier comparison
-            last_updated_ona = dateutil.parser.parse(
-                project_data.get('date_modified'))
-            if last_updated_ona is not None:
-                if obj.last_updated != last_updated_ona:
-                    obj.name = project_data.get('name')
-                    obj.last_updated = project_data.get('date_modified')
-                    obj.deleted_at = project_data.get('deleted_at')
-                    obj.json = project_data
-                    obj.save()
 
 
 def get_xform(xform_id: int):
