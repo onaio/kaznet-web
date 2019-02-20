@@ -311,12 +311,18 @@ class TestApiMethods(MainTestBase):
         self.assertDictEqual(project_data, project.json)
 
         # now test that an update works
-        new_project_data = project_data.copy()
-        new_project_data["name"] = "New Awesome!"
-        new_project_data["date_modified"] = "2018-06-11T07:51:59.267839Z"
+        new_project_data = {
+            "projectid": 18,
+            "name": "New Awesome!",
+            "date_modified": "2018-06-11T07:51:59.267839Z",
+            "deleted_at": None
+        }
+        project.json = {}
+        project.save()
+
         process_project(new_project_data)
         self.assertEqual(Project.objects.all().count(), 1)
-        project = Project.objects.get(ona_pk=18)
+        project.refresh_from_db()
         self.assertEqual(18, project.ona_pk)
         self.assertEqual('New Awesome!', project.name)
         self.assertEqual(
