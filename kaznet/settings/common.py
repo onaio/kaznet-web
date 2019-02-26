@@ -239,7 +239,7 @@ REST_FRAMEWORK = {
         # If performance testing, enable:
         # 'example.utils.BrowsableAPIRendererWithoutForms',
         # Otherwise, to play around with the browseable API, enable:
-        'rest_framework.renderers.BrowsableAPIRenderer'
+        # 'rest_framework.renderers.BrowsableAPIRenderer'
     ),
     'DEFAULT_METADATA_CLASS':
         'rest_framework_json_api.metadata.JSONAPIMetadata',
@@ -253,6 +253,9 @@ TASKING_ALLOWED_CONTENTTYPES = [
     {'app_label': 'ona', 'model': 'xform'},
     {'app_label': 'ona', 'model': 'instance'}
 ]
+TASKING_CHECK_NUMBER_OF_FILES_IN_SHAPEFILES_DIR = False
+TASKING_SHAPEFILE_IGNORE_INVALID_TYPES = True
+TASKING_SHAPEFILE_ALLOW_NESTED_MULTIPOLYGONS = True
 
 # XForms
 AUTO_CREATE_SUBMISSION_WEBHOOKS = True
