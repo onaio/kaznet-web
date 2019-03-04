@@ -33,7 +33,7 @@ class OnaTempTokenAuthentication(TokenAuthentication):
         if len(auth) == 1:
             raise exceptions.AuthenticationFailed(
                 INVALID_TOKEN_CREDENTIALS_MISSING)
-        elif len(auth) > 2:
+        if len(auth) > 2:
             raise exceptions.AuthenticationFailed(
                 INVALID_TOKEN_SPACES_CONTAINED)
 
