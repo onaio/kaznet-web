@@ -79,4 +79,5 @@ class SubmissionExportViewSet(
 
             return response
 
+        # pylint: disable=no-member
         return super().list(request, *args, **kwargs)
