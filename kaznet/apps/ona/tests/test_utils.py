@@ -387,7 +387,7 @@ class TestUtils(MainTestBase):
         ONA_MANAGER_ROLE="manager"
     )
     def test_allow_editor_and_manager(self):
-        """Test check_if_editor_and_manager_can_submit_to_form"""
+        """Test check if editor and manager can submit to form"""
 
         # test editor can submit
         project = mommy.make(
@@ -462,7 +462,7 @@ class TestUtils(MainTestBase):
     @override_settings(
         ONA_ORG_NAME='onasystemsinc')
     def test_check_if_users_can_submit_to_form(self):
-        """Test check_if_users_can_submit_to_form"""
+        """Test check if users can submit to form"""
         # test correct
         project = mommy.make(
             'ona.Project',
