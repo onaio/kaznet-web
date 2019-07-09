@@ -101,7 +101,7 @@ def check_if_users_can_submit_to_form(xform: object):
                     xform.json[
                         settings.ONA_XFORM_CONFIGURED_FIELD] =\
                             XForm.NO_VALID_TEAM
-                elif the_team['role'] == settings.ONA_CONTRIBUTER_ROLE:
+                elif the_team['role'] in [settings.ONA_CONTRIBUTER_ROLE, "manager", "editor"]:
                     # its valid, everything is good
                     xform.json[settings.ONA_XFORM_CONFIGURED_FIELD] =\
                         XForm.CORRECTLY_CONFIGURED
