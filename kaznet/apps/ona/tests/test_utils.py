@@ -384,7 +384,7 @@ class TestUtils(MainTestBase):
         ONA_ORG_NAME='onasystemsinc',
         ONA_XFORM_CONFIGURED_FIELD='configuration_status',
         ONA_CONTRIBUTER_ROLE="dataentry",
-        ONA_MANAGER_ROLE = "manager"
+        ONA_MANAGER_ROLE="manager"
     )
     def test_allow_editor_and_manager(self):
         """Test check_if_editor_and_manager_can_submit_to_form"""
