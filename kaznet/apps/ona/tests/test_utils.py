@@ -386,6 +386,7 @@ class TestUtils(MainTestBase):
         ONA_CONTRIBUTER_ROLE="dataentry",
         ONA_MANAGER_ROLE="manager"
     )
+<<<<<<< HEAD
     def test_allow_editor_and_manager(self):
         """Test check if editor and manager can submit to form"""
 
@@ -461,6 +462,8 @@ class TestUtils(MainTestBase):
 
     @override_settings(
         ONA_ORG_NAME='onasystemsinc')
+=======
+>>>>>>> parent of bd17246... added new test to ensure all manager and editor roles can download  form and make submissions
     def test_check_if_users_can_submit_to_form(self):
         """Test check if users can submit to form"""
         # test correct

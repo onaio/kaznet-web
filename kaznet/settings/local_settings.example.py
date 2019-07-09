@@ -10,9 +10,9 @@ ALLAUTH_ONA_BASE_URL = "https://api.ona.io"
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'kaznet',
-        'USER': 'kaznetuser',
-        'PASSWORD': 'password',
+        'NAME': 'the db name',
+        'USER': 'the db user',
+        'PASSWORD': 'the db password',
         'HOST': '127.0.0.1'
     }
 }
