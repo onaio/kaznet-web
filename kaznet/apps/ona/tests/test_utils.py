@@ -383,10 +383,12 @@ class TestUtils(MainTestBase):
     @override_settings(
         ONA_ORG_NAME='onasystemsinc',
         ONA_XFORM_CONFIGURED_FIELD='configuration_status',
-        ONA_CONTRIBUTER_ROLE="dataentry"
+        ONA_CONTRIBUTER_ROLE="dataentry",
+        ONA_MANAGER_ROLE = "manager"
     )
     def test_allow_editor_and_manager(self):
-        """Test check_if_users_can_submit_to_form"""
+        """Test check_if_editor_and_manager_can_submit_to_form"""
+
         # test editor can submit
         project = mommy.make(
             'ona.Project',
@@ -457,6 +459,8 @@ class TestUtils(MainTestBase):
             xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
         )
 
+    @override_settings(
+        ONA_ORG_NAME='onasystemsinc')
     def test_check_if_users_can_submit_to_form(self):
         """Test check_if_users_can_submit_to_form"""
         # test correct
