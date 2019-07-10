@@ -112,3 +112,17 @@ class TestTasks(MainTestBase):
         self.assertEqual('mosh', task.xform_owner)
         self.assertEqual('http://example.com/mosh', task.xform_owner_url)
         self.assertEqual(12389, task.xform_project_id)
+
+    def test_xform_title(self):
+        """
+        Test xForm title property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(xform.title, cattle_task.xform_title)
