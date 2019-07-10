@@ -194,6 +194,8 @@ ONA_SUBMISSION_REVIEW_REJECTED = '2'
 ONA_SUBMISSION_REVIEW_PENDING = '3'
 ONA_OWNER_ROLE = "owner"
 ONA_CONTRIBUTER_ROLE = "dataentry"
+ONA_MANAGER_ROLE = "manager"
+ONA_EDITOR_ROLE = "editor"
 ONA_XFORM_CONFIGURED_FIELD = "configuration_status"
 # Texts
 ONA_LOGIN_TEXT = 'Log In With Your Ona Account'

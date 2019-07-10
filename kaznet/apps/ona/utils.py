@@ -73,7 +73,8 @@ def check_if_users_can_submit_to_form(xform: object):
 
     The check is done by checking that the XForm belongs to an Ona Project
     which has members of the `settings.ONA_ORG_NAME` organization with at least
-    the `dataentry` Onadata role.
+    the `dataentry` Onadata role. It allows users to make submissions if
+    they are: dataentry, editor, or manager
     """
     if xform.json.get("owner") != settings.ONA_ORG_NAME:
         # the form does not have the expected owner
@@ -100,7 +101,9 @@ def check_if_users_can_submit_to_form(xform: object):
                     xform.json[
                         settings.ONA_XFORM_CONFIGURED_FIELD] =\
                             XForm.NO_VALID_TEAM
-                elif the_team['role'] == settings.ONA_CONTRIBUTER_ROLE:
+                elif the_team['role'] in [settings.ONA_CONTRIBUTER_ROLE,
+                                          settings.ONA_EDITOR_ROLE,
+                                          settings.ONA_MANAGER_ROLE]:
                     # its valid, everything is good
                     xform.json[settings.ONA_XFORM_CONFIGURED_FIELD] =\
                         XForm.CORRECTLY_CONFIGURED

@@ -383,10 +383,86 @@ class TestUtils(MainTestBase):
     @override_settings(
         ONA_ORG_NAME='onasystemsinc',
         ONA_XFORM_CONFIGURED_FIELD='configuration_status',
-        ONA_CONTRIBUTER_ROLE="dataentry"
+        ONA_CONTRIBUTER_ROLE="dataentry",
+        ONA_MANAGER_ROLE="manager"
     )
+    def test_allow_editor_and_manager(self):
+        """Test check if editor and manager can submit to form"""
+
+        # test editor can submit
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [{
+                    "name": "onasystemsinc#members",
+                    "role": "editor",
+                    "users": ["mosh"]
+                }, {
+                    "name": "onasystemsinc#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                }],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.CORRECTLY_CONFIGURED,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+        # test manager can submit
+        project = mommy.make(
+            'ona.Project',
+            name="Test Project",
+            json={
+                "url": "https://api.ona.io/api/v1/projects/1337",
+                "name": "Test Project",
+                "forms": [{
+                    "name": "Test Form",
+                }],
+                "owner": "https://api.ona.io/api/v1/users/onasystemsinc",
+                "teams": [{
+                    "name": "onasystemsinc#members",
+                    "role": "manager",
+                    "users": ["mosh"]
+                }, {
+                    "name": "onasystemsinc#Owners",
+                    "role": "owner",
+                    "users": ["coco"]
+                }],
+            }
+        )
+        xform = mommy.make(
+            'ona.XForm',
+            title="Test Form",
+            ona_project_id=project.ona_pk,
+            json={"owner": "onasystemsinc"}
+        )
+        check_if_users_can_submit_to_form(xform)
+        xform.refresh_from_db()
+        self.assertEqual(
+            XForm.CORRECTLY_CONFIGURED,
+            xform.json[settings.ONA_XFORM_CONFIGURED_FIELD]
+        )
+
+    @override_settings(
+        ONA_ORG_NAME='onasystemsinc')
     def test_check_if_users_can_submit_to_form(self):
-        """Test check_if_users_can_submit_to_form"""
+        """Test check if users can submit to form"""
         # test correct
         project = mommy.make(
             'ona.Project',
