@@ -295,6 +295,17 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
     return request(url=url, method='GET', args=query_params)
 
 
+def sync_submission_review(submission: None):
+    """
+    ensure Submission is in sync with Submission in onadata.
+    """
+    args = {"status": submission.status,
+            "instance": submission.target_object_id}
+    if not submission.json.get("synced_with_ona_data"):
+        url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
+        request(url, args, method='POST')
+
+
 def sync_updated_instances(form_id: int):
     """
     Attempts to get and sync updated instances from Onadata
