@@ -112,7 +112,8 @@ class TestTasks(MainTestBase):
         self.assertEqual('mosh', task.xform_owner)
         self.assertEqual('http://example.com/mosh', task.xform_owner_url)
         self.assertEqual(12389, task.xform_project_id)
-def test_xform_title(self):
+
+    def test_xform_title(self):
         """
         Test xForm title property
 
@@ -181,7 +182,8 @@ def test_xform_title(self):
             target_content_object=xform
         )
 
-        self.assertEqual(cattle_task.xform_owner_url, xform.json.get("owner_url"))
+        self.assertEqual(cattle_task.xform_owner_url,
+                         xform.json.get("owner_url"))
 
     def test_xform_ona_id(self):
         """
