@@ -112,3 +112,101 @@ class TestTasks(MainTestBase):
         self.assertEqual('mosh', task.xform_owner)
         self.assertEqual('http://example.com/mosh', task.xform_owner_url)
         self.assertEqual(12389, task.xform_project_id)
+def test_xform_title(self):
+        """
+        Test xForm title property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(xform.title, cattle_task.xform_title)
+
+    def test_xform_id_string(self):
+        """
+        test xform_id_string property
+
+        """
+
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_id_string, xform.id_string)
+
+    def test_xform_version(self):
+        """
+        test xform_version property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_version, xform.version)
+
+    def test_xform_owner(self):
+        """
+        test xform_owner property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_owner, xform.json.get("owner"))
+
+    def test_xform_owner_url(self):
+        """
+        test xform_owner property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_owner_url, xform.json.get("owner_url"))
+
+    def test_xform_ona_id(self):
+        """
+        test xform_ona_id property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_ona_id, xform.ona_pk)
+
+    def test_xform_project_id(self):
+        """
+        test xform_project_id property
+
+        """
+        xform = mommy.make('ona.XForm', title="test")
+        cattle_task = mommy.make(
+            'main.Task',
+            name='Cattle Price',
+            target_content_object=xform
+        )
+
+        self.assertEqual(cattle_task.xform_project_id, xform.ona_project_id)
