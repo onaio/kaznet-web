@@ -4,6 +4,7 @@ with the OnaData API
 """
 import json
 from urllib.parse import urljoin
+from requests.auth import HTTPBasicAuth
 
 import dateutil.parser
 import requests
@@ -90,12 +91,12 @@ def request_session(
     return None
 
 
-def request(url: str, args: dict = None, method: str = 'GET'):
+def request(url: str, args: dict = None, method: str = 'GET', headers=None):
     """
     Custom Method that requests data from requests_session
     and confirms it has a valid JSON return
     """
-    response = request_session(url, method, args)
+    response = request_session(url, method, args, headers)
     try:
         # you only come here if we can understand the API response
         return response.json()
@@ -299,11 +300,32 @@ def sync_submission_review(submission: None):
     """
     ensure Submission is in sync with Submission in onadata.
     """
+    if not submission:
+        return
+    instance = Instance.objects.get(id=submission.target_object_id)
     args = {"status": submission.status,
-            "instance": submission.target_object_id}
+            "instance": instance.ona_pk}
+    temp_tocken = get_temp_tocken()
+    headers = {"Authorization": "TempToken "+temp_tocken}
     if not submission.json.get("synced_with_ona_data"):
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
-        request(url, args, method='POST')
+        response = request(url, args, method='POST', headers=headers)
+        #so based on the response we will decide if the sync was done or not
+        if response["status"] and response["status"] == submission.status:
+            print("something worked really well")
+        elif response["status"]:
+            print("something worked but now how you would have wanted it to")
+        else: 
+            print("nothing worked:-(")
+
+
+def get_temp_tocken():
+    """
+    get temp tocken
+    """
+    url = urljoin(settings.ONA_BASE_URL, "api/v1/user")
+    response = request(url, method="GET")
+    return (response['temp_token'])
 
 
 def sync_updated_instances(form_id: int):

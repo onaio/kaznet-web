@@ -4,6 +4,7 @@ Celery tasks module for Ona app
 from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
+from django.conf import settings
 
 from celery import task as celery_task
 from django.contrib.auth.models import User
@@ -28,6 +29,7 @@ def task_fetch_projects(username: str):
     """
     Fetches and processes projects from Onadata
     """
+    print(settings.ONA_BASE_URL)
     # get the projects from Onadata's API
     projects = get_projects(username=username)
     # save the projects locally
