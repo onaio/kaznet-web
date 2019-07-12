@@ -4,7 +4,6 @@ with the OnaData API
 """
 import json
 from urllib.parse import urljoin
-from requests.auth import HTTPBasicAuth
 
 import dateutil.parser
 import requests
@@ -310,12 +309,11 @@ def sync_submission_review(submission: None):
     if not submission.json.get("synced_with_ona_data"):
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
         response = request(url, args, method='POST', headers=headers)
-        #so based on the response we will decide if the sync was done or not
         if response["status"] and response["status"] == submission.status:
             print("something worked really well")
         elif response["status"]:
             print("something worked but now how you would have wanted it to")
-        else: 
+        else:
             print("nothing worked:-(")
 
 

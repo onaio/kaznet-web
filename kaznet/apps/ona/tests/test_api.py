@@ -33,9 +33,7 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  request_session, sync_deleted_instances,
                                  sync_deleted_projects, sync_deleted_xforms,
                                  sync_updated_instances,
-                                 update_user_profile_metadata,
-                                 sync_submission_review)
-from kaznet.apps.ona.tasks import task_fetch_projects
+                                 update_user_profile_metadata)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -1770,4 +1768,3 @@ class TestApiMethods(MainTestBase):
         self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
         task.refresh_from_db()
         self.assertEqual(0, task.get_submissions())
-        
