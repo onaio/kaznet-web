@@ -37,7 +37,7 @@ def task_create_submission(instance_id: int):
         pass
     else:
         submission = create_submission(ona_instance=instance)
-        sync_submission_review(submission)
+        #sync_submission_review(submission)
 
 
 @celery_task(name="task_past_end_date")  # pylint: disable=not-callable
