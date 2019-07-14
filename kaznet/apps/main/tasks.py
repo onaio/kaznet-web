@@ -10,7 +10,6 @@ from kaznet.apps.main.models import Task, Bounty
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.utils import create_occurrences
 from kaznet.apps.ona.models import Instance
-from kaznet.apps.ona.api import sync_submission_review
 
 
 @celery_task(name="task_create_occurrences")  # pylint: disable=not-callable
@@ -36,8 +35,7 @@ def task_create_submission(instance_id: int):
     except Instance.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
-        submission = create_submission(ona_instance=instance)
-        #sync_submission_review(submission)
+        create_submission(ona_instance=instance)
 
 
 @celery_task(name="task_past_end_date")  # pylint: disable=not-callable

@@ -22,6 +22,7 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  update_user_profile_metadata)
 from kaznet.apps.ona.models import XForm
 from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
+from kaznet.apps.ona.api import sync_submission_review
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -222,3 +223,12 @@ def task_sync_xform_can_submit_checks():
     xforms = XForm.objects.filter(deleted_at=None)
     for xform in xforms:
         task_check_if_users_can_submit_to_form.delay(xform_id=xform.id)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_submission_review")
+def task_sync_submission_review(instance_id, ona_review_status):
+    """
+    Sync auto review of submission with its review on onadata
+    """
+    sync_submission_review(instance_id, ona_review_status)
