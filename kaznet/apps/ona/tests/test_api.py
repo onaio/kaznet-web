@@ -1790,11 +1790,11 @@ class TestApiMethods(MainTestBase):
 
         # make an instance
         mommy.make('ona.Instance', ona_pk=37511)
-        #call sync_submission_review
+        # call sync_submission_review
         sync_submission_review(instance_id, ona_review_status, comment)
-        
+
         # test that request receives the correct data
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
         args = {'note': comment, "status": ona_review_status,
-            "instance": instance_id}
+                "instance": instance_id}
         request_method_mock.assert_called_with(url, args, method="POST")
