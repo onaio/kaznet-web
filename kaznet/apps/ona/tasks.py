@@ -4,7 +4,6 @@ Celery tasks module for Ona app
 from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
-from django.conf import settings
 
 from celery import task as celery_task
 from django.contrib.auth.models import User
@@ -20,9 +19,10 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  sync_deleted_projects, sync_deleted_xforms,
                                  sync_updated_instances,
                                  update_user_profile_metadata)
-from kaznet.apps.ona.models import XForm
+from kaznet.apps.ona.models import XForm, Instance
 from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
 from kaznet.apps.ona.api import sync_submission_review
+from kaznet.apps.ona.api import convert_kaznet_to_ona_submission_status
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -30,7 +30,6 @@ def task_fetch_projects(username: str):
     """
     Fetches and processes projects from Onadata
     """
-    print(settings.ONA_BASE_URL)
     # get the projects from Onadata's API
     projects = get_projects(username=username)
     # save the projects locally
@@ -227,8 +226,32 @@ def task_sync_xform_can_submit_checks():
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_submission_review")
-def task_sync_submission_review(instance_id, ona_review_status, comment):
+def task_sync_submission_review(instance_id, kaznet_review_status, comment):
     """
     Sync auto review of submission with its review on onadata
     """
+    ona_review_status = convert_kaznet_to_ona_submission_status(
+        kaznet_review_status)
     sync_submission_review(instance_id, ona_review_status, comment)
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_outdated_submission_review")
+def task_sync_outdated_submission_reviews():
+    """
+    Sync outdated submission reviews that did not
+    sync with onadata when they were created
+    """
+    # query all instances from db and iterate through,
+    # calling sync_submission_review_for_each
+    all_instances = Instance.objects.all()
+    for instance in all_instances:
+        # check if the instance is synced with onadata
+        if instance.json.get("synced_with_ona_data") is not True:
+            # call sync_submission_review based on value of
+            # sync_with_ona_data json field
+            status = instance.json.get('status')
+            comment = instance.json.get('comment')
+            if status is not None and comment is not None:
+                task_sync_submission_review.delay(instance.id,
+                                                  status,
+                                                  comment)
