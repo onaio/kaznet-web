@@ -328,21 +328,11 @@ def sync_submission_review(instance_id, ona_review_status):
     """
     args = {"status": ona_review_status,
             "instance": instance_id}
-    temp_tocken = get_temp_tocken()
     headers = {"Authorization": "TempToken "+temp_tocken}
     instance = Instance.objects.all().filter(id=instance_id)
     if not instance.json.get("synced_with_ona_data"):
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
         request(url, args, method='POST', headers=headers)
-
-
-def get_temp_tocken():
-    """
-    get temp tocken
-    """
-    url = urljoin(settings.ONA_BASE_URL, "api/v1/user")
-    response = request(url, method="GET")
-    return response['temp_token']
 
 
 def sync_updated_instances(form_id: int):
