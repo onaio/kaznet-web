@@ -328,12 +328,12 @@ def sync_submission_review(instance_id, ona_review_status, comment):
     """
     args = {'note': comment, "status": ona_review_status,
             "instance": instance_id}
-    instance = Instance.objects.all().filter(id=instance_id)
+    instance = Instance.objects.get(ona_pk=instance_id)
     if not instance.json.get("synced_with_ona_data"):
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
         reply = request(url, args, method='POST')
-        if reply["instance"].trim() == instance_id+"":
-            instance["synced_with_ona_data"] = True
+        if reply["instance"].strip() == str(instance_id):
+            instance.json["synced_with_ona_data"] = True
 
 
 def sync_updated_instances(form_id: int):
