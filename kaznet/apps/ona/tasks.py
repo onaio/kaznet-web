@@ -227,8 +227,8 @@ def task_sync_xform_can_submit_checks():
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_submission_review")
-def task_sync_submission_review(instance_id, ona_review_status):
+def task_sync_submission_review(instance_id, ona_review_status, comment):
     """
     Sync auto review of submission with its review on onadata
     """
-    sync_submission_review(instance_id, ona_review_status)
+    sync_submission_review(instance_id, ona_review_status, comment)
