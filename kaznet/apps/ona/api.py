@@ -117,12 +117,12 @@ def convert_kaznet_to_ona_submission_status(kaznet_status: str):
     return None
 
 
-def request(url: str, args: dict = None, method: str = 'GET', headers=None):
+def request(url: str, args: dict = None, method: str = 'GET'):
     """
     Custom Method that requests data from requests_session
     and confirms it has a valid JSON return
     """
-    response = request_session(url, method, args, headers)
+    response = request_session(url, method, args)
     try:
         # you only come here if we can understand the API response
         return response.json()
@@ -334,6 +334,7 @@ def sync_submission_review(instance_id, ona_review_status, comment):
         reply = request(url, args, method='POST')
         if reply["instance"].strip() == str(instance_id):
             instance.json["synced_with_ona_data"] = True
+            instance.save()
 
 
 def sync_updated_instances(form_id: int):
