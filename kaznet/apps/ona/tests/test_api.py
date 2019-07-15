@@ -1789,7 +1789,7 @@ class TestApiMethods(MainTestBase):
         request_method_mock.return_value = mock_reply
 
         # make an instance
-        mommy.make('ona.Instance', ona_pk=37511)
+        instance = mommy.make('ona.Instance', ona_pk=37511)
         # call sync_submission_review
         sync_submission_review(instance_id, ona_review_status, comment)
 
@@ -1798,3 +1798,8 @@ class TestApiMethods(MainTestBase):
         args = {'note': comment, "status": ona_review_status,
                 "instance": instance_id}
         request_method_mock.assert_called_with(url, args, method="POST")
+
+        #test that instance object has synced_with_ona_data set to True
+        instance = Instance.objects.get(ona_pk=instance_id)
+        self.assertTrue(instance.json.get("synced_with_ona_data"))
+
