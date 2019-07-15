@@ -322,17 +322,18 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
     return request(url=url, method='GET', args=query_params)
 
 
-def sync_submission_review(instance_id, ona_review_status):
+def sync_submission_review(instance_id, ona_review_status, comment):
     """
     ensure Submission is in sync with Submission in onadata.
     """
-    args = {"status": ona_review_status,
+    args = {'note': comment, "status": ona_review_status,
             "instance": instance_id}
-    headers = {"Authorization": "TempToken "+temp_tocken}
     instance = Instance.objects.all().filter(id=instance_id)
     if not instance.json.get("synced_with_ona_data"):
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
-        request(url, args, method='POST', headers=headers)
+        reply = request(url, args, method='POST')
+        if reply["instance"].trim() == instance_id+"":
+            instance["synced_with_ona_data"] = True
 
 
 def sync_updated_instances(form_id: int):
