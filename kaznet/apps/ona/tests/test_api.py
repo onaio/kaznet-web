@@ -33,7 +33,8 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  request_session, sync_deleted_instances,
                                  sync_deleted_projects, sync_deleted_xforms,
                                  sync_updated_instances,
-                                 update_user_profile_metadata)
+                                 update_user_profile_metadata,
+                                 sync_submission_review)
 from kaznet.apps.ona.models import Instance, Project, XForm
 from kaznet.apps.users.models import UserProfile
 
@@ -59,7 +60,7 @@ MOCKED_ONA_FORM_DATA = {
          'type': 'group',
          'children': [
              {'bind': {
-                'readonly': 'true()', 'calculate': "concat('uuid:', uuid())"},
+                 'readonly': 'true()', 'calculate': "concat('uuid:', uuid())"},
                  'type': 'calculate', 'name': 'instanceID'}],
          'name': 'meta'}]}
 
@@ -1768,3 +1769,32 @@ class TestApiMethods(MainTestBase):
         self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
         task.refresh_from_db()
         self.assertEqual(0, task.get_submissions())
+
+    @patch('kaznet.apps.ona.api.request')
+    def test_sync_submission_review(self, request_method_mock):
+        """
+        Test sync_submission_review
+        """
+        comment = ""
+        ona_review_status = 2
+        instance_id = 37511
+        mock_reply = {
+            "id": 198,
+            "instance": str(instance_id),
+            "created_by": 450,
+            "status": ona_review_status,
+            "date_created": "2019-07-15T04:45:47.964079-04:00",
+            "date_modified": "2019-07-15T04:45:47.964097-04:00"
+        }
+        request_method_mock.return_value = mock_reply
+
+        # make an instance
+        mommy.make('ona.Instance', ona_pk=37511)
+        #call sync_submission_review
+        sync_submission_review(instance_id, ona_review_status, comment)
+        
+        # test that request receives the correct data
+        url = urljoin(settings.ONA_BASE_URL, 'api/v1/submissionreview.json')
+        args = {'note': comment, "status": ona_review_status,
+            "instance": instance_id}
+        request_method_mock.assert_called_with(url, args, method="POST")
