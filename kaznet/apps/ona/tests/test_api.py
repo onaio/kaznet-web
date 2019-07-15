@@ -1799,7 +1799,6 @@ class TestApiMethods(MainTestBase):
                 "instance": instance_id}
         request_method_mock.assert_called_with(url, args, method="POST")
 
-        #test that instance object has synced_with_ona_data set to True
-        instance = Instance.objects.get(ona_pk=instance_id)
+        # test that instance object has synced_with_ona_data set to True
+        instance.refresh_from_db()
         self.assertTrue(instance.json.get("synced_with_ona_data"))
-
