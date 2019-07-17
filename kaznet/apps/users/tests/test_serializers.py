@@ -2,17 +2,22 @@
 Tests for UserProfile serializers
 """
 from urllib.parse import urljoin
+import random
+import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import override_settings
 
 import requests_mock
+from model_mommy import mommy
 
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.common_tags import NEED_PASSWORD_ON_CREATE
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.serializers import UserProfileSerializer
+from kaznet.apps.main.models import Submission
+from kaznet.apps.users.tests.test_models import TestUserModels
 
 
 @override_settings(
@@ -288,3 +293,226 @@ class TestUserProfileSerializer(MainTestBase):
             str(serializer_instance.errors['password'][0]),
             'This password is too short. It must contain '
             'at least 8 characters.')
+
+    def test_gender_and_gender_display(self):
+        """
+        Test gender field
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        serializer = UserProfileSerializer(userprofile)
+        userprofile.gender = 1
+        self.assertEqual(serializer.data["gender"], str(userprofile.gender))
+        self.assertEqual(
+            serializer.data["gender_display"], userprofile.gender_display)
+
+        userprofile.gender = 2
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(serializer.data["gender"], str(userprofile.gender))
+        self.assertEqual(
+            serializer.data["gender_display"], userprofile.gender_display)
+
+    @staticmethod
+    def generate_submissions(userprofile, approve_or_reject):
+        """
+        Generate 1000 submissions for the supplied userprofile
+        """
+        for _ in range(1000):
+            bounty = mommy.make(
+                "main.Bounty", amount=random.randrange(100, 1000))
+            if random.choice([True, False]):
+                mommy.make(
+                    "main.Submission",
+                    submission_time=TestUserModels.get_datetime().replace(
+                        tzinfo=pytz.timezone("Africa/Nairobi")
+                    ),
+                    bounty=bounty,
+                    user=userprofile.user,
+                    status=approve_or_reject,
+                )
+            else:
+                mommy.make(
+                    "main.Submission",
+                    submission_time=TestUserModels.get_datetime().replace(
+                        tzinfo=pytz.timezone("Africa/Nairobi")
+                    ),
+                    bounty=bounty,
+                    user=userprofile.user,
+                )
+
+    def test_avg_approval_rate(self):
+        """
+        Test the avg_approval_property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_approval_rate,
+                         serializer.data["avg_approval_rate"])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_approval_rate,
+                         serializer.data["avg_approval_rate"])
+
+    def test_avg_amount_earned(self):
+        """
+        Test the avg_ammount_earned property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(str(userprofile.avg_amount_earned),
+                         serializer.data["avg_amount_earned"][:-4])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(str(userprofile.avg_amount_earned),
+                         serializer.data["avg_amount_earned"][:-4])
+
+    def test_avg_rejected_submissions(self):
+        """
+        Test avg_rejected_submission property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.REJECTED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_rejected_submissions,
+                         serializer.data["avg_rejected_submissions"])
+
+        self.generate_submissions(userprofile, Submission.REJECTED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_rejected_submissions,
+                         serializer.data["avg_rejected_submissions"])
+
+    def test_avg_approved_submissions(self):
+        """
+        Test avg_approved_submissions property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_approved_submissions,
+                         serializer.data["avg_approved_submissions"])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_approved_submissions,
+                         serializer.data["avg_approved_submissions"])
+
+    def test_avg_submissions(self):
+        """
+        Test avg_approved_submissions property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_submissions,
+                         serializer.data["avg_submissions"])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.avg_submissions,
+                         serializer.data["avg_submissions"])
+
+    def test_approval_rate(self):
+        """
+        Test approval_rate property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.approval_rate,
+                         serializer.data["approval_rate"])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.approval_rate,
+                         serializer.data["approval_rate"])
+
+    def test_approved_submissions(self):
+        """
+        Test approved_submissions property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.approved_submissions,
+                         serializer.data["approved_submissions"])
+
+        self.generate_submissions(userprofile, Submission.APPROVED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.approved_submissions,
+                         serializer.data["approved_submissions"])
+
+    def test_rejected_submissions(self):
+        """
+        Test rejected_submissions property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        self.generate_submissions(userprofile, Submission.REJECTED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.rejected_submissions,
+                         serializer.data["rejected_submissions"])
+
+        self.generate_submissions(userprofile, Submission.REJECTED)
+
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.rejected_submissions,
+                         serializer.data["rejected_submissions"])
+
+    def test_payment_numer(self):
+        """
+        Test payment_number property
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        userprofile.payment_number = '+254722111111'
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(str(userprofile.payment_number.national_number),
+                         serializer.data['payment_number'][-9:])
+        userprofile.payment_number = '+254722222222'
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(str(userprofile.payment_number.national_number),
+                         serializer.data['payment_number'][-9:])
+
+    def test_national_id(self):
+        """
+        Test national_id field
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        userprofile.national_id = "33851788"
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.national_id,
+                         serializer.data["national_id"])
+
+        userprofile.national_id = "89662488"
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.national_id,
+                         serializer.data["national_id"])
+
+    def test_email(self):
+        """
+        Test email field
+        """
+        userprofile = mommy.make("auth.User").userprofile
+        userprofile.user.email = "franklineapiyo@gmail.com"
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.user.email, serializer.data["email"])
+
+        userprofile.user.email = "apiyofrankline@gmail.com"
+        serializer = UserProfileSerializer(userprofile)
+        self.assertEqual(userprofile.user.email, serializer.data["email"])
