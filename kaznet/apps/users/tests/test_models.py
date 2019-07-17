@@ -129,7 +129,8 @@ class TestUserModels(MainTestBase):
         # check if the submission gives the correct amount_earned
         self.assertEqual(userprofile.amount_earned.amount, bounty_ammount_sum)
 
-    def get_datetime(self):
+    @staticmethod
+    def get_datetime():
         """
         Generate a random datetime
         """
