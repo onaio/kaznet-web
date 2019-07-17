@@ -14,6 +14,8 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.tests.base import create_admin_user
 from kaznet.apps.users.viewsets import UserProfileViewSet
+from kaznet.apps.users.tests.test_serializers import TestUserProfileSerializer
+from kaznet.apps.main.models import Submission
 
 
 @override_settings(
@@ -424,7 +426,7 @@ class TestUserProfileViewSet(MainTestBase):
 
     def test_permissions_required(self):
         """
-        Test that a user must be an Admin to perform any Create, Update
+        Test that a user must be an Admin to perform any Create, Delete
         or Update request
         """
         # cant create
@@ -507,3 +509,250 @@ class TestUserProfileViewSet(MainTestBase):
             self.assertEqual('Peter', response.data['first_name'])
             self.assertEqual('+254722111111', response.data['phone_number'])
             self.assertEqual(UserProfile.CONTRIBUTOR, response.data['role'])
+
+    def test_gender_and_gender_display(self):
+        """
+        Ensure gender and gender dispaly fields are updated correctly
+        """
+        user_data = self._create()
+        user = create_admin_user()
+
+        with requests_mock.Mocker() as mocked:
+            mocked.patch(
+                urljoin(settings.ONA_BASE_URL,
+                        f'api/v1/profiles/{user_data["ona_username"]}'),
+                json=self.ona_json,
+                status_code=200,
+            )
+
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
+                status_code=200)
+
+            data = {
+                'first_name': 'Bob',
+                'gender': UserProfile.OTHER,
+            }
+
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{user_data["id"]}', data=data)
+            force_authenticate(request, user=user)
+            response = view(request=request, pk=user_data['id'])
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(UserProfile.OTHER, response.data['gender'])
+            self.assertEqual("Other", response.data["gender_display"])
+
+            data = {
+                'first_name': 'Bob',
+                'gender': UserProfile.MALE,
+            }
+
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{user_data["id"]}', data=data)
+            force_authenticate(request, user=user)
+            response = view(request=request, pk=user_data['id'])
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(UserProfile.MALE, response.data["gender"])
+            self.assertEqual("Male", response.data["gender_display"])
+
+    def test_national_id(self):
+        """
+        Ensure the national ID field is updated correctly
+        """
+        user_data = self._create()
+        user = create_admin_user()
+
+        with requests_mock.Mocker() as mocked:
+            mocked.patch(
+                urljoin(settings.ONA_BASE_URL,
+                        f'api/v1/profiles/{user_data["ona_username"]}'),
+                json=self.ona_json,
+                status_code=200,
+            )
+
+            mocked.put(
+                urljoin(
+                    settings.ONA_BASE_URL,
+                    f'api/v1/orgs/{settings.ONA_ORG_NAME}/members'),
+                status_code=200)
+
+            data = {
+                'first_name': 'Bob',
+                'national_id': '987654321',
+
+            }
+
+            view = UserProfileViewSet.as_view({'patch': 'partial_update'})
+            request = self.factory.patch(
+                f'/userprofiles/{user_data["id"]}', data=data)
+            force_authenticate(request, user=user)
+            response = view(request=request, pk=user_data['id'])
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual("987654321", response.data['national_id'])
+
+    def test_payment_number(self):
+        """
+        Ensure the payment_number field is updated correctly
+        """
+        self.test_update()
+
+    def test_approved_submissions(self):
+        """
+        Ensure that a request for approved submmissions returns correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.APPROVED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(bob_userprofile.approved_submissions,
+                         response.data['approved_submissions'])
+
+    def test_rejected_submissions(self):
+        """
+        Ensure that a request for rejected submmissions returns correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.REJECTED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(bob_userprofile.rejected_submissions,
+                         response.data['rejected_submissions'])
+
+    def test_avg_amount_earned(self):
+        """
+        Ensure that a request for rejected submmissions returns correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.APPROVED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        space_index = response.data['avg_amount_earned'].index(' ')
+        response_avg = response.data['avg_amount_earned'][:space_index]
+        self.assertEqual(str(bob_userprofile.avg_amount_earned), response_avg)
+
+    def test_avg_approval_rate(self):
+        """
+        Ensure that a request for avg_approval_rate returns the correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.APPROVED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(bob_userprofile.avg_approval_rate),
+                         str(response.data["avg_approval_rate"]))
+
+    def test_avg_rejected_submissions(self):
+        """
+        Ensure that a request for avg_rejected_submissions
+        returns the correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.REJECTED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(bob_userprofile.avg_rejected_submissions), str(
+            response.data["avg_rejected_submissions"]))
+
+    def test_avg_approved_submissions(self):
+        """
+        Ensure that a request for avg_approved_submissions
+        returns the correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.APPROVED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(bob_userprofile.avg_approved_submissions), str(
+            response.data["avg_approved_submissions"]))
+
+    def test_avg_submissions(self):
+        """
+        Ensure that a request for avg_submissions returns the correct value
+        """
+        user = create_admin_user()
+        bob_user = mommy.make('auth.User', first_name='bob')
+        bob_userprofile = bob_user.userprofile
+
+        TestUserProfileSerializer.generate_submissions(
+            bob_userprofile, Submission.APPROVED)
+
+        view = UserProfileViewSet.as_view({'get': 'retrieve'})
+
+        request = self.factory.get(f'/userprofiles/{bob_userprofile.id}')
+        force_authenticate(request=request, user=user)
+
+        response = view(request=request, pk=bob_userprofile.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(str(bob_userprofile.avg_submissions),
+                         str(response.data["avg_submissions"]))
