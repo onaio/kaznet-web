@@ -5,7 +5,6 @@ import random
 import statistics
 from datetime import datetime, timedelta
 import pytz
-from unittest.mock import patch
 
 from model_mommy import mommy
 from rest_framework.authtoken.models import Token
