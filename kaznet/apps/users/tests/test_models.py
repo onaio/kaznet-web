@@ -3,7 +3,9 @@ Test for UserProfile model
 """
 import random
 import statistics
+from datetime import datetime, timedelta
 import pytz
+from unittest.mock import patch
 
 from model_mommy import mommy
 from rest_framework.authtoken.models import Token
@@ -11,7 +13,6 @@ from rest_framework.authtoken.models import Token
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.main.models import Submission
-from kaznet.apps.users.tests.base import get_datetime
 
 
 class TestUserModels(MainTestBase):
@@ -129,6 +130,18 @@ class TestUserModels(MainTestBase):
         # check if the submission gives the correct amount_earned
         self.assertEqual(userprofile.amount_earned.amount, bounty_ammount_sum)
 
+    def get_datetime(self):
+        """
+        Generate a random datetime
+        """
+        # generate a datetime in format yyyy-mm-dd hh:mm:ss.000000
+        min_year = 2018
+        max_year = 2018
+        start = datetime(min_year, 1, 1, 00, 00, 00)
+        years = max_year - min_year + 1
+        end = start + timedelta(days=365 * years)
+        return start + (end - start) * random.random()
+
     def test_avg_submissions(self):
         """
         Test the average submissions property
@@ -139,7 +152,7 @@ class TestUserModels(MainTestBase):
         for _ in range(1000):
             submission = mommy.make(
                 "main.Submission",
-                submission_time=get_datetime().replace(
+                submission_time=self.get_datetime().replace(
                     tzinfo=pytz.timezone("Africa/Nairobi")
                 ),
                 user=userprofile.user,
@@ -162,7 +175,7 @@ class TestUserModels(MainTestBase):
             if random.choice([True, False]):
                 submission = mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -174,7 +187,7 @@ class TestUserModels(MainTestBase):
             else:
                 mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -196,7 +209,7 @@ class TestUserModels(MainTestBase):
             if random.choice([True, False]):
                 submission = mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -208,7 +221,7 @@ class TestUserModels(MainTestBase):
             else:
                 mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -232,7 +245,7 @@ class TestUserModels(MainTestBase):
             if random.choice([True, False]):
                 submission = mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     bounty=bounty,
@@ -245,7 +258,7 @@ class TestUserModels(MainTestBase):
             else:
                 mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -268,7 +281,7 @@ class TestUserModels(MainTestBase):
             if random.choice([True, False]):
                 submission = mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
@@ -280,7 +293,7 @@ class TestUserModels(MainTestBase):
             else:
                 mommy.make(
                     "main.Submission",
-                    submission_time=get_datetime().replace(
+                    submission_time=self.get_datetime().replace(
                         tzinfo=pytz.timezone("Africa/Nairobi")
                     ),
                     user=userprofile.user,
