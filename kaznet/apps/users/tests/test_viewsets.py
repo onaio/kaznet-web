@@ -14,8 +14,8 @@ from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.users.models import UserProfile
 from kaznet.apps.users.tests.base import create_admin_user
 from kaznet.apps.users.viewsets import UserProfileViewSet
-from kaznet.apps.users.tests.test_serializers import TestUserProfileSerializer
 from kaznet.apps.main.models import Submission
+from kaznet.apps.users.tests.base import generate_submissions
 
 
 @override_settings(
@@ -594,12 +594,6 @@ class TestUserProfileViewSet(MainTestBase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual("987654321", response.data['national_id'])
 
-    def test_payment_number(self):
-        """
-        Ensure the payment_number field is updated correctly
-        """
-        self.test_update()
-
     def test_approved_submissions(self):
         """
         Ensure that a request for approved submmissions returns correct value
@@ -608,7 +602,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.APPROVED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -630,7 +624,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.REJECTED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -652,7 +646,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.APPROVED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -675,7 +669,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.APPROVED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -698,7 +692,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.REJECTED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -721,7 +715,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.APPROVED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
@@ -743,7 +737,7 @@ class TestUserProfileViewSet(MainTestBase):
         bob_user = mommy.make('auth.User', first_name='bob')
         bob_userprofile = bob_user.userprofile
 
-        TestUserProfileSerializer.generate_submissions(
+        generate_submissions(
             bob_userprofile, Submission.APPROVED)
 
         view = UserProfileViewSet.as_view({'get': 'retrieve'})
