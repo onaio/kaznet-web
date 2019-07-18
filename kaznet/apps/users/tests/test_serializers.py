@@ -2,8 +2,6 @@
 Tests for UserProfile serializers
 """
 from urllib.parse import urljoin
-import random
-import pytz
 
 from django.conf import settings
 from django.contrib.auth.models import User
