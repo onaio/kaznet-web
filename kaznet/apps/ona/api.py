@@ -14,7 +14,6 @@ from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
 
-from kaznet.apps.main.api import convert_kaznet_to_ona_submission_status
 from kaznet.apps.main.common_tags import (FILTERED_DATASETS_FIELD_NAME,
                                           HAS_FILTERED_DATASETS_FIELD_NAME,
                                           HAS_WEBHOOK_FIELD_NAME,
@@ -87,6 +86,34 @@ def request_session(
         response = session.delete(url, auth=basic_auth, headers=headers)
         return response
 
+    return None
+
+
+def convert_ona_to_kaznet_submission_status(ona_status: str):
+    """
+    Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
+    ('a', 'b', 'c')
+    """
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
+        return Submission.APPROVED
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
+        return Submission.REJECTED
+    if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
+        return Submission.PENDING
+    return None
+
+
+def convert_kaznet_to_ona_submission_status(kaznet_status: str):
+    """
+    Convert kaznet submission statuses ('a', 'b', 'c') to Ona Instance
+    statuses (1, 2, 3)
+    """
+    if kaznet_status == Submission.APPROVED:
+        return settings.ONA_SUBMISSION_REVIEW_APPROVED
+    if kaznet_status == Submission.REJECTED:
+        return settings.ONA_SUBMISSION_REVIEW_REJECTED
+    if kaznet_status == Submission.PENDING:
+        return settings.ONA_SUBMISSION_REVIEW_PENDING
     return None
 
 
@@ -293,6 +320,32 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
         url = urljoin(settings.ONA_BASE_URL, f"/api/v1/data/{formid}.json")
 
     return request(url=url, method='GET', args=query_params)
+
+
+def sync_submission_review(instance_id, ona_review_status, comment):
+    """
+    ensure Submission is in sync with Submission in onadata.
+    """
+    args = {'note': comment, "status": ona_review_status,
+            "instance": instance_id}
+    try:
+        instance = Instance.objects.get(ona_pk=instance_id)
+        # record submission review status and
+        # comment on json field of instances
+        instance.json["ona_review_status"] = ona_review_status
+        instance.json["review_comment"] = comment
+        instance.save()
+
+    except Instance.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
+        if instance.json.get("synced_with_ona_data") is not True:
+            url = urljoin(settings.ONA_BASE_URL,
+                          'api/v1/submissionreview.json')
+            reply = request(url, args, method='POST')
+            if reply["instance"].strip() == str(instance_id):
+                instance.json["synced_with_ona_data"] = True
+                instance.save()
 
 
 def sync_updated_instances(form_id: int):
@@ -607,7 +660,7 @@ def create_filtered_data_sets(
             Submission.APPROVED,
             Submission.REJECTED,
             Submission.PENDING
-            ]) == len(dataview_responses)
+        ]) == len(dataview_responses)
 
         if not done:
             # we go ahead and delete the datasets that were created

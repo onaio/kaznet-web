@@ -15,6 +15,8 @@ from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
 from kaznet.apps.main.models import Location, Submission, TaskOccurrence, \
     TaskLocation
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
+from kaznet.apps.ona.tasks import task_sync_submission_review
+from kaznet.apps.ona.api import convert_ona_to_kaznet_submission_status
 
 
 # pylint: disable=too-many-branches
@@ -53,6 +55,9 @@ def create_submission(ona_instance: object):
             ona_status=data[settings.ONA_STATUS_FIELD])
         validated_data['comments'] = str(
             data.get(settings.ONA_COMMENTS_FIELD, ""))
+        # indicate that the instance object's review status
+        # has already been synced
+        ona_instance.json["synced_with_ona_data"] = True
 
     # if submission hasn't had a review(pending), or no review information of
     # submission
@@ -109,6 +114,11 @@ def create_submission(ona_instance: object):
                 'id': location.first().id
             }
 
+    # call sync_submission_review based on validated_data[status]
+    #  and the json field
+    task_sync_submission_review.delay(
+        ona_instance.id, validated_data['status'], validated_data['comments'])
+
     if validated_data['status'] == Submission.REJECTED:
         validated_data['valid'] = False
     else:
@@ -116,34 +126,6 @@ def create_submission(ona_instance: object):
     serializer_instance = KaznetSubmissionSerializer(data=validated_data)
     if serializer_instance.is_valid():
         return serializer_instance.save()
-    return None
-
-
-def convert_ona_to_kaznet_submission_status(ona_status: str):
-    """
-    Convert Ona Instance statuses (1, 2, 3) to kaznet submission statuses
-    ('a', 'b', 'c')
-    """
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_APPROVED:
-        return Submission.APPROVED
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_REJECTED:
-        return Submission.REJECTED
-    if ona_status == settings.ONA_SUBMISSION_REVIEW_PENDING:
-        return Submission.PENDING
-    return None
-
-
-def convert_kaznet_to_ona_submission_status(kaznet_status: str):
-    """
-    Convert kaznet submission statuses ('a', 'b', 'c') to Ona Instance
-    statuses (1, 2, 3)
-    """
-    if kaznet_status == Submission.APPROVED:
-        return settings.ONA_SUBMISSION_REVIEW_APPROVED
-    if kaznet_status == Submission.REJECTED:
-        return settings.ONA_SUBMISSION_REVIEW_REJECTED
-    if kaznet_status == Submission.PENDING:
-        return settings.ONA_SUBMISSION_REVIEW_PENDING
     return None
 
 

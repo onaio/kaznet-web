@@ -29,7 +29,8 @@ from kaznet.apps.ona.tasks import (task_auto_create_filtered_data_sets,
                                    task_sync_form_updated_instances,
                                    task_sync_updated_instances,
                                    task_sync_xform_can_submit_checks,
-                                   task_update_user_profile)
+                                   task_update_user_profile,
+                                   task_sync_outdated_submission_reviews)
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 
 MOCK_PROJECT_DATA = [
@@ -622,3 +623,33 @@ class TestCeleryTasks(MainTestBase):
         task_check_if_users_can_submit_to_form(xform_id=form1.id)
 
         mock.assert_called_once_with(xform=form1)
+
+    @patch('kaznet.apps.ona.tasks.task_sync_submission_review')
+    def test_task_sync_outdated_submission_reviews(self, mock):
+        """
+        Test task_sync_outdated_submission_reviews
+        """
+        # create 13 instance objects
+        initial_ona_pk = 55555
+        for i in range(13):
+            initial_ona_pk += 1
+            instance = mommy.make('ona.Instance', ona_pk=initial_ona_pk)
+
+        instances = Instance.objects.all()
+        # set status and comment values for all
+        for instance in instances:
+            instance.json["status"] = 1
+            instance.json["comment"] = ""
+            instance.save()
+
+        # mark first 5 as synced with ona data;
+        # so the other 8 aren't synced;
+        # and neet to be synced
+        for i in range(5):
+            instances[i].json["synced_with_ona_data"] = True
+            instances[i].save()
+
+        # call task_sync_outdated_submission_reviews
+        task_sync_outdated_submission_reviews()
+
+        self.assertEqual(mock.delay.call_count, 8)
