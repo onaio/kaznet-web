@@ -157,7 +157,6 @@
             "hashes": [
                 "sha256:0d997da5f34a3f16aff9ecf586c78b67b747cd292459b85a898cfc0b44f907fb"
             ],
-            "index": "pypi",
             "version": "==1.0.4"
         },
         "djangorestframework": {

@@ -16,7 +16,7 @@ setup(
         'Django >=2.0.13, < 2.1',
         'djangorestframework',
         'psycopg2-binary',
-        'django-prices',
+        'django-prices ==1.0.4',
         'django-phonenumber-field',
         'phonenumberslite',
         'django-allauth',
