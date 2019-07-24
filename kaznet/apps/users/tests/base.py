@@ -37,7 +37,7 @@ def generate_submissions(userprofile, approve_or_reject):
     """
     Generate 1000 submissions for the supplied userprofile
     """
-    for _ in range(1000):
+    for _ in range(10):
         bounty = mommy.make(
             "main.Bounty", amount=random.randrange(100, 1000))
         if random.choice([True, False]):
