@@ -74,7 +74,7 @@ class SubmissionSerializerBase(MainTestBase):
 
         # the subsmission_time field is going to be converted to isformat
         data['submission_time'] = self.now.astimezone(
-            pytz.timezone('Africa/Nairobi')).isoformat()
+            pytz.timezone('Africa/Nairobi')).replace(microsecond=0).isoformat()
 
         # we get OrderedDict(s) so we convert it to a dict for comparison
         # also, the task id gets back as a string
