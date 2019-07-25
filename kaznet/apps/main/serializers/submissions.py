@@ -25,15 +25,18 @@ class SerializableDateField(serializers.Field):
         """
         Custom to submission_date field
         """
-        return value.astimezone(pytz.timezone('Africa/Nairobi')).replace(microsecond=0).isoformat()
+        return value.astimezone(pytz.timezone('Africa/Nairobi')).replace(
+            microsecond=0).isoformat()
 
-    def to_internal_value(self, value):
+    def to_internal_value(self, data):
         """
         custom internal value for submission_date field
         """
-        return value
+        return data
 
 # pylint: disable=too-many-ancestors
+
+
 class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     """
     Main Submission serializer class
