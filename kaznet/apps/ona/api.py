@@ -322,7 +322,8 @@ def fetch_form_data(  # pylint: disable=too-many-arguments
     return request(url=url, method='GET', args=query_params)
 
 
-def sync_submission_review(instance_id, ona_review_status, comment):
+def sync_submission_review(instance_id: int,
+                           ona_review_status: str, comment: str):
     """
     ensure Submission is in sync with Submission in onadata.
     """
@@ -330,15 +331,14 @@ def sync_submission_review(instance_id, ona_review_status, comment):
             "instance": instance_id}
     try:
         instance = Instance.objects.get(ona_pk=instance_id)
+    except Instance.DoesNotExist:  # pylint: disable=no-member
+        pass
+    else:
         # record submission review status and
         # comment on json field of instances
         instance.json["ona_review_status"] = ona_review_status
         instance.json["review_comment"] = comment
         instance.save()
-
-    except Instance.DoesNotExist:  # pylint: disable=no-member
-        pass
-    else:
         if instance.json.get("synced_with_ona_data") is not True:
             url = urljoin(settings.ONA_BASE_URL,
                           'api/v1/submissionreview.json')
