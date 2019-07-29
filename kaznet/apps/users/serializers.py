@@ -332,8 +332,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if any(data):
             metadata = data.get("metadata")
             gravatar = data.get("gravatar")
-            instance.metadata["last_password_edit"] = metadata.get(
+            
+            try:
+                instance.metadata["last_password_edit"] = metadata.get(
                 settings.ONA_LAST_PASSWORD_EDIT_FIELD)
+            except AttributeError:
+                pass
+
             instance.metadata["gravatar"] = gravatar
         instance.save()
 
