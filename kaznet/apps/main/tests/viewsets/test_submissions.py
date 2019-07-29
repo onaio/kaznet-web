@@ -661,8 +661,9 @@ class TestKaznetSubmissionViewSet(MainTestBase):
             response.data['results'][0]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').first().submission_time.astimezone(
-                    pytz.timezone('Africa/Nairobi')).replace(
-                        microsecond=0).isoformat())
+                    pytz.timezone(
+                        'Africa/Nairobi')).strftime(
+                            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
         # the last record is what we epxect
         self.assertEqual(
             response.data['results'][-1]['id'],
@@ -671,8 +672,9 @@ class TestKaznetSubmissionViewSet(MainTestBase):
             response.data['results'][-1]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').last().submission_time.astimezone(
-                    pytz.timezone('Africa/Nairobi')).replace(
-                        microsecond=0).isoformat())
+                    pytz.timezone(
+                        'Africa/Nairobi')).strftime(
+                            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
 
     def test_valid_sorting(self):
         """
