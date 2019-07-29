@@ -41,7 +41,7 @@ CELERY_ROUTES = {
 CELERY_BEAT_SCHEDULE = {
     'sync_outdated_submission_reviews': {
         'task': 'task_sync_outdated_submission_reviews',
-        'schedule': crontab(hour='*/6', minute='0'),  # every 6 hours
+        'schedule': crontab(hour='*', minute='*/30'),  # every 30 minutes
     },
     'fetch_missing_instances': {
         'task': 'task_fetch_missing_instances',
