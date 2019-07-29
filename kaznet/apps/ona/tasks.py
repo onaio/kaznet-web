@@ -226,7 +226,8 @@ def task_sync_xform_can_submit_checks():
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_submission_review")
-def task_sync_submission_review(instance_id, kaznet_review_status, comment):
+def task_sync_submission_review(instance_id: int,
+                                kaznet_review_status: str, comment: str):
     """
     Sync auto review of submission with its review on onadata
     """
@@ -242,16 +243,15 @@ def task_sync_outdated_submission_reviews():
     sync with onadata when they were created
     """
     # query all instances from db and iterate through,
-    # calling sync_submission_review_for_each
-    all_instances = Instance.objects.all()
+    # calling sync_submission_review for each if
+    # synced_with_ona_data is not set to True
+    all_instances = Instance.objects.filter(json__synced_with_ona_data=False)
+    all_instances = list(all_instances) + list(
+        Instance.objects.filter(json__synced_with_ona_data=None))
     for instance in all_instances:
-        # check if the instance is synced with onadata
-        if instance.json.get("synced_with_ona_data") is not True:
-            # call sync_submission_review based on value of
-            # sync_with_ona_data json field
-            status = instance.json.get('status')
-            comment = instance.json.get('comment')
-            if status is not None and comment is not None:
-                task_sync_submission_review.delay(instance.id,
-                                                  status,
-                                                  comment)
+        status = instance.json.get('status')
+        comment = instance.json.get('comment')
+        if status is not None and comment is not None:
+            task_sync_submission_review.delay(instance.id,
+                                              status,
+                                              comment)
