@@ -14,6 +14,8 @@ from kaznet.apps.main.common_tags import (LABEL_AMOUNT, LABEL_CURRENCY,
                                           LABEL_LOCATION_ID, LABEL_TASK_ID)
 from kaznet.apps.main.models import Submission
 from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
+from kaznet.apps.main.serializers.bounty import SerializableAmountField
+
 
 
 class SerializableDateField(serializers.Field):
@@ -41,6 +43,7 @@ class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     """
     Main Submission serializer class
     """
+    amount = SerializableAmountField(read_only=True)
     submission_time = SerializableDateField()
 
     # pylint: disable=too-few-public-methods
