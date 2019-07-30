@@ -19,8 +19,10 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  sync_deleted_projects, sync_deleted_xforms,
                                  sync_updated_instances,
                                  update_user_profile_metadata)
-from kaznet.apps.ona.models import XForm
+from kaznet.apps.ona.models import XForm, Instance
 from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
+from kaznet.apps.ona.api import sync_submission_review
+from kaznet.apps.ona.api import convert_kaznet_to_ona_submission_status
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -220,3 +222,36 @@ def task_sync_xform_can_submit_checks():
     xforms = XForm.objects.filter(deleted_at=None)
     for xform in xforms:
         task_check_if_users_can_submit_to_form.delay(xform_id=xform.id)
+
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_submission_review")
+def task_sync_submission_review(instance_id: int,
+                                kaznet_review_status: str, comment: str):
+    """
+    Sync auto review of submission with its review on onadata
+    """
+    ona_review_status = convert_kaznet_to_ona_submission_status(
+        kaznet_review_status)
+    sync_submission_review(instance_id, ona_review_status, comment)
+
+# pylint: disable=not-callable
+@celery_task(name="task_sync_outdated_submission_review")
+def task_sync_outdated_submission_reviews():
+    """
+    Sync outdated submission reviews that did not
+    sync with onadata when they were created
+    """
+    # query all instances from db and iterate through,
+    # calling sync_submission_review for each if
+    # synced_with_ona_data is not set to True
+    all_instances = Instance.objects.filter(json__synced_with_ona_data=False)
+    all_instances = list(all_instances) + list(
+        Instance.objects.filter(json__synced_with_ona_data=None))
+    for instance in all_instances:
+        status = instance.json.get('status')
+        comment = instance.json.get('comment')
+        if status is not None and comment is not None:
+            task_sync_submission_review.delay(instance.id,
+                                              status,
+                                              comment)
