@@ -634,8 +634,9 @@ class TestKaznetSubmissionViewSet(MainTestBase):
     def test_submission_time(self):
         """
         This method tests that all submissions passed through the
-        serializer don't have datetime and all submissions not
-        passed through serializer have datetime
+        serializer don't have microseconds in their submission_time
+        fields and all submissions not passed through serializer
+        have microseconds in their submission_time fields
         """
         now = timezone.now()
         task = mommy.make('main.Task')
@@ -666,14 +667,14 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response.data['results'][0]['id'], submission.id)
         self.assertEqual(response.data['results'][0]['modified'],
                          submission.modified.astimezone(
-                                pytz.timezone(
-                                    'Africa/Nairobi')).strftime(
-                                        "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
+            pytz.timezone(
+                'Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
         self.assertEqual(response.data['results'][0]['created'],
                          submission.created.astimezone(
-                            pytz.timezone(
-                                'Africa/Nairobi')).strftime(
-                                    "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
+            pytz.timezone(
+                'Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
         self.assertEqual(response.data['results'][0]
                          ['task']['id'], str(submission.task.id))
         self.assertEqual(response.data['results'][0]
@@ -687,8 +688,8 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         # for microseconds
         self.assertEqual(response.data['results'][0]['submission_time'],
                          submission.submission_time.astimezone(
-                                pytz.timezone('Africa/Nairobi')).strftime(
-                                        "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
+            pytz.timezone('Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
         self.assertFalse('.' in response.data['results'][0]['submission_time'])
 
     def test_submission_time_sorting(self):
