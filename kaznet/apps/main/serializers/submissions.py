@@ -17,7 +17,6 @@ from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
 
 
-
 class SerializableDateField(serializers.Field):
     """
     Custom Field submission_time
