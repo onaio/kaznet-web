@@ -1,6 +1,7 @@
 """
 Main Submission Serializers
 """
+import pytz
 from rest_framework import serializers as drf_serializers
 from rest_framework_json_api import serializers
 from tasking.common_tags import CANT_EDIT_TASK
@@ -16,12 +17,33 @@ from kaznet.apps.main.serializers.base import GenericForeignKeySerializer
 from kaznet.apps.main.serializers.bounty import SerializableAmountField
 
 
+class SerializableDateField(serializers.Field):
+    """
+    Custom Field submission_time
+    """
+
+    def to_representation(self, value):
+        """
+        Custom to submission_date field
+        """
+        return value.astimezone(pytz.timezone('Africa/Nairobi')).replace(
+            microsecond=0).isoformat()
+
+    def to_internal_value(self, data):
+        """
+        custom internal value for submission_date field
+        """
+        return data
+
 # pylint: disable=too-many-ancestors
+
+
 class KaznetSubmissionSerializer(GenericForeignKeySerializer):
     """
     Main Submission serializer class
     """
     amount = SerializableAmountField(read_only=True)
+    submission_time = SerializableDateField()
 
     # pylint: disable=too-few-public-methods
     class Meta:
