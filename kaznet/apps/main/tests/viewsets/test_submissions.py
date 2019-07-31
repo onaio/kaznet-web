@@ -631,6 +631,67 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 10)
 
+    def test_submission_time(self):
+        """
+        This method tests that all submissions passed through the
+        serializer don't have microseconds in their submission_time
+        fields and all submissions not passed through serializer
+        have microseconds in their submission_time fields
+        """
+        now = timezone.now()
+        task = mommy.make('main.Task')
+        bounty = mommy.make('main.Bounty')
+        location = mommy.make('main.Location')
+        user = mommy.make('auth.User')
+        mommy.make('main.Submission',
+                   submission_time=now,
+                   id=20,
+                   user=user,
+                   task=task,
+                   bounty=bounty,
+                   location=location)
+
+        view = KaznetSubmissionsViewSet.as_view({'get': 'list'})
+
+        user = create_admin_user()
+
+        request = self.factory.get(
+            '/submissions', {'id': 20})
+
+        force_authenticate(request, user=user)
+        response = view(request=request)
+        self.assertEqual(response.status_code, 200)
+
+        # ensure all the other fields have the same data
+        submission = Submission.objects.filter(id=20).first()
+        self.assertEqual(response.data['results'][0]['id'], submission.id)
+        self.assertEqual(response.data['results'][0]['modified'],
+                         submission.modified.astimezone(
+            pytz.timezone(
+                'Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
+        self.assertEqual(response.data['results'][0]['created'],
+                         submission.created.astimezone(
+            pytz.timezone(
+                'Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f%z")[:-2]+":00")
+        self.assertEqual(response.data['results'][0]
+                         ['task']['id'], str(submission.task.id))
+        self.assertEqual(response.data['results'][0]
+                         ['bounty']['id'], str(submission.bounty.id))
+        self.assertEqual(response.data['results'][0]['location']['id'], str(
+            submission.location.id))
+        self.assertEqual(response.data['results'][0]
+                         ['user']['id'], str(submission.user.id))
+
+        # ensure that the submission_timefield is exacly the same except
+        # for microseconds
+        self.assertEqual(response.data['results'][0]['submission_time'],
+                         submission.submission_time.astimezone(
+            pytz.timezone('Africa/Nairobi')).strftime(
+            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
+        self.assertFalse('.' in response.data['results'][0]['submission_time'])
+
     def test_submission_time_sorting(self):
         """
         Test that you can sort by submission_time
@@ -661,7 +722,9 @@ class TestKaznetSubmissionViewSet(MainTestBase):
             response.data['results'][0]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').first().submission_time.astimezone(
-                    pytz.timezone('Africa/Nairobi')).isoformat())
+                    pytz.timezone(
+                        'Africa/Nairobi')).strftime(
+                            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
         # the last record is what we epxect
         self.assertEqual(
             response.data['results'][-1]['id'],
@@ -670,7 +733,9 @@ class TestKaznetSubmissionViewSet(MainTestBase):
             response.data['results'][-1]['submission_time'],
             Submission.objects.order_by(
                 '-submission_time').last().submission_time.astimezone(
-                    pytz.timezone('Africa/Nairobi')).isoformat())
+                    pytz.timezone(
+                        'Africa/Nairobi')).strftime(
+                            "%Y-%m-%dT%H:%M:%S%z")[:-2]+":00")
 
     def test_valid_sorting(self):
         """
@@ -771,7 +836,7 @@ class TestKaznetSubmissionViewSet(MainTestBase):
         self.assertTrue(
             response.data['results'][-1]['modified'] <
             response.data['results'][0]['modified']
-            )
+        )
 
     def test_authentication_required(self):
         """
