@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='kaznet',
-    version="1.1.1",
+    version="1.1.3",
     description='Tasking application built on top of Onadata',
     license='Apache 2.0',
     author='Ona Systems Inc',
