@@ -236,7 +236,7 @@ def task_sync_submission_review(instance_id: int,
     sync_submission_review(instance_id, ona_review_status, comment)
 
 # pylint: disable=not-callable
-@celery_task(name="task_sync_outdated_submission_review")
+@celery_task(name="task_sync_outdated_submission_reviews")
 def task_sync_outdated_submission_reviews():
     """
     Sync outdated submission reviews that did not
