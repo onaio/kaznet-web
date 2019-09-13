@@ -18,6 +18,11 @@ from kaznet.apps.main.serializers import KaznetSubmissionSerializer
 from kaznet.apps.ona.tasks import task_sync_submission_review
 from kaznet.apps.ona.api import convert_ona_to_kaznet_submission_status
 
+import logging
+
+
+# Get an instance of a logger
+logger = logging.getLogger("submission logger")
 
 # pylint: disable=too-many-branches
 def create_submission(ona_instance: object):
@@ -27,6 +32,12 @@ def create_submission(ona_instance: object):
     data = ona_instance.json
     task = ona_instance.get_task()
     user = ona_instance.user
+
+    #don't create a submission for missing task
+    if task is None:
+        #log error then exit this function
+        logger.error(f"Instance: {ona_instance.id} belongs to a task that has been deleted");
+        return None
 
     validated_data = {
         'task': {
