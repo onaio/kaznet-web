@@ -93,7 +93,7 @@ class TestSignals(MainTestBase):
         have a task
         """
         #assert that the messaged is logged
-        with self.assertLogs(logger="submission logger", level='ERROR') as cm:
+        with self.assertLogs(logger="submission logger", level='ERROR') as log_messages:
             mommy.make('auth.User', username='onasupport')
             # create an xform but no task
             ona_form = mommy.make('ona.XForm')
@@ -111,7 +111,7 @@ class TestSignals(MainTestBase):
             )
             self.assertIn(
                 'ERROR:submission logger:Instance: 1 belongs to a task that has been deleted',
-                cm.output
+                log_messages.output
                 )
 
     @patch('kaznet.apps.main.signals.task_create_submission.delay')
