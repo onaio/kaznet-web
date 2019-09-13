@@ -10,6 +10,7 @@ from model_mommy import mommy
 from kaznet.apps.main.models import Submission, TaskOccurrence
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.tests.test_celery_tasks import MOCKED_INSTANCES
+from kaznet.apps.main.tasks import task_create_submission
 
 
 class TestSignals(MainTestBase):
@@ -83,6 +84,35 @@ class TestSignals(MainTestBase):
             json=dict
         )
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())
+
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    def test_create_submission_for_missing_task(self):
+        """
+        check that an AttributeError exception occures when
+        a submission is created for an xform that does not
+        have a task
+        """
+        #assert that the messaged is logged
+        with self.assertLogs(logger="submission logger", level='ERROR') as cm:
+            mommy.make('auth.User', username='onasupport')
+            # create an xform but no task
+            ona_form = mommy.make('ona.XForm')
+            puppy_task = mommy.make(
+                'main.Task',
+                name='Puppy Prices',
+                target_content_object=ona_form
+            )
+            puppy_task.delete()
+            # create an instance for this form(ona_form)
+            mommy.make(
+                'ona.Instance',
+                xform=ona_form,
+                json=dict
+            )
+            self.assertIn(
+                'ERROR:submission logger:Instance: 1 belongs to a task that has been deleted',
+                cm.output
+                )
 
     @patch('kaznet.apps.main.signals.task_create_submission.delay')
     def test_create_submission_signal_handler(self, mock):
