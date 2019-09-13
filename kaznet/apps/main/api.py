@@ -38,7 +38,7 @@ def create_submission(ona_instance: object):
     if task is None:
         # log error then exit this function
         LOGGER.error(
-            f"Instance: %d belongs to a task that has been deleted",
+            "Instance: %d belongs to a task that has been deleted",
             ona_instance.id)
         return None
 
@@ -225,9 +225,9 @@ def validate_submission_time(task: object, submission_time: str):
                     date__day=submission_time.day,
                     date__month=submission_time.month,
                     date__year=submission_time.year
-        ).filter(
-                    start_time__lte=submission_time.time()).filter(
-                        end_time__gte=submission_time.time()).exists():
+                ).filter(start_time__lte=submission_time
+                         .time()).filter(end_time__gte=submission_time
+                                         .time()).exists():
             return (Submission.PENDING, "")
     # We reject the submission if there was no TaskOccurrence
     # That match the submission_time
