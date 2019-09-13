@@ -106,12 +106,13 @@ class TestSignals(MainTestBase):
             # create an instance for this form(ona_form)
             mommy.make(
                 'ona.Instance',
+                id=17,
                 xform=ona_form,
                 json=dict
             )
             self.assertIn(
-                'ERROR:submission logger:Instance: 1"\
-                    "belongs to a task that has been deleted',
+                'ERROR:submission logger:Instance: 17'\
+                    ' belongs to a task that has been deleted',
                 log_messages.output
             )
 
