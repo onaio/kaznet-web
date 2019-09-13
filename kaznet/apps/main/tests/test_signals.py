@@ -10,7 +10,6 @@ from model_mommy import mommy
 from kaznet.apps.main.models import Submission, TaskOccurrence
 from kaznet.apps.main.tests.base import MainTestBase
 from kaznet.apps.ona.tests.test_celery_tasks import MOCKED_INSTANCES
-from kaznet.apps.main.tasks import task_create_submission
 
 
 class TestSignals(MainTestBase):
@@ -92,8 +91,9 @@ class TestSignals(MainTestBase):
         a submission is created for an xform that does not
         have a task
         """
-        #assert that the messaged is logged
-        with self.assertLogs(logger="submission logger", level='ERROR') as log_messages:
+        # assert that the messaged is logged
+        with self.assertLogs(logger="submission logger",
+                             level='ERROR') as log_messages:
             mommy.make('auth.User', username='onasupport')
             # create an xform but no task
             ona_form = mommy.make('ona.XForm')
@@ -110,9 +110,10 @@ class TestSignals(MainTestBase):
                 json=dict
             )
             self.assertIn(
-                'ERROR:submission logger:Instance: 1 belongs to a task that has been deleted',
+                'ERROR:submission logger:Instance: 1"\
+                    "belongs to a task that has been deleted',
                 log_messages.output
-                )
+            )
 
     @patch('kaznet.apps.main.signals.task_create_submission.delay')
     def test_create_submission_signal_handler(self, mock):
