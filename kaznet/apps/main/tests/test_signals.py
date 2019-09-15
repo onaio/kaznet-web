@@ -111,8 +111,8 @@ class TestSignals(MainTestBase):
                 json=dict
             )
             self.assertIn(
-                'ERROR:submission logger:Instance: 17'\
-                    ' belongs to a task that has been deleted',
+                'ERROR:submission logger:Instance: 17'
+                ' belongs to a task that has been deleted',
                 log_messages.output
             )
 
