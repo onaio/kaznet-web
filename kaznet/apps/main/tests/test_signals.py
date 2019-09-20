@@ -87,9 +87,11 @@ class TestSignals(MainTestBase):
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_create_submission_for_missing_task(self):
         """
-        check that an AttributeError exception occures when
-        a submission is created for an xform that does not
-        have a task
+        Check that an an error is logged if a Submission is
+        created for an xform that does not have a task
+        associated with it. This may happen when a task is
+        deleted on kaznet-web while a submission has already
+        been sent to ona data
         """
         # assert that the messaged is logged
         with self.assertLogs(logger="submission logger",
