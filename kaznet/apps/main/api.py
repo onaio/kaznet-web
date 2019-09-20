@@ -21,7 +21,7 @@ from kaznet.apps.ona.api import convert_ona_to_kaznet_submission_status
 
 
 # Get an instance of a logger
-LOGGER = logging.getLogger("submission logger")
+LOGGER = logging.getLogger(__name__)
 
 # pylint: disable=too-many-branches
 
