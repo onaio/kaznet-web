@@ -352,7 +352,26 @@ class TestAPIMethods(MainTestBase):
 
         # create two submissions
         create_submission(instance)
-        create_submission(instance)
+        #create another submission for this same user
+        data = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_geolocation": [
+                36.776554,
+                -1.294328
+            ],
+            "_status": "submitted_via_web",
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
+            "_review_comment": "This is a review comment",
+            "_submitted_by": "dave",
+            "_xform_id": 25,
+            "_submission_time": "2019-09-01T07:42:07",
+            "_version": "vvadCJQ9XjXXSMmFSnKZqK",
+            "_attachments": [],
+            "_id": 20
+        }
+        process_instance(data)
+        instance2 = Instance.objects.get(ona_pk=20)
+        create_submission(instance2)
 
         status, comment = validate_submission_limit(task, user)
         self.assertEqual(Submission.REJECTED, status)
