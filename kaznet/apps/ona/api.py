@@ -481,7 +481,14 @@ def process_instance(instance_data: dict, xform: object = None):
                             obj.last_updated != last_updated_ona):
                         obj.last_updated = instance_data.get('_last_edited')
                         obj.json = instance_data
-                        obj.save()
+
+                    # this line will run for every instance that was found
+                    if instance_data.get(settings.ONA_STATUS_FIELD) is not None:
+                        obj.json[settings.ONA_COMMENTS_FIELD] = instance_data.get(settings.ONA_COMMENTS_FIELD, '')
+                        obj.json[settings.ONA_STATUS_FIELD] = instance_data.get(settings.ONA_STATUS_FIELD)
+
+                    obj.save()
+
                     return obj
     return None
 
