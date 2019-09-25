@@ -135,6 +135,8 @@ class TestAPIMethods(MainTestBase):
             instance.json.get("_review_status")))
         self.assertEqual(submission.comments,
                          "This is a new test review comment")
+        process_instance(data)
+        self.assertEqual(len(Submission.objects.filter(target_object_id=instance.id)), 1)
 
     def test_validate_location(self):
         """
