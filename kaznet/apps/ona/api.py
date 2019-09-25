@@ -359,8 +359,7 @@ def sync_updated_instances(form_id: int):
     else:
         raw_ids = fetch_form_data(
             formid=the_xform.ona_pk,
-            dataids_only=True,
-            edited_only=True)
+            dataids_only=True)
         if isinstance(raw_ids, list) and raw_ids:
             pks = [rec['_id'] for rec in raw_ids]
             # next, we fetch data for these ids
