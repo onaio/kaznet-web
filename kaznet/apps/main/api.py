@@ -118,6 +118,10 @@ def create_submission(ona_instance: object):
                     else:
                         validated_data['status'] = status
                         validated_data['comments'] = str(comment)
+        # call sync_submission_review based on validated_data[status]
+        #  and the json field
+        task_sync_submission_review.delay(
+            ona_instance.id, validated_data['status'], validated_data['comments'])
 
     if 'location' not in validated_data:
         location = get_locations(
@@ -129,18 +133,15 @@ def create_submission(ona_instance: object):
                 'id': location.first().id
             }
 
-    # call sync_submission_review based on validated_data[status]
-    #  and the json field
-    task_sync_submission_review.delay(
-        ona_instance.id, validated_data['status'], validated_data['comments'])
-
     if validated_data['status'] == Submission.REJECTED:
         validated_data['valid'] = False
     else:
         validated_data['valid'] = True
-        
-    submission = Submission.objects.filter(target_object_id=isntance_id).first()
-    serializer_instance = KaznetSubmissionSerializer(submission, data=validated_data)
+
+    submission = Submission.objects.filter(
+        target_object_id=isntance_id).first()
+    serializer_instance = KaznetSubmissionSerializer(
+        submission, data=validated_data)
     if serializer_instance.is_valid():
         return serializer_instance.save()
     return None
