@@ -23,7 +23,7 @@ from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
 from kaznet.apps.main.models import Submission, Task
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.ona.api import process_instance
+from kaznet.apps.ona.api import process_instance, convert_ona_to_kaznet_submission_status
 from kaznet.apps.ona.models import Instance
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 from kaznet.apps.users.models import UserProfile
@@ -69,8 +69,8 @@ class TestAPIMethods(MainTestBase):
                 -1.294328
             ],
             "_status": "submitted_via_web",
-            "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
-            "_review_comments": "This is a review comment",
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_PENDING,
+            "_review_comment": "This is a review comment",
             "_submitted_by": "dave",
             "_xform_id": 25,
             "_submission_time": "2019-09-01T07:42:07",
@@ -81,10 +81,60 @@ class TestAPIMethods(MainTestBase):
 
         if pending:
             data["_review_status"] = settings.ONA_SUBMISSION_REVIEW_PENDING
-            data["_review_comments"] = ""
+            data["_review_comment"] = ""
         process_instance(data, xform=form)
 
         return Instance.objects.get(ona_pk=17)
+
+    def test_process_instance(self):
+        """
+        process instance should update the review status of an
+        Instance Object in the database already
+        """
+
+        # first let's create an instance object
+        # this way, a submission is also created
+        instance = self._create_instance()
+        self.assertEqual(instance.json.get("_review_comment"),
+                         "This is a review comment")
+
+        # check that a submission is created for same task,
+        # with the correct review comment and review status
+        submission = Submission.objects.filter(target_object_id=instance.id)[0]
+
+        self.assertEqual(submission.status, convert_ona_to_kaznet_submission_status(
+            instance.json.get("_review_status")))
+        self.assertEqual(submission.comments, "This is a review comment")
+        self.assertEqual(submission.target_object_id, instance.id)
+
+        data = {
+            "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "_geolocation": [
+                36.776554,
+                -1.294328
+            ],
+            "_status": "submitted_via_web",
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_REJECTED,
+            "_review_comment": "This is a new test review comment",
+            "_submitted_by": "dave",
+            "_xform_id": 25,
+            "_submission_time": "2019-09-01T07:42:07",
+            "_version": "vvadCJQ9XjXXSMmFSnKZqK",
+            "_attachments": [],
+            "_id": 17
+        }
+        process_instance(data)
+        instance.refresh_from_db()
+        submission.refresh_from_db()
+
+        self.assertEqual(instance.json.get(
+            settings.ONA_COMMENTS_FIELD), "This is a new test review comment")
+        self.assertEqual(instance.json.get("_review_status"),
+                         settings.ONA_SUBMISSION_REVIEW_REJECTED)
+        self.assertEqual(submission.status, convert_ona_to_kaznet_submission_status(
+            instance.json.get("_review_status")))
+        self.assertEqual(submission.comments,
+                         "This is a new test review comment")
 
     def test_validate_location(self):
         """
