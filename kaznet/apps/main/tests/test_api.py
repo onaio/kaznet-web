@@ -69,7 +69,7 @@ class TestAPIMethods(MainTestBase):
                 -1.294328
             ],
             "_status": "submitted_via_web",
-            "_review_status": settings.ONA_SUBMISSION_REVIEW_PENDING,
+            "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
             "_review_comment": "This is a review comment",
             "_submitted_by": "dave",
             "_xform_id": 25,
