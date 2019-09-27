@@ -121,7 +121,9 @@ def create_submission(ona_instance: object):
         # call sync_submission_review based on validated_data[status]
         #  and the json field
         task_sync_submission_review.delay(
-            ona_instance.id, validated_data['status'], validated_data['comments'])
+            ona_instance.id,
+            validated_data['status'],
+            validated_data['comments'])
 
     if 'location' not in validated_data:
         location = get_locations(

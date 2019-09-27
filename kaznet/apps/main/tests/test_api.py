@@ -23,7 +23,8 @@ from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
 from kaznet.apps.main.models import Submission, Task
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
-from kaznet.apps.ona.api import process_instance, convert_ona_to_kaznet_submission_status
+from kaznet.apps.ona.api import (process_instance,
+                                 convert_ona_to_kaznet_submission_status)
 from kaznet.apps.ona.models import Instance
 from kaznet.apps.ona.tests.test_api import MOCKED_ONA_FORM_DATA
 from kaznet.apps.users.models import UserProfile
@@ -102,8 +103,9 @@ class TestAPIMethods(MainTestBase):
         # with the correct review comment and review status
         submission = Submission.objects.filter(target_object_id=instance.id)[0]
 
-        self.assertEqual(submission.status, convert_ona_to_kaznet_submission_status(
-            instance.json.get("_review_status")))
+        self.assertEqual(submission.status,
+                         convert_ona_to_kaznet_submission_status(
+                            instance.json.get("_review_status")))
         self.assertEqual(submission.comments, "This is a review comment")
         self.assertEqual(submission.target_object_id, instance.id)
 
@@ -131,8 +133,9 @@ class TestAPIMethods(MainTestBase):
             settings.ONA_COMMENTS_FIELD), "This is a new test review comment")
         self.assertEqual(instance.json.get("_review_status"),
                          settings.ONA_SUBMISSION_REVIEW_REJECTED)
-        self.assertEqual(submission.status, convert_ona_to_kaznet_submission_status(
-            instance.json.get("_review_status")))
+        self.assertEqual(submission.status,
+                         convert_ona_to_kaznet_submission_status(
+                          instance.json.get("_review_status")))
         self.assertEqual(submission.comments,
                          "This is a new test review comment")
         process_instance(data)
@@ -352,7 +355,7 @@ class TestAPIMethods(MainTestBase):
 
         # create two submissions
         create_submission(instance)
-        #create another submission for this same user
+        # create another submission for this same user
         data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "_geolocation": [

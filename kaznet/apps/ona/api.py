@@ -482,9 +482,14 @@ def process_instance(instance_data: dict, xform: object = None):
                         obj.json = instance_data
 
                     # this line will run for every instance that was found
-                    if instance_data.get(settings.ONA_STATUS_FIELD) is not None:
-                        obj.json[settings.ONA_COMMENTS_FIELD] = instance_data.get(settings.ONA_COMMENTS_FIELD, '')
-                        obj.json[settings.ONA_STATUS_FIELD] = instance_data.get(settings.ONA_STATUS_FIELD)
+                    if instance_data.get(
+                                        settings.ONA_STATUS_FIELD) is not None:
+                        obj.json[
+                            settings.ONA_COMMENTS_FIELD] = instance_data.get(
+                            settings.ONA_COMMENTS_FIELD, '')
+                        obj.json[
+                            settings.ONA_STATUS_FIELD] = instance_data.get(
+                            settings.ONA_STATUS_FIELD)
 
                     obj.save()
 
