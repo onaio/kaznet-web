@@ -33,7 +33,7 @@ def create_submission(ona_instance: object):
     data = ona_instance.json
     task = ona_instance.get_task()
     user = ona_instance.user
-    isntance_id = ona_instance.id
+    instance_id = ona_instance.id
 
     # don't create a submission for missing task
     if task is None:
@@ -141,7 +141,7 @@ def create_submission(ona_instance: object):
         validated_data['valid'] = True
 
     submission = Submission.objects.filter(  # pylint: disable=no-member
-        target_object_id=isntance_id).first()
+        target_object_id=instance_id).first()
     serializer_instance = KaznetSubmissionSerializer(
         submission, data=validated_data)
     if serializer_instance.is_valid():
