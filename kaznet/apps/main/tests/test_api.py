@@ -101,7 +101,7 @@ class TestAPIMethods(MainTestBase):
 
         # check that a submission is created for same task,
         # with the correct review comment and review status
-        submission = Submission.objects.filter(target_object_id=instance.id)[0]
+        submission = Submission.objects.filter(target_object_id=instance.id).first()# pylint: disable=no-member
 
         self.assertEqual(submission.status,
                          convert_ona_to_kaznet_submission_status(
