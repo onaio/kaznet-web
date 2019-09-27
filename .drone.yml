@@ -5,8 +5,8 @@ pipeline:
         - apt-get update && apt-get -y install netcat
         - pip install --upgrade pip
         - pip install tox
-        - sleep 30
-        - nc -w 300 -vz postgres 5432
+        - postgresRetryCount=0
+        - while ! nc -vz postgres 5432 && [ "$postgresRetryCount" -lt 30 ]; do echo "Waiting for PostgreSQL to be available"; sleep 10; postgresRetryCount=$((postgresRetryCount + 1)); done
         - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
         - tox
     environment:
