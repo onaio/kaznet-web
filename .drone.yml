@@ -2,9 +2,11 @@ pipeline:
   build:
     image: onaio/python:${PYTHON_VERSION}
     commands:
+        - apt-get update && apt-get -y install netcat
         - pip install --upgrade pip
         - pip install tox
         - sleep 30
+        - nc -w 300 -vz postgres 5432
         - psql -h postgres -U kaznet -c "SELECT 1 AS COL;"
         - tox
     environment:
