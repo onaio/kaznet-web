@@ -94,7 +94,7 @@ class TestSignals(MainTestBase):
         been sent to ona data
         """
         # assert that the messaged is logged
-        with self.assertLogs(logger="submission logger",
+        with self.assertLogs(logger="kaznet.apps.main.api",
                              level='ERROR') as log_messages:
             mommy.make('auth.User', username='onasupport')
             # create an xform but no task
@@ -113,7 +113,7 @@ class TestSignals(MainTestBase):
                 json=dict
             )
             self.assertIn(
-                'ERROR:submission logger:Instance: 17'
+                'ERROR:kaznet.apps.main.api:Instance: 17'
                 ' belongs to a task that has been deleted',
                 log_messages.output
             )
