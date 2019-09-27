@@ -101,11 +101,12 @@ class TestAPIMethods(MainTestBase):
 
         # check that a submission is created for same task,
         # with the correct review comment and review status
-        submission = Submission.objects.filter(target_object_id=instance.id).first()# pylint: disable=no-member
+        submission = Submission.objects.filter(  # pylint: disable=no-member
+                        target_object_id=instance.id).first()
 
         self.assertEqual(submission.status,
                          convert_ona_to_kaznet_submission_status(
-                            instance.json.get("_review_status")))
+                             instance.json.get("_review_status")))
         self.assertEqual(submission.comments, "This is a review comment")
         self.assertEqual(submission.target_object_id, instance.id)
 
