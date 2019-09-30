@@ -84,6 +84,40 @@ class TestSignals(MainTestBase):
         )
         self.assertEqual(1, Submission.objects.filter(task=puppy_task).count())
 
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    def test_create_submission_for_missing_task(self):
+        """
+        Check that an an error is logged if a Submission is
+        created for an xform that does not have a task
+        associated with it. This may happen when a task is
+        deleted on kaznet-web while a submission has already
+        been sent to ona data
+        """
+        # assert that the messaged is logged
+        with self.assertLogs(logger="kaznet.apps.main.api",
+                             level='ERROR') as log_messages:
+            mommy.make('auth.User', username='onasupport')
+            # create an xform but no task
+            ona_form = mommy.make('ona.XForm')
+            puppy_task = mommy.make(
+                'main.Task',
+                name='Puppy Prices',
+                target_content_object=ona_form
+            )
+            puppy_task.delete()
+            # create an instance for this form(ona_form)
+            mommy.make(
+                'ona.Instance',
+                id=17,
+                xform=ona_form,
+                json=dict
+            )
+            self.assertIn(
+                'ERROR:kaznet.apps.main.api:Instance: 17'
+                ' belongs to a task that has been deleted',
+                log_messages.output
+            )
+
     @patch('kaznet.apps.main.signals.task_create_submission.delay')
     def test_create_submission_signal_handler(self, mock):
         """
