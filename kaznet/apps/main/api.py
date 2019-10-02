@@ -33,6 +33,7 @@ def create_submission(ona_instance: object):
     data = ona_instance.json
     task = ona_instance.get_task()
     user = ona_instance.user
+    instance_id = ona_instance.id
 
     # don't create a submission for missing task
     if task is None:
@@ -117,6 +118,12 @@ def create_submission(ona_instance: object):
                     else:
                         validated_data['status'] = status
                         validated_data['comments'] = str(comment)
+        # call sync_submission_review based on validated_data[status]
+        #  and the json field
+        task_sync_submission_review.delay(
+            ona_instance.id,
+            validated_data['status'],
+            validated_data['comments'])
 
     if 'location' not in validated_data:
         location = get_locations(
@@ -128,16 +135,15 @@ def create_submission(ona_instance: object):
                 'id': location.first().id
             }
 
-    # call sync_submission_review based on validated_data[status]
-    #  and the json field
-    task_sync_submission_review.delay(
-        ona_instance.id, validated_data['status'], validated_data['comments'])
-
     if validated_data['status'] == Submission.REJECTED:
         validated_data['valid'] = False
     else:
         validated_data['valid'] = True
-    serializer_instance = KaznetSubmissionSerializer(data=validated_data)
+
+    submission = Submission.objects.filter(  # pylint: disable=no-member
+        target_object_id=instance_id).first()
+    serializer_instance = KaznetSubmissionSerializer(
+        submission, data=validated_data)
     if serializer_instance.is_valid():
         return serializer_instance.save()
     return None
@@ -225,9 +231,9 @@ def validate_submission_time(task: object, submission_time: str):
                     date__day=submission_time.day,
                     date__month=submission_time.month,
                     date__year=submission_time.year
-                ).filter(start_time__lte=submission_time
-                         .time()).filter(end_time__gte=submission_time
-                                         .time()).exists():
+                    ).filter(
+                        start_time__lte=submission_time.time()).filter(
+                            end_time__gte=submission_time.time()).exists():
             return (Submission.PENDING, "")
     # We reject the submission if there was no TaskOccurrence
     # That match the submission_time

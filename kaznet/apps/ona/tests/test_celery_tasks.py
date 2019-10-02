@@ -114,7 +114,7 @@ MOCKED_INSTANCES = [
         "_attachments": [],
         "_id": 21311503,
         "_review_status": settings.ONA_SUBMISSION_REVIEW_REJECTED,
-        "_review_comments": "",
+        "_review_comment": "",
     },
 ]
 
