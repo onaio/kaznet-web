@@ -9,7 +9,7 @@ from tasking.common_tags import (INVALID_END_DATE, INVALID_START_DATE,
 from tasking.validators import validate_rrule
 
 from kaznet.apps.main.common_tags import (MISSING_START_DATE, PAST_END_DATE,
-                                          SAME_PARENT)
+                                          SAME_PARENT, MISSING_LOCATION)
 from kaznet.apps.main.models import Task, TaskLocation
 from kaznet.apps.main.serializers.base import (GenericForeignKeySerializer,
                                                validate_parent_field)
@@ -125,9 +125,9 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
         Validate location inputs
         """
         for location_input in value:
-            serializer = TaskLocationCreateSerializer(data=location_input)
-            if not serializer.is_valid():
-                raise serializers.ValidationError(serializer.errors)
+            if not location_input.get('location'):
+                raise serializers.ValidationError({
+                    'location': MISSING_LOCATION})
 
         return value
 
@@ -311,8 +311,7 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             TaskLocation.objects.filter(task=task).delete()
             for location_data in locations_data:
                 location_data['task'] = task
-                TaskLocationCreateSerializer.create(
-                    TaskLocationCreateSerializer(),
-                    validated_data=location_data)
+                TaskLocationSerializer.create(
+                    TaskLocationSerializer(), validated_data=location_data)
 
         return task
