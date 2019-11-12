@@ -120,6 +120,17 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             raise serializers.ValidationError(SAME_PARENT)
         return value
 
+    def validate_locations_input(self, value):
+        """
+        Validate location inputs
+        """
+        for location_input in value:
+            serializer = TaskLocationCreateSerializer(data=location_input)
+            if not serializer.is_valid():
+                raise serializers.ValidationError(serializer.errors)
+
+        return value
+
     def validate(self, attrs):
         """
         Object level validation method for TaskSerializer
@@ -300,7 +311,8 @@ class KaznetTaskSerializer(GenericForeignKeySerializer):
             TaskLocation.objects.filter(task=task).delete()
             for location_data in locations_data:
                 location_data['task'] = task
-                TaskLocationSerializer.create(
-                    TaskLocationSerializer(), validated_data=location_data)
+                TaskLocationCreateSerializer.create(
+                    TaskLocationCreateSerializer(),
+                    validated_data=location_data)
 
         return task
