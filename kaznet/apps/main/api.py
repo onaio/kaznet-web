@@ -156,7 +156,8 @@ def get_locations(coords: list, task: object):
     # Check if we were able to successfully get coords
     # If we weren't then return None
     if coords and all(coords):
-        submission_point = Point(coords[0], coords[1])
+        # Expects coords to be passed in as latitude, longitude
+        submission_point = Point(coords[1], coords[0])
 
         # get task locations with a shapefile that has the submission_point
         # within its range
@@ -176,7 +177,10 @@ def validate_location(coords: list, task: object):
     Validates Submission Location
     """
     locations = get_locations(coords, task)
-    submission_point = Point(coords[0], coords[1])
+    # Onadata endpoint passes coordinates as Latitude, Longitude
+    # Point takes in coordinates as Longitude, Latitude
+    # Ref: https://docs.djangoproject.com/en/2.2/ref/contrib/gis/geos/
+    submission_point = Point(coords[1], coords[0])
 
     if locations:
         for location in locations:
