@@ -66,8 +66,8 @@ class TestAPIMethods(MainTestBase):
         data = {
             "_xform_id_string": "aFEjJKzULJbQYsmQzKcpL9",
             "_geolocation": [
-                36.776554,
-                -1.294328
+                -1.294328,
+                36.776554
             ],
             "_status": "submitted_via_web",
             "_review_status": settings.ONA_SUBMISSION_REVIEW_APPROVED,
