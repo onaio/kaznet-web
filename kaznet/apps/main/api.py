@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Point
 
 import logging
 import dateutil.parser
+import pytz
 from geopy.distance import distance
 from tasking.utils import get_allowed_contenttypes
 
@@ -228,6 +229,12 @@ def validate_submission_time(task: object, submission_time: str):
     except ValueError:
         pass  # not a valid datetime string
     else:
+        # Check if the submission_time is of proper timezone when compared
+        # to one of the tasks datetimes
+        if settings.TIME_ZONE:
+            timezone = pytz.timezone(settings.TIME_ZONE)
+            submission_time = submission_time.astimezone(timezone)
+
         # We query all TaskOccurrence Objects for the Submissions Task
         # To see if the user submitted the data at an acceptable time range
         if TaskOccurrence.objects.filter(  # pylint: disable=no-member
