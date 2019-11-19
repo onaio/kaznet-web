@@ -321,7 +321,7 @@ class TestAPIMethods(MainTestBase):
         end_time = submission_time + timedelta(minutes=10)
 
         # Create a TaskOccurence within the submission_time window
-        # Based on UTC
+        # Based on GMT+3
         mommy.make(
             'main.TaskOccurrence',
             task=task,
