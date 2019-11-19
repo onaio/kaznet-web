@@ -2,8 +2,9 @@
 Test Module for Main API Methods
 """
 import os
+import pytz
 from collections import OrderedDict
-from datetime import timedelta
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
 
 import requests_mock
@@ -294,6 +295,48 @@ class TestAPIMethods(MainTestBase):
 
         self.assertEqual(Submission.REJECTED, status)
         self.assertEqual(INVALID_SUBMISSION_TIME, comment)
+
+    def test_validate_submission_time_different_timezone(self):
+        """
+        Test that submission_time timezone is converted to the applications
+        timezone and correctly validated
+        """
+        # Works with different timezones
+        # Create task with start date based on a Timezone
+        instance = self._create_instance()
+        # Create start and end date as UTC+3
+        start_date = datetime.now(pytz.timezone('Africa/Nairobi'))
+        end_date = start_date + timedelta(days=2)
+        task = mommy.make(
+            'main.Task',
+            target_content_type=self.xform_type,
+            target_object_id=instance.xform.id,
+            start=start_date.isoformat(),
+            end=end_date.isoformat(),
+        )
+
+        data = instance.json
+        # Store Submission as Datestring with no TZInfo
+        submission_time = start_date + timedelta(minutes=60)
+        end_time = submission_time + timedelta(minutes=10)
+
+        # Create a TaskOccurence within the submission_time window
+        # Based on GMT+3
+        mommy.make(
+            'main.TaskOccurrence',
+            task=task,
+            date=submission_time.date(),
+            start_time=start_date.time(),
+            end_time=end_time.time())
+
+        submission_time = submission_time.astimezone(pytz.utc)
+        data['_submission_time'] = submission_time.isoformat()
+
+        status, comment = validate_submission_time(
+            task, data['_submission_time'])
+
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
 
     def test_validate_submission_limit(self):
         """
