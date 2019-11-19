@@ -338,6 +338,15 @@ class TestAPIMethods(MainTestBase):
         self.assertEqual(Submission.PENDING, status)
         self.assertEqual("", comment)
 
+        # Test still validates if timezone is not specified in submission_time
+        data['_submission_time'] = data['_submission_time'].replace(
+            '+00:00', '')
+        status, comment = validate_submission_time(
+            task, data['_submission_time'])
+
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
+
     def test_validate_submission_limit(self):
         """
         Test that validate_submission_limit works as it should with valid data
