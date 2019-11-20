@@ -1,10 +1,12 @@
 """
 API Methods For Kaznet Main App
 """
+import logging
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.gis.geos import Point
 
-import logging
 import dateutil.parser
 import pytz
 from geopy.distance import distance
@@ -14,12 +16,11 @@ from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
                                           LACKING_EXPERTISE,
                                           SUBMISSIONS_MORE_THAN_LIMIT)
-from kaznet.apps.main.models import Location, Submission, TaskOccurrence, \
-    TaskLocation
+from kaznet.apps.main.models import (Location, Submission, TaskLocation,
+                                     TaskOccurrence)
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
-from kaznet.apps.ona.tasks import task_sync_submission_review
 from kaznet.apps.ona.api import convert_ona_to_kaznet_submission_status
-
+from kaznet.apps.ona.tasks import task_sync_submission_review
 
 # Get an instance of a logger
 LOGGER = logging.getLogger(__name__)
@@ -233,7 +234,12 @@ def validate_submission_time(task: object, submission_time: str):
         # to one of the tasks datetimes
         if settings.TIME_ZONE:
             timezone = pytz.timezone(settings.TIME_ZONE)
-            submission_time = submission_time.astimezone(timezone)
+
+            if submission_time.tzinfo:
+                submission_time = submission_time.astimezone(timezone)
+            else:
+                now = datetime.now(timezone)
+                submission_time = submission_time + now.utcoffset()
 
         # We query all TaskOccurrence Objects for the Submissions Task
         # To see if the user submitted the data at an acceptable time range
