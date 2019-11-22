@@ -240,21 +240,25 @@ class TestApiMethods(MainTestBase):
         """
 
         # data returned from the 'api/v1/forms/{form_id}' endpoint
-        mocked_xform_data1 = {
-            "name": "Changed",
+        # note that mocked_xform_data
+        # and mocked_xform_data_with_updated_version_field
+        # come from two different API endpoints but represent
+        # the same form.
+        mocked_xform_data = {
+            "name": "test_task_happy10092019",
             "formid": 53,
-            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
-            "version": "vQZYoAo96pzTHZHY2iWuQA",
+            "id_string": "happytoday10092019",
+            "version": "2019-10-17T10:37:16+03:00",
             "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
             "downloadable": True,
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53')
-        mocked.get(url, json=mocked_xform_data1)
+        mocked.get(url, json=mocked_xform_data)
 
         # data returned from the 'api/v1/forms/{form_id}/form.json' endpoint
-        mocked_xform_data2 = {
+        mocked_xform_data_with_updated_version_field = {
             "name": "test_task_happy10092019",
             "type": "survey",
             "title": "happytoday10092019",
@@ -265,22 +269,22 @@ class TestApiMethods(MainTestBase):
             "children": []}
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53/form.json')
-        mocked.get(url, json=mocked_xform_data2)
+        mocked.get(url, json=mocked_xform_data_with_updated_version_field)
 
         response = get_xform(53)
 
         # data we are supposed to get from get_xform(53) call
-        mocked_xform_data3 = {
-            "name": "Changed",
+        expected_xform_data = {
+            "name": "test_task_happy10092019",
             "formid": 53,
-            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "id_string": "happytoday10092019",
             "version": "happytoday10092019",
             "owner": "https://example.com/api/v1/users/kaznet",
             "is_merged_dataset": False,
             "downloadable": True,
         }
 
-        self.assertTrue(response, mocked_xform_data3)
+        self.assertTrue(response, expected_xform_data)
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
