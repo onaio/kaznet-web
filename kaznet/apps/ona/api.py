@@ -185,20 +185,23 @@ def get_xform(xform_id: int):
     """
     Custom Method that return a specific Form
     """
-    xform_data = request(urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
+    xform_data = request(
+        urljoin(settings.ONA_BASE_URL, f'api/v1/forms/{xform_id}'))
     xform_data['version'] = get_xform_version(xform_id)
     return xform_data
+
 
 def get_xform_version(xform_id: int):
     """
     Custom Method that returns the most recent
     version set on the xform on onadata.
     """
-    xform_data = request(urljoin(settings.ONA_BASE_URL, f'/api/v1/forms/{xform_id}/form.json'))
+    xform_data = request(urljoin(settings.ONA_BASE_URL,
+                                 f'/api/v1/forms/{xform_id}/form.json'))
     if xform_data is not None:
         version = xform_data.get('version')
         return version
-
+    return None
 
 
 def process_xforms(forms_data: list, project_id: int):
