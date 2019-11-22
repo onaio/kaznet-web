@@ -27,7 +27,7 @@ from kaznet.apps.ona.api import (create_filtered_data_sets,
                                  fetch_missing_instances,
                                  get_and_process_xforms, get_project,
                                  get_project_obj, get_projects, get_xform,
-                                 get_xform_obj, process_instance,
+                                 get_xform_obj, get_xform_version, process_instance,
                                  process_project, process_projects,
                                  process_xform, process_xforms, request,
                                  request_session, sync_deleted_instances,
@@ -237,7 +237,9 @@ class TestApiMethods(MainTestBase):
         Test to see that get_xform returns the correct
         data
         """
-        mocked_xform_data = {
+
+        #data returned from the 'api/v1/forms/{form_id}' endpoint
+        mocked_xform_data1 = {
             "name": "Changed",
             "formid": 53,
             "id_string": "aFEjJKzULJbQYsmQzKcpL9",
@@ -248,10 +250,58 @@ class TestApiMethods(MainTestBase):
         }
 
         url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53')
-        mocked.get(url, json=mocked_xform_data)
+        mocked.get(url, json=mocked_xform_data1)
+
+        #data returned from the 'api/v1/forms/{form_id}/form.json' endpoint
+        mocked_xform_data2 = {
+            "name": "test_task_happy10092019",
+            "type": "survey",
+            "title": "happytoday10092019",
+            "id_string": "happytoday10092019",
+            "sms_keyword": "happytoday10092019",
+            "default_language": "default",
+            "version": "happytoday10092019",
+            "children": []}
+
+        url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/53/form.json')
+        mocked.get(url, json=mocked_xform_data2)
+
         response = get_xform(53)
 
-        self.assertTrue(response, mocked_xform_data)
+        #data we are supposed to get from get_xform(53) call
+        mocked_xform_data3 = {
+            "name": "Changed",
+            "formid": 53,
+            "id_string": "aFEjJKzULJbQYsmQzKcpL9",
+            "version": "happytoday10092019",
+            "owner": "https://example.com/api/v1/users/kaznet",
+            "is_merged_dataset": False,
+            "downloadable": True,
+        }
+
+        self.assertTrue(response, mocked_xform_data3)
+
+    @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
+    @requests_mock.Mocker()
+    def test_get_xform_version(self, mocked):
+        """
+        Test to see that get_xform_version returns the correct
+        data
+        """
+        mocked_xform_data = {
+            "name": "test_task_happy10092019",
+            "type": "survey",
+            "title": "happytoday10092019",
+            "id_string": "happytoday10092019",
+            "sms_keyword": "happytoday10092019",
+            "default_language": "default",
+            "version": "happytoday10092019",
+            "children": []}
+
+        url = urljoin(settings.ONA_BASE_URL, 'api/v1/forms/443917/form.json')
+        mocked.get(url, json=mocked_xform_data)
+
+        self.assertTrue("happytoday10092019", get_xform_version(443917))
 
     # pylint: disable=no-self-use
     @patch('kaznet.apps.ona.api.process_project')
