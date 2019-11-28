@@ -11,5 +11,6 @@ def kaznet_processor(request):  # pylint: disable=unused-argument
     """
     return {
         'ONA_BASE_URL': settings.ONA_BASE_URL,
-        'ONA_LOGIN_TEXT': _(settings.ONA_LOGIN_TEXT)
+        'ONA_LOGIN_TEXT': _(settings.ONA_LOGIN_TEXT),
+        'APP_NAME': settings.APP_NAME
     }
