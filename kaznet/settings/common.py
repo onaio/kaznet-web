@@ -30,7 +30,7 @@ KAZNET_DEFAULT_CURRENCY = 'KES'
 
 # Application definition
 
-APP_NAME = 'Cerana'
+APP_NAME = 'Kaznet'
 
 INSTALLED_APPS = [
     # core django
