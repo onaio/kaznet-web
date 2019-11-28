@@ -59,7 +59,11 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import debug_toolbar  # noqa
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+    try:
+        import debug_toolbar  # noqa pylint: disable=E0401
+    except ModuleNotFoundError:
+        pass
+    else:
+        urlpatterns = [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
