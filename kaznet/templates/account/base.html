@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
         <link rel="shortcut icon" href="{% static 'react/favicon.ico' %}">
         <title>{% block title %}{% block head_title %}{% endblock %} | {{ APP_NAME.upper }} {% endblock %}</title>
+        <link href="{% static 'react/css/auxiliary.css' %}" rel="stylesheet">
         <link href="{% static 'react/css/main.css' %}" rel="stylesheet">
         <link href="{% static 'css/allauth.css' %}" rel="stylesheet">
         {% block extrahead %}

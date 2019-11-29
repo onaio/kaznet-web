@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 {% load staticfiles i18n %}
 <html lang="en">
 
@@ -8,13 +8,15 @@
     <meta name="theme-color" content="#711c27" />
     <link rel="manifest" href="{% static 'react/manifest.json' %}">
     <link rel="shortcut icon" href="{% static 'react/favicon.ico' %}">
-    <title>Kaznet</title>
+    <title>{{ APP_NAME }}</title>
     <link href="{% static 'react/css/main.css' %}" rel="stylesheet">
+    <link href="{% static 'react/css/auxiliary.css' %}" rel="stylesheet">
 </head>
 
-<body>
-    <noscript>{% trans "You need to enable JavaScript to run this app." %}</noscript>
+<body><noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="kaznet-root" class="kaznet-root"></div>
+    <script type="text/javascript" src="{% static 'react/js/runtime.js' %}"></script>
+    <script type="text/javascript" src="{% static 'react/js/auxiliary.js' %}"></script>
     <script type="text/javascript" src="{% static 'react/js/main.js' %}"></script>
 </body>
 
