@@ -8,8 +8,9 @@ SAME_PARENT = _('An object cannot be its own parent.')
 INCORRECT_LOCATION = _('Submitted from wrong location')
 LACKING_EXPERTISE = _('User Expertise level does not meet Requirement')
 INVALID_SUBMISSION_TIME = _('Data Submitted at wrong time.')
+INVALID_COLLECTION_TIME = _('Data collected at wrong time.')
 INVALID_TASK = _('Can not submit data to invalid Task.')
-MISSING_START_DATE = _('Cannot determine the start date.  Please provide '
+MISSING_START_DATE = _('Cannot determine the start date. Please provide '
                        'either the start date or timing rule(s)')
 SUBMISSIONS_MORE_THAN_LIMIT = _('User Submissions for this task more than '
                                 'the set limit per user')
@@ -39,3 +40,7 @@ HAS_WEBHOOK_FIELD_NAME = 'has_webhook'
 WEBHOOK_FIELD_NAME = 'webhooks'
 HAS_FILTERED_DATASETS_FIELD_NAME = 'has_filtered_data_sets'
 FILTERED_DATASETS_FIELD_NAME = 'filtered_datasets'
+
+SUBMISSION_TIME = '_submission_time'
+START_TIME = 'start'
+END_TIME = 'end'

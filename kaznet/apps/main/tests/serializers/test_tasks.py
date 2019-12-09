@@ -12,7 +12,7 @@ from django_prices.models import Money
 from model_mommy import mommy
 from tasking.utils import get_rrule_end, get_rrule_start
 
-from kaznet.apps.main.common_tags import PAST_END_DATE
+from kaznet.apps.main.common_tags import PAST_END_DATE, MISSING_START_DATE
 from kaznet.apps.main.models import Bounty, Task
 from kaznet.apps.main.serializers import KaznetTaskSerializer
 from kaznet.apps.main.tests.base import MainTestBase
@@ -317,21 +317,20 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
         serializer_instance = KaznetTaskSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
-        msg = "Cannot determine the start date.  Please provide either the start date or timing rule(s)"  # noqa
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['timing_rule'][0]
             )
         )
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['start'][0]
             )
         )
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['locations_input'][0]
             )
@@ -372,21 +371,20 @@ class TestKaznetTaskSerializer(MainTestBase):
         }
         serializer_instance = KaznetTaskSerializer(data=data)
         self.assertFalse(serializer_instance.is_valid())
-        msg = "Cannot determine the start date.  Please provide either the start date or timing rule(s)"  # noqa
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['timing_rule'][0]
             )
         )
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['start'][0]
             )
         )
         self.assertEqual(
-            msg,
+            MISSING_START_DATE,
             str(
                 serializer_instance.errors['locations_input'][0]
             )
