@@ -438,7 +438,6 @@ class TestAPIMethods(MainTestBase):
         Test that create_submission works the way it should
         for valid data
         """
-
         # Test it creates a Submission Object If Data is Valid
         instance = self._create_instance()
         userprofile = instance.user.userprofile
@@ -466,12 +465,19 @@ class TestAPIMethods(MainTestBase):
 
         submission = create_submission(instance)
 
+        self.assertEqual(
+            len(Submission.objects.all()), 1)
         self.assertEqual(Submission.APPROVED, submission.status)
         self.assertEqual(mocked_location, submission.location)
         self.assertEqual(mocked_bounty, submission.bounty)
         self.assertEqual(task, submission.task)
         self.assertEqual(instance.user, submission.user)
         self.assertTrue(submission.valid)
+
+        # Test that a submission is not recreated if a Submission
+        # tied to the instance exists
+        submission = create_submission(instance)
+        self.assertEqual(len(Submission.objects.all()), 1)
 
     def test_create_submission_with_invalid_data(self):
         """
