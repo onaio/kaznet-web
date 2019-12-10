@@ -49,19 +49,6 @@ def create_submission(ona_instance: object):
 
     validated_data = validate_submission_data(ona_instance)
 
-    # Approve submission if Auto Approval is turned on
-    # and Submission is pending review
-    if validated_data['status'] == Submission.PENDING and \
-            settings.SUBMISSION_AUTO_APPROVAL:
-        validated_data['status'] = Submission.APPROVED
-
-    # call sync_submission_review based on validated_data[status]
-    # and the json field
-    task_sync_submission_review.delay(
-        ona_instance.id,
-        validated_data['status'],
-        validated_data['comments'])
-
     if 'location' not in validated_data:
         location = get_locations(
             data.get(settings.ONA_GEOLOCATION_FIELD), task)
@@ -72,15 +59,13 @@ def create_submission(ona_instance: object):
                 'id': location.first().id
             }
 
-    validated_data['valid'] = not validated_data['status'] == \
-        Submission.REJECTED
-
     # Get submission tied to instance_id if present and update it else
     # create a new submission
     submission = Submission.objects.filter(  # pylint: disable=no-member
         target_object_id=instance_id).first()
     serializer_instance = KaznetSubmissionSerializer(
         submission, data=validated_data)
+
     if serializer_instance.is_valid():
         return serializer_instance.save()
     return None
@@ -119,7 +104,6 @@ def validate_submission_data(ona_instance: object):
         }
 
     status = Submission.PENDING
-    comment = ''
 
     # if submission has had a review, update status and comments appropriately
     if settings.ONA_STATUS_FIELD in data:
@@ -127,8 +111,6 @@ def validate_submission_data(ona_instance: object):
             ona_status=data[settings.ONA_STATUS_FIELD])
         comment = str(
             data.get(settings.ONA_COMMENTS_FIELD, ""))
-        # indicate that the instance object's review status
-        # has already been synced
         ona_instance.json["synced_with_ona_data"] = True
 
     if status == Submission.PENDING:
@@ -152,8 +134,22 @@ def validate_submission_data(ona_instance: object):
                     'id': location.id
                 }
 
+        # Approve submission if Auto Approval is turned on
+        # and Submission is pending review
+        if status == Submission.PENDING and \
+                settings.SUBMISSION_AUTO_APPROVAL:
+            status = Submission.APPROVED
+
+        # Sync submission review on onadata
+        task_sync_submission_review.delay(
+            ona_instance.id,
+            status,
+            comment)
+
     validated_data['status'] = status
     validated_data['comments'] = str(comment)
+    validated_data['valid'] = not validated_data['status'] == \
+        Submission.REJECTED
 
     return validated_data
 
