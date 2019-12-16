@@ -6,6 +6,7 @@ from time import sleep
 from urllib.parse import urljoin
 
 from celery import task as celery_task
+from celery.utils.log import get_task_logger
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.urls import reverse
@@ -23,6 +24,8 @@ from kaznet.apps.ona.models import XForm, Instance
 from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
 from kaznet.apps.ona.api import sync_submission_review
 from kaznet.apps.ona.api import convert_kaznet_to_ona_submission_status
+
+celery_logger = get_task_logger(__name__)
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -187,7 +190,8 @@ def task_sync_deleted_xforms(username: str):
     """
     checks for deleted xforms and syncs them
     """
-    sync_deleted_xforms(username=username)
+    result = sync_deleted_xforms(username=username)
+    celery_logger.info(f'Synced deleted forms: {result}')
 
 
 # pylint: disable=not-callable
@@ -196,7 +200,8 @@ def task_sync_deleted_projects(usernames: list):
     """
     checks for deleted projects and syncs them
     """
-    sync_deleted_projects(usernames=usernames)
+    result = sync_deleted_projects(usernames=usernames)
+    celery_logger.info(f'Synced deleted forms: {result}')
 
 
 # pylint: disable=not-callable

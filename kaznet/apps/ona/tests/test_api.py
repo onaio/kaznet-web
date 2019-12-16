@@ -194,8 +194,10 @@ class TestApiMethods(MainTestBase):
             urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=mosh'),
             json=mocked_mosh_projects_data)
 
-        sync_deleted_projects(usernames=[settings.ONA_USERNAME, 'mosh'])
+        result = sync_deleted_projects(
+            usernames=[settings.ONA_USERNAME, 'mosh'])
 
+        self.assertEqual(result.get('deleted_projects_count'), 4)
         proj.refresh_from_db()
         self.assertEqual(2, Project.objects.count())
         self.assertTrue(Project.objects.filter(id=proj.id).exists())
@@ -210,6 +212,91 @@ class TestApiMethods(MainTestBase):
         task.refresh_from_db()
         self.assertEqual(Task.DRAFT, task.status)
         self.assertEqual(0, task.get_submissions())
+
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
+    @requests_mock.Mocker()
+    def test_sync_xforms_deletes_only_when_successful(self, mocked):
+        """
+        Test sync_deleted_xforms only deletes xforms when the request is
+        successful
+        """
+        project = mommy.make('ona.Project')
+
+        # Generate 10 forms
+        xforms = mommy.make(
+            'ona.XForm',  ona_project_id=project.ona_pk, _quantity=10)
+
+        # make some instances
+        instances = mommy.make(
+            'ona.Instance', _quantity=13, xform=xforms[0])
+
+        # make some submissions
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instances[0],
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json={'error': 'something'})
+
+        form_count = XForm.objects.alive_only().count()
+
+        result = sync_deleted_xforms(username=settings.ONA_USERNAME)
+
+        self.assertEqual(result.get('deleted_xforms_count'), 0)
+        self.assertEqual(form_count, XForm.objects.alive_only().count())
+
+    @override_settings(
+        ONA_BASE_URL='https://stage-api.ona.io', ONA_USERNAME='kaznettest')
+    @requests_mock.Mocker()
+    def test_sync_projects_deletes_only_when_successful(self, mocked):
+        """
+        Test that we only deleted projects when we get a valid
+        response from the onadata API
+        """
+        proj = mommy.make('ona.Project', ona_pk=1337)
+
+        # make some forms
+        xforms = mommy.make(
+            'ona.XForm', ona_project_id=1337, project=proj, _quantity=10)
+
+        # make some instances
+        mommy.make('ona.Instance', _quantity=13, xform=xforms[0])
+        instance = mommy.make('ona.Instance', xform=xforms[0])
+
+        # make some submissions to a task
+        task = mommy.make('main.Task', name='Cattle Price')
+        mommy.make(
+            'main.Submission',
+            task=task,
+            target_content_object=instance,
+            _quantity=70,
+            _fill_optional=['user', 'comment', 'submission_time'])
+
+        # Mock an improper response from the api
+        mocked.get(
+            urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
+            json={'error': 'Something went wrong'})
+
+        form_count = XForm.objects.alive_only().count()
+        project_count = Project.objects.alive_only().count()
+        instance_count = Instance.objects.alive_only().count()
+
+        result = sync_deleted_projects(usernames=[settings.ONA_USERNAME])
+
+        # Assert that the projects, xforms and instances are not deleted
+        self.assertEqual(result.get('deleted_projects_count'), 0)
+        self.assertEqual(
+            project_count, Project.objects.alive_only().count())
+        self.assertEqual(
+            form_count, XForm.objects.alive_only().count())
+        self.assertEqual(
+            instance_count, Instance.objects.alive_only().count())
 
     @override_settings(ONA_BASE_URL='https://stage-api.ona.io')
     @requests_mock.Mocker()
@@ -1780,8 +1867,12 @@ class TestApiMethods(MainTestBase):
             urljoin(settings.ONA_BASE_URL, 'api/v1/projects?owner=kaznettest'),
             json=mocked_projects_data)
 
-        sync_deleted_xforms(username=settings.ONA_USERNAME)
+        result = sync_deleted_xforms(username=settings.ONA_USERNAME)
 
+        self.assertEqual(result.get('deleted_xforms_count'), 1)
+        self.assertEqual(result.get('deleted_xforms')[0], xform.ona_pk)
+        self.assertEqual(
+            result.get('projects_pulled_from_ona')[0], project1.ona_pk)
         self.assertFalse(XForm.objects.filter(id=xform.id).exists())
         self.assertFalse(Instance.objects.filter(xform__id=xform.id).exists())
         self.assertTrue(XForm.objects.filter(id=xform2.id).exists())
