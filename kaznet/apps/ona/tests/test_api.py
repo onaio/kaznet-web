@@ -1909,12 +1909,24 @@ class TestApiMethods(MainTestBase):
             _quantity=70,
             _fill_optional=['user', 'comment', 'submission_time'])
 
-        sync_deleted_instances(form_id=xform.ona_pk)
+        result = sync_deleted_instances(form_id=xform.ona_pk)
 
+        self.assertEqual(result.get('deleted_instances')[0], instance1.ona_pk)
+        self.assertEqual(result.get('deleted_instances_count'), 1)
         self.assertFalse(Instance.objects.filter(id=instance1.id).exists())
         self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
         task.refresh_from_db()
         self.assertEqual(0, task.get_submissions())
+
+        # Test doesn't delete instances on invalid response
+        mocked_request.get(raw_ids_url, json={'error': 'Something is wrong'})
+        instance_count = Instance.objects.alive_only().count()
+
+        result = sync_deleted_instances(form_id=xform.ona_pk)
+
+        self.assertEqual(result.get('deleted_instances_count'), 0)
+        self.assertEqual(instance_count, 1)
+        self.assertTrue(Instance.objects.filter(id=instance2.id).exists())
 
     @patch('kaznet.apps.ona.api.request')
     def test_sync_submission_review(self, request_method_mock):

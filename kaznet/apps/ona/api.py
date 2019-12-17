@@ -386,22 +386,31 @@ def sync_deleted_instances(form_id: int):
     """
     Attempts to get and sync deleted instances from Onadata
     """
+    deleted_instances = []
+
     try:
-        the_xform = XForm.objects.get(ona_pk=form_id)
+        xform = XForm.objects.get(ona_pk=form_id)
     except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
         raw_ids = fetch_form_data(
-            formid=the_xform.ona_pk,
+            formid=xform.ona_pk,
             dataids_only=True)
         if isinstance(raw_ids, list) and raw_ids:
             onadata_instance_pks = [rec['_id'] for rec in raw_ids]
-            local_instances = Instance.objects.filter(xform=the_xform)
+            local_instances = Instance.objects.filter(xform=xform)
             deleted_instances = local_instances.exclude(
                 ona_pk__in=onadata_instance_pks)
             # delete safely
             for instance in deleted_instances:
                 delete_instance(instance)
+
+        return {
+            'deleted_instances': [
+                instance.ona_pk for instance in deleted_instances],
+            'deleted_instances_count': len(deleted_instances),
+            'related_form': xform.ona_pk
+        }
 
 
 def fetch_missing_instances(form_id: int):

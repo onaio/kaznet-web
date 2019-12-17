@@ -170,7 +170,9 @@ def task_sync_form_deleted_instances(xform_id: int):
     except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
-        sync_deleted_instances(form_id=the_xform.ona_pk)
+        result = sync_deleted_instances(form_id=the_xform.ona_pk)
+        # pylint: disable=logging-fstring-interpolation
+        logger.info(f'Synced & Deleted instances: {result}')
 
 
 # pylint: disable=not-callable
@@ -192,7 +194,7 @@ def task_sync_deleted_xforms(username: str):
     """
     result = sync_deleted_xforms(username=username)
     # pylint: disable=logging-fstring-interpolation
-    logger.info(f'Synced deleted forms: {result}')
+    logger.info(f'Synced & Deleted forms: {result}')
 
 
 # pylint: disable=not-callable
@@ -203,7 +205,7 @@ def task_sync_deleted_projects(usernames: list):
     """
     result = sync_deleted_projects(usernames=usernames)
     # pylint: disable=logging-fstring-interpolation
-    logger.info(f'Synced deleted forms: {result}')
+    logger.info(f'Synced & Deleted forms: {result}')
 
 
 # pylint: disable=not-callable
