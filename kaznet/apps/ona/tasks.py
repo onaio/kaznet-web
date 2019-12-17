@@ -25,7 +25,7 @@ from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
 from kaznet.apps.ona.api import sync_submission_review
 from kaznet.apps.ona.api import convert_kaznet_to_ona_submission_status
 
-celery_logger = get_task_logger(__name__)
+logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
@@ -191,7 +191,8 @@ def task_sync_deleted_xforms(username: str):
     checks for deleted xforms and syncs them
     """
     result = sync_deleted_xforms(username=username)
-    celery_logger.info(f'Synced deleted forms: {result}')
+    # pylint: disable=logging-fstring-interpolation
+    logger.info(f'Synced deleted forms: {result}')
 
 
 # pylint: disable=not-callable
@@ -201,7 +202,8 @@ def task_sync_deleted_projects(usernames: list):
     checks for deleted projects and syncs them
     """
     result = sync_deleted_projects(usernames=usernames)
-    celery_logger.info(f'Synced deleted forms: {result}')
+    # pylint: disable=logging-fstring-interpolation
+    logger.info(f'Synced deleted forms: {result}')
 
 
 # pylint: disable=not-callable
