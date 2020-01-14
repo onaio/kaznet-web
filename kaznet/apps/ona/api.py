@@ -386,22 +386,31 @@ def sync_deleted_instances(form_id: int):
     """
     Attempts to get and sync deleted instances from Onadata
     """
+    deleted_instances = []
+
     try:
-        the_xform = XForm.objects.get(ona_pk=form_id)
+        xform = XForm.objects.get(ona_pk=form_id)
     except XForm.DoesNotExist:  # pylint: disable=no-member
         pass
     else:
         raw_ids = fetch_form_data(
-            formid=the_xform.ona_pk,
+            formid=xform.ona_pk,
             dataids_only=True)
         if isinstance(raw_ids, list) and raw_ids:
             onadata_instance_pks = [rec['_id'] for rec in raw_ids]
-            local_instances = Instance.objects.filter(xform=the_xform)
+            local_instances = Instance.objects.filter(xform=xform)
             deleted_instances = local_instances.exclude(
                 ona_pk__in=onadata_instance_pks)
             # delete safely
             for instance in deleted_instances:
                 delete_instance(instance)
+
+        return {
+            'deleted_instances': [
+                instance.ona_pk for instance in deleted_instances],
+            'deleted_instances_count': len(deleted_instances),
+            'related_form': xform.ona_pk
+        }
 
 
 def fetch_missing_instances(form_id: int):
@@ -749,20 +758,38 @@ def sync_deleted_projects(usernames: list):
     """
     Checks for deleted projects on Onadata
     If it finds any, it deletes them locally
+
+    :attribute usernames: A list of usernames to sync projects with
+    :return: A dict containing the summary of how many projects having
+                been deleted.
+    :rtype: dict
     """
     onadata_project_pks = []
-    for username in usernames:
-        onadata_projects = get_projects(username=username)
-        if isinstance(onadata_projects, list) and onadata_projects:
-            onadata_project_pks = onadata_project_pks + [
-                rec['projectid'] for rec in onadata_projects]
+    deleted_projects = []
+    error = None
 
-    local_projects = Project.objects.filter(deleted_at=None)
-    deleted_projects = local_projects.exclude(ona_pk__in=onadata_project_pks)
+    try:
+        for username in usernames:
+            onadata_project_pks += [
+                project['projectid'] for project in
+                get_projects(username=username) if project.get('projectid')]
+    except (AttributeError, TypeError):
+        # get_projects returned a non-list datatype
+        error = ('Error encountered while '
+                 f'syncing deleted projects for user(s): {usernames}')
+    else:
+        deleted_projects = Project.objects.alive_only().exclude(
+            ona_pk__in=onadata_project_pks)
 
-    # delete projects safely
-    for proj in deleted_projects:
-        delete_project(proj)
+        for proj in deleted_projects:
+            delete_project(proj)
+
+    return {
+        'deleted_projects': [project.ona_pk for project in deleted_projects],
+        'deleted_projects_count': len(deleted_projects),
+        'projects_pulled_from_ona': onadata_project_pks,
+        'errors': error
+    }
 
 
 def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
@@ -771,19 +798,35 @@ def sync_deleted_xforms(username: str = settings.ONA_USERNAME):
     If it finds any, it deletes them locally
     """
     onadata_projects = get_projects(username=username)
-    onadata_projects_pks = [rec['projectid'] for rec in onadata_projects]
+    onadata_project_pks = []
     onadata_xform_ids = []
-    if isinstance(onadata_projects, list) and onadata_projects:
+    deleted_xforms = []
+    error = None
+
+    if onadata_projects is not None and isinstance(onadata_projects, list):
         for project in onadata_projects:
             project_forms = project.get('forms')
-            xform_ids = [x['formid'] for x in project_forms if x.get('formid')]
-            onadata_xform_ids = onadata_xform_ids + xform_ids
+            onadata_xform_ids = onadata_xform_ids + [
+                x['formid'] for x in project_forms if x.get('formid')]
 
-    local_xforms = XForm.objects.filter(deleted_at=None).filter(
-        ona_project_id__in=onadata_projects_pks)
+        onadata_project_pks = [
+            rec['projectid'] for rec in onadata_projects]
+        local_xforms = XForm.objects.filter(deleted_at=None).filter(
+            ona_project_id__in=onadata_project_pks)
 
-    deleted_xforms = local_xforms.exclude(ona_pk__in=onadata_xform_ids)
+        deleted_xforms = local_xforms.exclude(
+            ona_pk__in=onadata_xform_ids)
 
-    # delete xforms safely
-    for xform in deleted_xforms:
-        delete_xform(xform)
+        # delete xforms safely
+        for xform in deleted_xforms:
+            delete_xform(xform)
+    else:
+        error = ('Encountered error while '
+                 f'syncing deleted xforms for {username}')
+
+    return {
+        'deleted_xforms_count': len(deleted_xforms),
+        'deleted_xforms': [form.ona_pk for form in deleted_xforms],
+        'projects_pulled_from_ona': onadata_project_pks,
+        'errors': error
+    }
