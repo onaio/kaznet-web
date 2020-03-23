@@ -19,8 +19,11 @@ from kaznet.apps.main.api import (create_submission, validate_location,
                                   validate_submission_time, validate_user)
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
+                                          INVALID_COLLECTION_TIME,
                                           LACKING_EXPERTISE,
-                                          SUBMISSIONS_MORE_THAN_LIMIT)
+                                          SUBMISSIONS_MORE_THAN_LIMIT,
+                                          SUBMISSION_TIME,
+                                          START_TIME, END_TIME)
 from kaznet.apps.main.models import Submission, Task
 from kaznet.apps.main.serializers import KaznetLocationSerializer
 from kaznet.apps.main.tests.base import MainTestBase
@@ -269,10 +272,48 @@ class TestAPIMethods(MainTestBase):
             task.start + timedelta(minutes=45)).isoformat()
 
         status, comment = validate_submission_time(
-            task, data['_submission_time'])
+            task, data)
 
         self.assertEqual(Submission.PENDING, status)
         self.assertEqual("", comment)
+
+    def test_validate_start_end_time(self):
+        """
+        Test that it prioritizes validating the start and end date when present
+        """
+        instance = self._create_instance()
+        data = instance.json
+        now = timezone.now()
+        rrule = f'FREQ=DAILY;INTERVAL=1;UNTIL={now.year + 1}0729T210000Z'
+
+        task = mommy.make(
+            'main.Task',
+            timing_rule=rrule,
+            target_content_type=self.xform_type,
+            target_object_id=instance.xform.id)
+
+        data[START_TIME] = (
+            task.start + timedelta(minutes=45)).isoformat()
+        data[END_TIME] = (
+            task.start + timedelta(minutes=50)).isoformat()
+
+        # Should still accept the data even if it is submitted in the future
+        # but was collected at the right time
+        data[SUBMISSION_TIME] = '20991209T141453Z'
+
+        status, comment = validate_submission_time(
+            task, data)
+
+        self.assertEqual(Submission.PENDING, status)
+        self.assertEqual("", comment)
+
+        # Test that it fails if either start or end time is not within the
+        # task submission time
+        data[START_TIME] = '20001209T141453Z'
+        status, comment = validate_submission_time(task, data)
+
+        self.assertEqual(Submission.REJECTED, status)
+        self.assertEqual(INVALID_COLLECTION_TIME, comment)
 
     def test_validate_submission_time_with_invalid_data(self):
         """
@@ -291,7 +332,7 @@ class TestAPIMethods(MainTestBase):
             target_object_id=instance.xform.id)
 
         status, comment = validate_submission_time(
-            task, data['_submission_time'])
+            task, data)
 
         self.assertEqual(Submission.REJECTED, status)
         self.assertEqual(INVALID_SUBMISSION_TIME, comment)
@@ -333,7 +374,7 @@ class TestAPIMethods(MainTestBase):
         data['_submission_time'] = submission_time.isoformat()
 
         status, comment = validate_submission_time(
-            task, data['_submission_time'])
+            task, data)
 
         self.assertEqual(Submission.PENDING, status)
         self.assertEqual("", comment)
@@ -342,7 +383,7 @@ class TestAPIMethods(MainTestBase):
         data['_submission_time'] = data['_submission_time'].replace(
             '+00:00', '')
         status, comment = validate_submission_time(
-            task, data['_submission_time'])
+            task, data)
 
         self.assertEqual(Submission.PENDING, status)
         self.assertEqual("", comment)

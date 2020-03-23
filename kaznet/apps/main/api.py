@@ -14,8 +14,11 @@ from tasking.utils import get_allowed_contenttypes
 
 from kaznet.apps.main.common_tags import (INCORRECT_LOCATION,
                                           INVALID_SUBMISSION_TIME,
+                                          SUBMISSION_TIME,
                                           LACKING_EXPERTISE,
-                                          SUBMISSIONS_MORE_THAN_LIMIT)
+                                          SUBMISSIONS_MORE_THAN_LIMIT,
+                                          START_TIME, END_TIME,
+                                          INVALID_COLLECTION_TIME)
 from kaznet.apps.main.models import (Location, Submission, TaskLocation,
                                      TaskOccurrence)
 from kaznet.apps.main.serializers import KaznetSubmissionSerializer
@@ -34,7 +37,6 @@ def create_submission(ona_instance: object):
     """
     data = ona_instance.json
     task = ona_instance.get_task()
-    user = ona_instance.user
     instance_id = ona_instance.id
 
     # don't create a submission for missing task
@@ -44,6 +46,40 @@ def create_submission(ona_instance: object):
             "Instance: %d belongs to a task that has been deleted",
             ona_instance.id)
         return None
+
+    validated_data = validate_submission_data(ona_instance)
+
+    if 'location' not in validated_data:
+        location = get_locations(
+            data.get(settings.ONA_GEOLOCATION_FIELD), task)
+        if location:
+            # get one of the valid locations
+            validated_data['location'] = {
+                'type': 'Location',
+                'id': location.first().id
+            }
+
+    # Get submission tied to instance_id if present and update it else
+    # create a new submission
+    submission = Submission.objects.filter(  # pylint: disable=no-member
+        target_object_id=instance_id).first()
+    serializer_instance = KaznetSubmissionSerializer(
+        submission, data=validated_data)
+
+    if serializer_instance.is_valid():
+        return serializer_instance.save()
+    return None
+
+
+def validate_submission_data(ona_instance: object):
+    """Validates submission data making sure the submission
+    was submitted by a valid user who has not reached their submission limit
+    for a task and that the submission was submitted at the
+    right location and time
+    """
+    data = ona_instance.json
+    task = ona_instance.get_task()
+    user = ona_instance.user
 
     validated_data = {
         'task': {
@@ -60,35 +96,35 @@ def create_submission(ona_instance: object):
             model='instance').first().id,
         'target_id': ona_instance.id
     }
+
     if task.bounty is not None:
         validated_data['bounty'] = {
             'type': 'Bounty',
             'id': task.bounty.id
         }
 
-    # if submission has had a review, update validated_data appropriately
+    status = Submission.PENDING
+
+    # if submission has had a review, update status and comments appropriately
     if settings.ONA_STATUS_FIELD in data:
-        validated_data['status'] = convert_ona_to_kaznet_submission_status(
+        status = convert_ona_to_kaznet_submission_status(
             ona_status=data[settings.ONA_STATUS_FIELD])
-        validated_data['comments'] = str(
+        comment = str(
             data.get(settings.ONA_COMMENTS_FIELD, ""))
-        # indicate that the instance object's review status
-        # has already been synced
         ona_instance.json["synced_with_ona_data"] = True
 
-    # if submission hasn't had a review(pending), or no review information of
-    # submission
-    if settings.ONA_STATUS_FIELD not in data or (
-            validated_data['status'] == Submission.PENDING and
-            not validated_data['comments']):
-        # Validation: order: User - Location - Time
+    if status == Submission.PENDING:
         status, comment = validate_user(task, user)
-        validated_data['status'] = status
-        validated_data['comments'] = str(comment)
 
-        # Validate location if submission passed user validation and
-        # submission has location details
-        if validated_data['status'] != Submission.REJECTED and \
+        # If the person submitting the data is a valid user
+        # Validate that they havent reached their submission limit
+        if status != Submission.REJECTED:
+            status, comment = validate_submission_limit(task, user)
+
+        if status != Submission.REJECTED:
+            status, comment = validate_submission_time(task, data)
+
+        if status != Submission.REJECTED and \
                 all(data[settings.ONA_GEOLOCATION_FIELD]):
             location, status, comment = validate_location(
                 data[settings.ONA_GEOLOCATION_FIELD], task)
@@ -97,58 +133,25 @@ def create_submission(ona_instance: object):
                     'type': 'Location',
                     'id': location.id
                 }
-            validated_data['status'] = status
-            validated_data['comments'] = str(comment)
 
-            # Validate time if Submission passed location validation
-            if validated_data['status'] != Submission.REJECTED:
-                status, comment = validate_submission_time(
-                    task, data['_submission_time'])
-                validated_data['status'] = status
-                validated_data['comments'] = str(comment)
+        # Approve submission if Auto Approval is turned on
+        # and Submission is pending review
+        if status == Submission.PENDING and \
+                settings.SUBMISSION_AUTO_APPROVAL:
+            status = Submission.APPROVED
 
-                # Validate limit if submission passed time validation
-                if validated_data['status'] != Submission.REJECTED:
-                    status, comment = validate_submission_limit(task, user)
-
-                    # Auto approve submission if it passes all validations and
-                    #  auto approval is set
-                    if status == Submission.PENDING and \
-                            settings.SUBMISSION_AUTO_APPROVAL:
-                        validated_data['status'] = Submission.APPROVED
-                        validated_data['comments'] = str(comment)
-                    else:
-                        validated_data['status'] = status
-                        validated_data['comments'] = str(comment)
-        # call sync_submission_review based on validated_data[status]
-        #  and the json field
+        # Sync submission review on onadata
         task_sync_submission_review.delay(
             ona_instance.id,
-            validated_data['status'],
-            validated_data['comments'])
+            status,
+            comment)
 
-    if 'location' not in validated_data:
-        location = get_locations(
-            data.get(settings.ONA_GEOLOCATION_FIELD), task)
-        if location:
-            # get one of the valid locations
-            validated_data['location'] = {
-                'type': 'Location',
-                'id': location.first().id
-            }
+    validated_data['status'] = status
+    validated_data['comments'] = str(comment)
+    validated_data['valid'] = not validated_data['status'] == \
+        Submission.REJECTED
 
-    if validated_data['status'] == Submission.REJECTED:
-        validated_data['valid'] = False
-    else:
-        validated_data['valid'] = True
-
-    submission = Submission.objects.filter(  # pylint: disable=no-member
-        target_object_id=instance_id).first()
-    serializer_instance = KaznetSubmissionSerializer(
-        submission, data=validated_data)
-    if serializer_instance.is_valid():
-        return serializer_instance.save()
-    return None
+    return validated_data
 
 
 def get_locations(coords: list, task: object):
@@ -219,42 +222,64 @@ def validate_user(task: object, user: object):
     return (Submission.REJECTED, LACKING_EXPERTISE)
 
 
-def validate_submission_time(task: object, submission_time: str):
+def validate_submission_time(task: object, submission_data: dict):
+    """Validate that the time a submission was made is within the acceptable
+    range utilizing the start and end date if present else using the
+    submission_time
     """
-    Validates that the user submitted at right time
+    # pylint: disable=no-else-return
+    if (submission_data.get(START_TIME) and submission_data.get(END_TIME)):
+        submission_start = submission_data.get(START_TIME)
+        submission_end = submission_data.get(END_TIME)
+
+        return (Submission.PENDING, '') if \
+            validate_within_task_occurrence(task, submission_start) and \
+            validate_within_task_occurrence(task, submission_end) else \
+            (Submission.REJECTED, INVALID_COLLECTION_TIME)
+    else:
+        submitted_at = submission_data.get(SUBMISSION_TIME)
+
+        return (Submission.PENDING, '') if \
+            validate_within_task_occurrence(task, submitted_at) \
+            else (Submission.REJECTED, INVALID_SUBMISSION_TIME)
+
+
+def validate_within_task_occurrence(task: object, time: str):
+    """
+    Validates that a passed in time string is within the Task Occurrence
+    range of a task
     """
     # We turn the isoformated string we get from Instance data into
     # a datetime object for easier comparison
     try:
-        submission_time = dateutil.parser.parse(submission_time)
+        time = dateutil.parser.parse(time)
     except ValueError:
         pass  # not a valid datetime string
     else:
-        # Check if the submission_time is of proper timezone when compared
+        # Check if the time is of proper timezone when compared
         # to one of the tasks datetimes
         if settings.TIME_ZONE:
             timezone = pytz.timezone(settings.TIME_ZONE)
 
-            if submission_time.tzinfo:
-                submission_time = submission_time.astimezone(timezone)
+            if time.tzinfo:
+                time = time.astimezone(timezone)
             else:
                 now = datetime.now(timezone)
-                submission_time = submission_time + now.utcoffset()
+                time = time + now.utcoffset()
 
-        # We query all TaskOccurrence Objects for the Submissions Task
-        # To see if the user submitted the data at an acceptable time range
+        # We query all TaskOccurrence Objects for the Task
+        # To see if the time is within the acceptable range
         if TaskOccurrence.objects.filter(  # pylint: disable=no-member
                 task=task).filter(
-                    date__day=submission_time.day,
-                    date__month=submission_time.month,
-                    date__year=submission_time.year
+                    date__day=time.day,
+                    date__month=time.month,
+                    date__year=time.year
                     ).filter(
-                        start_time__lte=submission_time.time()).filter(
-                            end_time__gte=submission_time.time()).exists():
-            return (Submission.PENDING, "")
-    # We reject the submission if there was no TaskOccurrence
-    # That match the submission_time
-    return (Submission.REJECTED, INVALID_SUBMISSION_TIME)
+                        start_time__lte=time.time()).filter(
+                            end_time__gte=time.time()).exists():
+            return True
+    # We return false if there was no TaskOccurence within the time
+    return False
 
 
 def validate_submission_limit(task: object, user: object):
