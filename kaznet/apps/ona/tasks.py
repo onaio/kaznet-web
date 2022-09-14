@@ -13,13 +13,19 @@ from django.urls import reverse
 from django.utils import timezone
 
 from kaznet.apps.main.models import Task
-from kaznet.apps.ona.api import (create_filtered_data_sets,
-                                 create_form_webhook, fetch_missing_instances,
-                                 get_and_process_xforms, get_projects,
-                                 process_projects, sync_deleted_instances,
-                                 sync_deleted_projects, sync_deleted_xforms,
-                                 sync_updated_instances,
-                                 update_user_profile_metadata)
+from kaznet.apps.ona.api import (
+    create_filtered_data_sets,
+    create_form_webhook,
+    fetch_missing_instances,
+    get_and_process_xforms,
+    get_projects,
+    process_projects,
+    sync_deleted_instances,
+    sync_deleted_projects,
+    sync_deleted_xforms,
+    sync_updated_instances,
+    update_user_profile_metadata,
+)
 from kaznet.apps.ona.models import XForm, Instance
 from kaznet.apps.ona.utils import check_if_users_can_submit_to_form
 from kaznet.apps.ona.api import sync_submission_review
@@ -39,11 +45,12 @@ def task_fetch_projects(username: str):
     process_projects(projects)
     # go through each project and process its forms
     for project in projects:
-        project_forms = project.get('forms')
-        project_id = project.get('projectid')
+        project_forms = project.get("forms")
+        project_id = project.get("projectid")
         if project_forms and project_id:
             task_process_project_xforms.delay(
-                forms=project_forms, project_id=int(project_id))
+                forms=project_forms, project_id=int(project_id)
+            )
             sleep(0.1)  # to avoid overload on onadata API
 
 
@@ -123,8 +130,7 @@ def task_process_user_profiles():
     user_list = User.objects.filter(last_login__gt=time)
 
     for user in user_list:
-        task_update_user_profile.delay(
-            ona_username=user.userprofile.ona_username)
+        task_update_user_profile.delay(ona_username=user.userprofile.ona_username)
 
 
 @celery_task(name="task_update_user_profile")  # pylint: disable=not-callable
@@ -137,13 +143,13 @@ def task_update_user_profile(ona_username: str):
 
 # pylint: disable=not-callable
 @celery_task(name="task_auto_create_filtered_data_sets")
-def task_auto_create_filtered_data_sets(
-        form_id: int, project_id: int, form_title: str):
+def task_auto_create_filtered_data_sets(form_id: int, project_id: int, form_title: str):
     """
     Takes ona form filtered data sets
     """
     create_filtered_data_sets(
-        form_id=form_id, project_id=project_id, form_title=form_title)
+        form_id=form_id, project_id=project_id, form_title=form_title
+    )
 
 
 @celery_task(name="task_task_create_form_webhook")
@@ -152,11 +158,8 @@ def task_create_form_webhook(form_id: int):
     Creates an Onadata webhook for the form
     """
     current_site = Site.objects.get_current()
-    service_url = urljoin(current_site.domain, reverse('webhook'))
-    create_form_webhook(
-        form_id=form_id,
-        service_url=service_url
-    )
+    service_url = urljoin(current_site.domain, reverse("webhook"))
+    create_form_webhook(form_id=form_id, service_url=service_url)
 
 
 # pylint: disable=not-callable
@@ -172,7 +175,7 @@ def task_sync_form_deleted_instances(xform_id: int):
     else:
         result = sync_deleted_instances(form_id=the_xform.ona_pk)
         # pylint: disable=logging-fstring-interpolation
-        logger.info(f'Synced & Deleted instances: {result}')
+        logger.info(f"Synced & Deleted instances: {result}")
 
 
 # pylint: disable=not-callable
@@ -194,7 +197,7 @@ def task_sync_deleted_xforms(username: str):
     """
     result = sync_deleted_xforms(username=username)
     # pylint: disable=logging-fstring-interpolation
-    logger.info(f'Synced & Deleted forms: {result}')
+    logger.info(f"Synced & Deleted forms: {result}")
 
 
 # pylint: disable=not-callable
@@ -205,7 +208,7 @@ def task_sync_deleted_projects(usernames: list):
     """
     result = sync_deleted_projects(usernames=usernames)
     # pylint: disable=logging-fstring-interpolation
-    logger.info(f'Synced & Deleted forms: {result}')
+    logger.info(f"Synced & Deleted forms: {result}")
 
 
 # pylint: disable=not-callable
@@ -235,14 +238,15 @@ def task_sync_xform_can_submit_checks():
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_submission_review")
-def task_sync_submission_review(instance_id: int,
-                                kaznet_review_status: str, comment: str):
+def task_sync_submission_review(
+    instance_id: int, kaznet_review_status: str, comment: str
+):
     """
     Sync auto review of submission with its review on onadata
     """
-    ona_review_status = convert_kaznet_to_ona_submission_status(
-        kaznet_review_status)
+    ona_review_status = convert_kaznet_to_ona_submission_status(kaznet_review_status)
     sync_submission_review(instance_id, ona_review_status, comment)
+
 
 # pylint: disable=not-callable
 @celery_task(name="task_sync_outdated_submission_reviews")
@@ -256,11 +260,10 @@ def task_sync_outdated_submission_reviews():
     # synced_with_ona_data is not set to True
     all_instances = Instance.objects.filter(json__synced_with_ona_data=False)
     all_instances = list(all_instances) + list(
-        Instance.objects.filter(json__synced_with_ona_data=None))
+        Instance.objects.filter(json__synced_with_ona_data=None)
+    )
     for instance in all_instances:
-        status = instance.json.get('status')
-        comment = instance.json.get('comment')
+        status = instance.json.get("status")
+        comment = instance.json.get("comment")
         if status is not None and comment is not None:
-            task_sync_submission_review.delay(instance.id,
-                                              status,
-                                              comment)
+            task_sync_submission_review.delay(instance.id, status, comment)
