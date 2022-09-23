@@ -266,4 +266,4 @@ def task_sync_outdated_submission_reviews():
         status = instance.json.get("status")
         comment = instance.json.get("comment")
         if status is not None and comment is not None:
-            task_sync_submission_review.delay(instance.id, status, comment)
+            task_sync_submission_review.delay(instance.ona_pk, status, comment)

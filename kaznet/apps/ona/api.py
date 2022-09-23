@@ -359,7 +359,10 @@ def sync_submission_review(instance_id: int,
             url = urljoin(settings.ONA_BASE_URL,
                           'api/v1/submissionreview.json')
             reply = request(url, args, method='POST')
-            if reply["instance"].strip() == str(instance_id):
+            ona_submission_id = reply["instance"]
+            if isinstance(ona_submission_id, str):
+                ona_submission_id = reply["instance"].strip()
+            if ona_submission_id == str(instance_id):
                 instance.json["synced_with_ona_data"] = True
                 instance.save()
 
