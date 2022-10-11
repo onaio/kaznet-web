@@ -35,23 +35,31 @@ logger = get_task_logger(__name__)  # pylint: disable=invalid-name
 
 
 @celery_task(name="task_fetch_projects")  # pylint: disable=not-callable
-def task_fetch_projects(username: str):
+def task_fetch_projects(usernames: list):
     """
     Fetches and processes projects from Onadata
     """
-    # get the projects from Onadata's API
-    projects = get_projects(username=username)
-    # save the projects locally
-    process_projects(projects)
-    # go through each project and process its forms
-    for project in projects:
-        project_forms = project.get("forms")
-        project_id = project.get("projectid")
-        if project_forms and project_id:
-            task_process_project_xforms.delay(
-                forms=project_forms, project_id=int(project_id)
-            )
-            sleep(0.1)  # to avoid overload on onadata API
+    for username in usernames:
+        try:
+            # get the projects from Onadata's API
+            projects = get_projects(username=username)
+        except (AttributeError, TypeError):
+            # get_projects returned a non-list datatype
+            error = ('Error encountered while '
+                 f'syncing deleted projects for user(s): {username}')
+            logger.error(error)
+        else:
+            # save the projects locally
+            process_projects(projects)
+            # go through each project and process its forms
+            for project in projects:
+                project_forms = project.get("forms")
+                project_id = project.get("projectid")
+                if project_forms and project_id:
+                    task_process_project_xforms.delay(
+                        forms=project_forms, project_id=int(project_id)
+                    )
+                    sleep(0.1)  # to avoid overload on onadata API
 
 
 # pylint: disable=not-callable
