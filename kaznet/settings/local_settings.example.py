@@ -57,7 +57,7 @@ CELERY_BEAT_SCHEDULE = {
     "fetch_org_projects": {
         "task": "task_fetch_projects",
         "schedule": crontab(hour="*", minute="*/5"),  # every 5 minutes
-        "kwargs": {"username": "kaznet"},
+        "kwargs": {"usernames": ["kaznet", "kaznettest"]},
     },
     "sync_deleted_projects": {
         "task": "task_sync_deleted_projects",
@@ -73,7 +73,7 @@ CELERY_BEAT_SCHEDULE = {
     "fetch_user_projects": {
         "task": "task_fetch_projects",
         "schedule": crontab(hour="*", minute="*/5"),  # every 5 minutes
-        "kwargs": {"username": "kaznettest"},
+        "kwargs": {"usernames": ["kaznet", "kaznettest"]},
     },
     "sync_deleted_user_xforms": {
         "task": "task_sync_deleted_xforms",
