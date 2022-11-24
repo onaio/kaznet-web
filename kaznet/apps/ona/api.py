@@ -354,7 +354,6 @@ def sync_submission_review(instance_id: int,
         # comment on json field of instances
         instance.json["ona_review_status"] = ona_review_status
         instance.json["review_comment"] = comment
-        instance.save()
         if instance.json.get("synced_with_ona_data") is not True:
             url = urljoin(settings.ONA_BASE_URL,
                           'api/v1/submissionreview.json')
@@ -362,9 +361,9 @@ def sync_submission_review(instance_id: int,
             ona_submission_id = reply["instance"]
             if isinstance(ona_submission_id, str):
                 ona_submission_id = reply["instance"].strip()
-            if ona_submission_id == str(instance_id):
+            if str(ona_submission_id) == str(instance_id):
                 instance.json["synced_with_ona_data"] = True
-                instance.save()
+        instance.save()
 
 
 def sync_updated_instances(form_id: int):

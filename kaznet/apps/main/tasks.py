@@ -9,6 +9,7 @@ from kaznet.apps.main.api import create_submission
 from kaznet.apps.main.models import Task, Bounty
 from kaznet.apps.main.models import TaskOccurrence
 from kaznet.apps.main.utils import create_occurrences
+from kaznet.apps.ona.api import process_instance_ids
 from kaznet.apps.ona.models import Instance, XForm
 
 
@@ -99,8 +100,9 @@ def task_sync_missing_submission_reviews():
             )
         )
         xform = XForm.objects.get(id_string=active_task.xform_id_string)
+        instance_ids = []
         for i in xform.instance_set.filter().exclude(pk__in=k):
-            create_submission(ona_instance=i)
+            instance_ids.append(i.ona_pk)
 
         # force reprocess pending reviews.
         k = list(
@@ -109,4 +111,7 @@ def task_sync_missing_submission_reviews():
             )
         )
         for i in xform.instance_set.filter(pk__in=k):
-            create_submission(ona_instance=i)
+            instance_ids.append(i.ona_pk)
+
+        # Gets instances submissions from ona
+        process_instance_ids(list_of_ids=instance_ids, xform=xform)
