@@ -102,8 +102,11 @@ def create_submission(ona_instance: object):
 
             # Validate time if Submission passed location validation
             if validated_data['status'] != Submission.REJECTED:
+                validation_time = data['_submission_time']
+                if "starttime" in data:
+                    validation_time = data['starttime']
                 status, comment = validate_submission_time(
-                    task, data['_submission_time'])
+                    task, validation_time)
                 validated_data['status'] = status
                 validated_data['comments'] = str(comment)
 
