@@ -198,6 +198,7 @@ ONA_CONTRIBUTER_ROLE = "dataentry"
 ONA_MANAGER_ROLE = "manager"
 ONA_EDITOR_ROLE = "editor"
 ONA_XFORM_CONFIGURED_FIELD = "configuration_status"
+ONA_FORM_START_TIME_FIELD = "starttime"
 # Texts
 ONA_LOGIN_TEXT = 'Log In With Your Ona Account'
 
