@@ -38,7 +38,7 @@ def request_session(
         password: str = settings.ONA_PASSWORD,
         retries=3,
         backoff_factor=1.1,
-        status_forcelist=(500, 502, 504),
+        status_forcelist=(429, 500, 502, 504),
 ):  # pylint: disable=too-many-arguments
     """
     Custom Method that takes in a URL, Method(GET / POST) and optionally
